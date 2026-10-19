@@ -76,7 +76,7 @@ def make_og() -> Path:
         x += w + 14
 
     # 底部域名
-    d.text((94, 552), "image-show.yangzixiongh.workers.dev",
+    d.text((94, 552), "yangzixiong.com",
            font=font("consola.ttf", 26), fill=MUTED)
 
     path = OUT / "og-cover.png"

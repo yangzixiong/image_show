@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE = "https://image-show.yangzixiongh.workers.dev"
+BASE = "https://yangzixiong.com"
 
 # 本批已交付页面：(语言, 相对仓库的文件路径, 站点路径)
 PAGES = [

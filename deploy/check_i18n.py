@@ -11,7 +11,7 @@ PAGES = {  # 语言 -> 页面文件
     "zh": ROOT / "index.html",
     "en": ROOT / "en" / "index.html",
 }
-BASE = "https://image-show.yangzixiongh.workers.dev"
+BASE = "https://yangzixiong.com"
 
 ok = True
 

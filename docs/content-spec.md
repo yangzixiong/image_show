@@ -1,7 +1,7 @@
 # ImageLab 内容页开发任务书（交给 opencode 执行）
 
 > 本文档是给 AI 编码代理（opencode）的完整任务说明。执行前请读完「硬约束」和「禁止事项」两节。
-> 仓库根目录：`D:\yzx_workspace\image_show`，线上地址：`https://image-show.yangzixiongh.workers.dev`
+> 仓库根目录：`D:\yzx_workspace\image_show`，线上地址：`https://yangzixiong.com`
 
 ---
 
@@ -44,8 +44,8 @@ ImageLab 是一个纯静态的图片像素 / 深度查看器：
 
 URL 规则：
 
-- 中文：`https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html`
-- 英文：`https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html`
+- 中文：`https://yangzixiong.com/guides/depth-tiff.html`
+- 英文：`https://yangzixiong.com/en/guides/depth-tiff.html`
 
 （保留 `.html` 后缀，与现有 `404.html` 一致，不使用目录式 URL。）
 
@@ -61,11 +61,11 @@ URL 规则：
 <title>如何查看 16bit TIFF 深度图 · ImageLab</title>
 <meta name="description" content="（中文 60–120 字，说明本文解决什么问题、读者读完能做什么）">
 <meta name="robots" content="index,follow">
-<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+<link rel="canonical" href="https://yangzixiong.com/guides/depth-tiff.html">
 
-<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
-<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html">
-<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/depth-tiff.html">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/depth-tiff.html">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/depth-tiff.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="ImageLab">
@@ -73,13 +73,13 @@ URL 规则：
 <meta property="og:url" content="（同 canonical）">
 <meta property="og:title" content="（同 title）">
 <meta property="og:description" content="（同 description）">
-<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="（同 title）">
 <meta name="twitter:description" content="（同 description）">
-<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 
 <link rel="icon" href="（同首页的 data URI）">
 <link rel="stylesheet" href="css/style.css?v=2">

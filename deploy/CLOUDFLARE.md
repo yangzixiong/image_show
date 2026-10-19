@@ -4,7 +4,8 @@
 下面的步骤按顺序做一遍即可，全程免费额度内（Pages 免费版：无限请求与带宽，每月 500 次构建，静态站点足够）。
 
 > **实际状态（2026-10-19）**：站点最终没有走 Pages，而是用 **Workers 静态资源（Static Assets）** 面板直传上线的，
-> 线上地址 `https://image-show.yangzixiongh.workers.dev`。两者差别见文末「Workers 静态资源 vs Pages」。
+> 初始地址 `image-show.yangzixiongh.workers.dev`，正在切换到自有域名 `https://yangzixiong.com`（代码内全部绝对 URL 已改好）。
+> 两者差别见文末「Workers 静态资源 vs Pages」。
 > 本文的 Pages 步骤保留作为备选方案（万一以后要迁回 Pages 或接 Git 自动构建）。
 
 ---
@@ -235,3 +236,18 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 - [Git 集成](https://developers.cloudflare.com/pages/get-started/git-integration/)
 - [`_headers` 语法](https://developers.cloudflare.com/pages/configuration/headers/)
 - [免费版 Bot 防护能力](https://developers.cloudflare.com/bots/plans/free/)
+
+---
+
+## 绑定自有域名（Workers 静态资源）
+
+1. Cloudflare 控制台 → Add a site → 输入 `yangzixiong.com` → 选 Free 计划 → 页面会给出两条 NS（形如 `xxx.ns.cloudflare.com`）。
+2. 到域名注册商后台，把「DNS 服务器 / 自定义 DNS」改成这两条。等生效：`nslookup -type=ns yangzixiong.com 8.8.8.8`。
+3. Workers & Pages → `image-show` → Settings → Domains & Routes → Add → Custom domain → 填 `yangzixiong.com`。
+   Cloudflare 会自动补一条 DNS 记录并签发证书（Universal SSL，通常 1–15 分钟）。
+4. 再添加 `www.yangzixiong.com`；或在 Rules → Redirect Rules 建一条 301 指向 apex，避免重复内容。
+5. SSL/TLS 模式设为 **Full (strict)**。
+6. 验证：`curl -I https://yangzixiong.com/` 应返回 `200` 且带 `server: cloudflare`。
+
+> 代码里所有绝对 URL（canonical / og:url / hreflang / JSON-LD / sitemap / robots / 分享图）已统一指向 `https://yangzixiong.com`。
+> 换域名只需全局替换这一个字符串：`Get-ChildItem -Recurse -Include *.html,*.xml,*.txt,*.py,*.md | ...`
