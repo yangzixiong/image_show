@@ -1,0 +1,8 @@
+# 统一换行符：Cloudflare Pages 从仓库检出文件后直接对外提供，
+# 文本文件保持 LF，避免 Windows 下 CRLF 混入 _headers / robots.txt 等被逐行解析的文件。
+* text=auto eol=lf
+
+*.ico binary
+*.png binary
+*.jpg binary
+*.webp binary
