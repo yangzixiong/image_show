@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to View 16-bit TIFF Depth Maps · ImageLab</title>
+<meta name="description" content="Why 16-bit TIFF depth maps look black, which TIFF tags identify them, and how to read pixel depth in mm in the browser with Jet, Viridis or grayscale colormaps.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html">
+<meta property="og:title" content="How to View 16-bit TIFF Depth Maps · ImageLab">
+<meta property="og:description" content="Why 16-bit TIFF depth maps look black, which TIFF tags identify them, and how to read per-pixel depth in mm in your browser.">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to View 16-bit TIFF Depth Maps · ImageLab">
+<meta name="twitter:description" content="Why 16-bit TIFF depth maps look black, which TIFF tags identify them, and how to read per-pixel depth in mm in your browser.">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to View 16-bit TIFF Depth Maps",
+  "description": "Why 16-bit TIFF depth maps look black, which TIFF tags identify them, and how to read per-pixel depth in mm in your browser.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-19",
+  "author": { "@type": "Organization", "name": "ImageLab" },
+  "publisher": { "@type": "Organization", "name": "ImageLab" },
+  "url": "https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html",
+  "mainEntityOfPage": "https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/guides/depth-tiff.html" aria-current="page">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/depth-tiff.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Depth maps</span>
+  </nav>
+
+  <article class="prose">
+    <h1>How to View 16-bit TIFF Depth Maps</h1>
+    <p class="lede">You have a TIFF that opens as a black or washed-out grey rectangle, and you need the actual depth value of each pixel. This guide explains why that happens and how to read the values in a browser.</p>
+
+    <h2>A depth map is not a photo</h2>
+    <p>Each pixel of a depth map stores one distance value: how far the sensor was from the surface. The structure matches a photo — same width, height and pixel grid — but a photo uses three channels (R, G, B) for colour, while a depth map uses a single channel for distance.</p>
+    <p>It is really a numeric table stored in an image format. Opening it with a photo viewer will never show anything meaningful.</p>
+
+    <h2>Why it looks black when opened</h2>
+    <p>Image viewers render a single-channel file as greyscale: 0 becomes black, 65535 becomes white. An indoor scan with a 2–8 m range has pixel values clustered between 2000 and 8000 — roughly 9% of 65535 — so the whole image squeezes into the darkest end of the ramp.</p>
+    <p>The data is fine; the rendering is wrong for this kind of file. To see the values themselves you need a viewer that reads raw pixel values.</p>
+
+    <h2>16-bit vs 8-bit</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Bit depth</th><th>Values per pixel</th><th>At 1 unit = 1 mm</th><th>Suited for</th></tr></thead>
+      <tbody>
+        <tr><td>8-bit</td><td>0–255</td><td>0–255 mm</td><td>Previews, visualisation</td></tr>
+        <tr><td>16-bit</td><td>0–65535</td><td>0–65.5 m</td><td>Millimetre-level measurement</td></tr>
+        <tr><td>32-bit float</td><td>Any decimal</td><td>Read as metres, ×1000 here</td><td>Research data, wide dynamic range</td></tr>
+      </tbody>
+    </table></div>
+    <p>Storing millimetre-level depth in 8 bits makes adjacent millimetres at 2 m share the same value — the measurement quantises into bands. 16-bit keeps every millimetre distinct across a 65.5 m range, which is why depth maps almost always use it.</p>
+
+    <h2>Identifying a depth map by its TIFF tags</h2>
+    <p>Check four fields in a terminal with <code>exiftool</code> (or <code>tiffinfo</code>):</p>
+    <pre><code>$ exiftool scan_001.tif
+Bits Per Sample                 : 16
+Samples Per Pixel               : 1
+Sample Format                   : Unsigned Integer
+Photometric Interpretation      : Black Is Zero</code></pre>
+    <p>The mapping: <code>BitsPerSample=16</code>, <code>SamplesPerPixel=1</code>, <code>SampleFormat=1</code> (unsigned integer), <code>PhotometricInterpretation=1</code> (BlackIsZero). When all four line up, the file is a standard unsigned 16-bit depth map.</p>
+
+    <h2>Unit conventions (how this site reads them)</h2>
+    <p>ImageLab interprets depth values as follows:</p>
+    <ul>
+      <li>16-bit integer: the pixel value is shown directly as millimetres;</li>
+      <li>32-bit float: parsed as metres and multiplied by 1000 for display;</li>
+      <li>a pixel value of 0 is treated as invalid depth: rendered transparent (the checkerboard shows through) and excluded from the range statistics.</li>
+    </ul>
+    <p>These are site conventions, not an industry standard. Some vendors store 0.25 mm steps, others store metres outright. If the magnitude looks wrong — a desk reading as five digits — suspect the unit before suspecting the data.</p>
+
+    <h2>Choosing a colormap</h2>
+    <p>Displaying 16-bit values on an 8-bit screen requires a mapping, and the colormap decides what you can see:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Colormap</th><th>Character</th><th>Suited for</th></tr></thead>
+      <tbody>
+        <tr><td>Jet</td><td>High contrast, loud banding</td><td>Locating structures quickly, demos</td></tr>
+        <tr><td>Viridis</td><td>Perceptually uniform, monotonically brighter</td><td>Reading values, paper figures</td></tr>
+        <tr><td>Greyscale</td><td>No colour bias</td><td>Print, aligning with an RGB image</td></tr>
+      </tbody>
+    </table></div>
+    <p>Jet's strong contrast cuts both ways: the perceptual jump between adjacent bands draws a boundary where the values are actually continuous. For quantitative work, switch to Viridis.</p>
+
+    <h2>Steps in ImageLab</h2>
+    <ol>
+      <li>Open <a href="/en/">ImageLab</a> and drop the TIFF into the window, or click “Open image”;</li>
+      <li>hover the mouse: the floating tooltip and the sidebar show coordinates and the depth in mm;</li>
+      <li>switch Jet / Viridis / greyscale in the “Depth settings” panel;</li>
+      <li>zoom past 14× with the wheel to get the pixel grid; double-click to fit the window.</li>
+    </ol>
+    <p>If you only need the colour of a specific pixel, see the <a href="/en/guides/color-picker.html">colour picker guide</a>; coordinates and the magnifier are covered in <a href="/en/guides/pixel-inspector.html">the pixel inspector guide</a>.</p>
+
+    <h2>Troubleshooting checklist</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>Fully transparent, checkerboard only</td><td>All pixels are 0, treated as invalid</td><td>Confirm the file is a depth map, not an all-zero mask; re-export</td></tr>
+        <tr><td>One flat colour across the image</td><td>Near-constant depth, range is 0</td><td>Normal; a constant scene is a single colour</td></tr>
+        <tr><td>Wrong magnitude</td><td>Vendor unit is not millimetres</td><td>Convert per the device manual (×0.25 for 0.25 mm steps, etc.)</td></tr>
+        <tr><td>Fails to open</td><td>BigTIFF, JPEG-compressed or multi-page TIFF</td><td>Re-save as single-page TIFF with LZW / Deflate / no compression</td></tr>
+        <tr><td>Black holes along edges</td><td>Sensor returned nothing at the boundary, value 0</td><td>Normal invalid pixels</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>What this site deliberately does not do</h2>
+    <p>Some capabilities are left out on purpose to keep the tool dependency-free and fully client-side: no BigTIFF; multi-page TIFFs read only the first page; no point-cloud export; no distance annotation. When you need those, process the data with CloudCompare or OpenCV first, then come back to read the values.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/en/privacy.html">Privacy</a>
+    <a href="/guides/depth-tiff.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+</footer>
+
+</body>
+</html>

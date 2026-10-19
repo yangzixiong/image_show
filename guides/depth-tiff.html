@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>如何查看 16bit TIFF 深度图 · ImageLab</title>
+<meta name="description" content="16bit TIFF 深度图直接打开往往是一片黑或一片灰。本文说明判断深度图的 TIFF 字段、16bit 与 8bit 的差别、本站的毫米单位约定，以及 Jet、Viridis、灰度三种伪彩色的适用场景，并附常见问题排查表。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html">
+<meta property="og:title" content="如何查看 16bit TIFF 深度图 · ImageLab">
+<meta property="og:description" content="16bit TIFF 深度图直接打开往往是一片黑或一片灰。本文说明判断深度图的 TIFF 字段、16bit 与 8bit 的差别、本站的毫米单位约定，以及三种伪彩色的适用场景。">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="如何查看 16bit TIFF 深度图 · ImageLab">
+<meta name="twitter:description" content="16bit TIFF 深度图直接打开往往是一片黑或一片灰。本文说明判断深度图的 TIFF 字段、16bit 与 8bit 的差别、本站的毫米单位约定，以及三种伪彩色的适用场景。">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "如何查看 16bit TIFF 深度图",
+  "description": "16bit TIFF 深度图直接打开往往是一片黑或一片灰。本文说明判断深度图的 TIFF 字段、16bit 与 8bit 的差别、本站的毫米单位约定，以及三种伪彩色的适用场景。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-19",
+  "author": { "@type": "Organization", "name": "ImageLab" },
+  "publisher": { "@type": "Organization", "name": "ImageLab" },
+  "url": "https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html",
+  "mainEntityOfPage": "https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/guides/depth-tiff.html" aria-current="page">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/depth-tiff.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">16bit 深度图</span>
+  </nav>
+
+  <article class="prose">
+    <h1>如何查看 16bit TIFF 深度图</h1>
+    <p class="lede">手上有一张打开后全黑或灰蒙蒙的 TIFF，需要读出每个像素的真实深度值——这篇文章解释成因，并给出在浏览器里直接查看的操作路径。</p>
+
+    <h2>深度图不是照片</h2>
+    <p>深度图（depth map）的每个像素存的是一个距离值：传感器到物体表面的距离。它和照片结构相同——同样的宽高、同样的像素网格——但通道不同：照片用 R、G、B 三个通道存颜色，深度图只有一个通道存距离。</p>
+    <p>所以它本质是一张数值表格，只是借用了图片格式存储。用看照片的方式打开它，注定看不到有意义的东西。</p>
+
+    <h2>为什么直接打开是黑的</h2>
+    <p>看图软件把单通道数值当灰度渲染：0 显示为黑，65535 显示为白。一张量程 2–8 米的室内扫描图，像素值集中在 2000–8000，只占 65535 的约 9%，整张图挤在最暗的一端。</p>
+    <p>数据没有坏，只是显示方式不对。想知道数值本身，需要一个能读原始像素值的查看器。</p>
+
+    <h2>16bit 与 8bit 的差别</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>位深</th><th>每像素取值</th><th>1 单位 = 1mm 时</th><th>适用场景</th></tr></thead>
+      <tbody>
+        <tr><td>8bit</td><td>0–255</td><td>0–255 mm</td><td>预览、可视化</td></tr>
+        <tr><td>16bit</td><td>0–65535</td><td>0–65.5 m</td><td>毫米级测量</td></tr>
+        <tr><td>32bit 浮点</td><td>任意小数</td><td>本站按米解析再 ×1000</td><td>科研数据、大动态范围</td></tr>
+      </tbody>
+    </table></div>
+    <p>用 8bit 存毫米级深度，2 米处相邻的毫米会共用同一个值，测量直接分层。16bit 在 65.5 米量程内毫米不重叠，这是深度图几乎都采用 16bit 的原因。</p>
+
+    <h2>用 TIFF 字段判断一张图</h2>
+    <p>在终端用 <code>exiftool</code>（或 <code>tiffinfo</code>）查看四个字段：</p>
+    <pre><code>$ exiftool scan_001.tif
+Bits Per Sample                 : 16
+Samples Per Pixel               : 1
+Sample Format                   : Unsigned Integer
+Photometric Interpretation      : Black Is Zero</code></pre>
+    <p>对应关系：<code>BitsPerSample=16</code>、<code>SamplesPerPixel=1</code>、<code>SampleFormat=1</code>（无符号整数）、<code>PhotometricInterpretation=1</code>（BlackIsZero）。四个都对上，就是一张标准的 16bit 无符号深度图。</p>
+
+    <h2>单位约定（本站口径）</h2>
+    <p>ImageLab 按以下规则解析深度值：</p>
+    <ul>
+      <li>16bit 整数：像素值直接按毫米（mm）显示；</li>
+      <li>32bit 浮点：按米解析，显示时 ×1000 换算为毫米；</li>
+      <li>像素值 0 视为无效深度：显示为透明（露出棋盘格背景），不参与深度范围统计。</li>
+    </ul>
+    <p>注意这不是行业统一标准：有的厂商用 0.25mm 步长，有的直接存米。如果数值量级明显不对（比如桌面距离显示成五位数），先怀疑单位，再怀疑数据。</p>
+
+    <h2>伪彩色怎么选</h2>
+    <p>16bit 数值显示到 8bit 屏幕必须做映射，伪彩色决定了你能看出什么：</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>映射</th><th>特点</th><th>适合</th></tr></thead>
+      <tbody>
+        <tr><td>Jet</td><td>对比强、层次醒目</td><td>快速定位结构、演示</td></tr>
+        <tr><td>Viridis</td><td>感知均匀、亮度单调递增</td><td>读数、论文插图</td></tr>
+        <tr><td>灰度</td><td>无色偏</td><td>打印、与 RGB 图对齐叠加</td></tr>
+      </tbody>
+    </table></div>
+    <p>Jet 的强对比是双刃剑：相邻色带之间的感知跳变，会在数值连续的位置"画"出一条不存在的边界。做定量判断时建议切到 Viridis。</p>
+
+    <h2>在 ImageLab 里的操作步骤</h2>
+    <ol>
+      <li>打开 <a href="/">ImageLab</a>，把 TIFF 拖进窗口，或点击「打开图片」；</li>
+      <li>鼠标悬停，浮动提示和侧栏会显示坐标与毫米深度值；</li>
+      <li>在「深度设置」面板切换 Jet / Viridis / 灰度；</li>
+      <li>滚轮放大到 14 倍以上显示像素网格，双击回到适配窗口。</li>
+    </ol>
+    <p>如果只关心某个像素的颜色值，看<a href="/guides/color-picker.html">《图片取色》</a>；坐标系与放大镜的细节见<a href="/guides/pixel-inspector.html">《像素查看》</a>。</p>
+
+    <h2>排错清单</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>现象</th><th>可能原因</th><th>处理</th></tr></thead>
+      <tbody>
+        <tr><td>打开后整张透明，只剩棋盘格</td><td>全部像素为 0，被判为无效</td><td>确认文件是深度图而不是全零掩码，重新导出</td></tr>
+        <tr><td>整张图只有一个颜色</td><td>深度值几乎恒定，范围为 0</td><td>正常；恒定场景就是单色</td></tr>
+        <tr><td>数值量级不对</td><td>厂商单位不是毫米</td><td>按设备手册换算（如 0.25mm 步长则 ×0.25）</td></tr>
+        <tr><td>打开失败</td><td>BigTIFF、JPEG 压缩或多页 TIFF</td><td>转存为 LZW / Deflate / 无压缩的单页 TIFF</td></tr>
+        <tr><td>物体边缘出现黑洞</td><td>传感器在边界无返回，值为 0</td><td>正常的无效像素</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>本站不做什么</h2>
+    <p>以下能力是刻意不做的，用来换取零依赖、纯前端：不支持 BigTIFF；多页 TIFF 只读第一页；不做点云导出；不做距离测量标注。需要这些能力时，建议先用 CloudCompare 或 OpenCV 处理，再回到这里看数值。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/privacy.html">隐私</a>
+    <a href="/en/guides/depth-tiff.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>
