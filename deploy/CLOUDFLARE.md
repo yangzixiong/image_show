@@ -77,15 +77,27 @@ push 后 Cloudflare 会自动重新部署，不需要手动操作。
 |---|---|
 | `expires 7d` / `add_header Cache-Control` | 已由根目录 `_headers` 接管，无需操作 |
 | `error_page 404 /404.html` | 自动生效，无需配置 |
-| `$bad_bot` 按 UA 返回 403 | Security → WAF → **Custom rules**，表达式见下 |
+| `$bad_bot` 按 UA 返回 403 | Security → WAF → **Custom rules**，表达式见下（**需先绑定自定义域名**，见下） |
 | `limit_req 10r/s` 限速 | Security → WAF → Rate limiting rules（免费版规则条数有限，站点流量小可先不做） |
 | 垃圾 Referer 拦截 | 同上，用 `http.referer` 写规则 |
 | robots.txt 君子协定 | 保留原样，继续生效 |
 
-**建议至少打开两个免费开关**（Security → Bots）：
+### 前提：这些开关只对「接入 Cloudflare 的域名」生效
 
-- **Bot Fight Mode** — 免费版即可用，自动挑战云主机来源的简单爬虫和 headless 浏览器
-- **Block AI bots** — 免费版即可用，一键拦截 AI 训练爬虫，比只靠 robots.txt 硬
+WAF、限速、Bot Fight Mode、Block AI bots 都是**区域（zone）级**功能，只作用于你自己接入 Cloudflare、由 Cloudflare 托管 DNS 的域名。
+`<name>.pages.dev` 是 Cloudflare 平台自身的域名，不属于你的 zone，所以：
+
+- 只访问 `*.pages.dev` 时，控制台里**根本不会出现** WAF / Rate limiting / Bots 这些菜单，这不是没找到，是本来就没有
+- 此时的防护只有两层：`robots.txt`（守规矩的爬虫）+ 平台默认的 DDoS / 基础防护（不可配置）
+
+想把原 nginx 那套拦截真正还原，前置条件是**先给 Pages 绑一个自己的域名**（见第 5 步）。绑定之后可用的开关：
+
+| 开关 | 位置 | 说明 |
+|---|---|---|
+| Bot Fight Mode | Security → Bots | 免费版可用，自动挑战云主机来源的简单爬虫与 headless 浏览器 |
+| Block AI bots | Security → Bots | 免费版可用，一键拦截 AI 训练爬虫，比只靠 robots.txt 硬 |
+| WAF 自定义规则 | Security → WAF → Custom rules | 按 UA 拦截，表达式见下 |
+| Rate limiting | Security → WAF → Rate limiting | 免费版规则条数有限，流量小可先不做 |
 
 **自定义规则表达式**（对应原 nginx 的 `$bad_bot`，一个规则即可覆盖）：
 
@@ -106,6 +118,26 @@ push 后 Cloudflare 会自动重新部署，不需要手动操作。
 
 动作选 **Block**。注意：Cloudflare 自定义规则免费版有条数上限，且**不要**顺手拦 `curl` / `wget`，
 否则自己用命令行检查站点时会被挡。
+
+---
+
+## 第 5 步：绑定自定义域名（可选，但要防爬就必须做）
+
+### 子域名（如 `img.example.com`，DNS 可以仍留在原服务商）
+
+1. Pages 项目 → **Custom domains** → **Set up a domain** → 填 `img.example.com`
+2. 到原 DNS 服务商加一条 CNAME：`img.example.com` → `<name>.pages.dev`
+3. 等待生效，HTTPS 证书由 Cloudflare 自动签发，不用管
+
+顺序很重要：**必须先在 Pages 面板绑定，再去加 CNAME**。反过来做（只加 CNAME 不绑定）会返回 522。
+
+### 主域名（`example.com`）
+
+必须先把域名接入 Cloudflare：在账号里 Add a site，把域名注册商处的 **NS 记录改成 Cloudflare 给的两条**，
+等状态变成 Active。这一步完成后，Pages 面板才能为 apex 域名自动建记录。
+
+绑定成功后，左侧才会出现 WAF / Bots / Rate limiting 这些 zone 级菜单（见第 4 步）。
+**别忘了**：换用自定义域名后，第 3 步填进 `robots.txt` / `sitemap.xml` 的地址也要跟着改。
 
 ---
 
