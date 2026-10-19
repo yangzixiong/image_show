@@ -199,3 +199,16 @@ body.dragging .drop-box { border-color: var(--accent); background: rgba(79, 140,
   .sidebar { width: 260px; }
   .st-tip { display: none; }
 }
+
+/* 视觉隐藏但仍存在于文档大纲中（用于 SEO 主标题） */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

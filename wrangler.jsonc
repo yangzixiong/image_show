@@ -1,0 +1,13 @@
+{
+  // Cloudflare Workers 静态资源配置。
+  // 只在用 `npx wrangler deploy` 命令行发布时生效；面板直传方式不读这个文件。
+  // 用途：让不存在的路径返回你自己的 404.html（默认为通用 404 提示）。
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "image-show",
+  "compatibility_date": "2026-10-19",
+  "assets": {
+    "directory": "./",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

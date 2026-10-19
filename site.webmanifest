@@ -1,0 +1,26 @@
+{
+  "name": "ImageLab · 图片查看与像素/深度分析",
+  "short_name": "ImageLab",
+  "description": "在浏览器里查看图片像素与深度：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放与像素网格。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#0f1216",
+  "theme_color": "#0f1216",
+  "icons": [
+    {
+      "src": "/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

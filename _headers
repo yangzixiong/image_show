@@ -1,4 +1,4 @@
-# Cloudflare Pages 响应头配置
+# Cloudflare 响应头配置（Pages 与 Workers 静态资源通用）
 # 作用等价于原 nginx 配置里的 expires / add_header，部署到 Cloudflare 后由本文件接管，
 # deploy/image_show.conf 不再参与线上运行（可保留作自建服务器备份）。
 # 语法：第一行是路径模式，随后缩进行是 "名称: 值"；同一路径命中多条规则时头部合并。
@@ -23,6 +23,12 @@
 
 /*.svg
   Cache-Control: public, max-age=604800
+
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.webmanifest
+  Cache-Control: public, max-age=3600
 
 /*.woff2
   Cache-Control: public, max-age=604800
