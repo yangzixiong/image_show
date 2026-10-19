@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Pick Accurate Colours from Images · ImageLab</title>
+<meta name="description" content="Screenshot colours are often wrong. Learn which pixel your pick samples, how HEX and RGB relate, and how to pick accurate values in ImageLab.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html">
+<meta property="og:title" content="How to Pick Accurate Colours from Images · ImageLab">
+<meta property="og:description" content="Why screenshot colour picking drifts, how HEX, RGB and HSL relate, and the hover, click and history flow for reading colours in your browser.">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Pick Accurate Colours from Images · ImageLab">
+<meta name="twitter:description" content="Why screenshot colour picking drifts, how HEX, RGB and HSL relate, and the hover, click and history flow for reading colours in your browser.">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Pick Accurate Colours from Images",
+  "description": "Why screenshot colour picking drifts, how HEX, RGB and HSL relate, and the hover, click and history flow for reading colours in your browser.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-19",
+  "author": { "@type": "Organization", "name": "ImageLab" },
+  "publisher": { "@type": "Organization", "name": "ImageLab" },
+  "url": "https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html",
+  "mainEntityOfPage": "https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html" aria-current="page">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/color-picker.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Colour picker</span>
+  </nav>
+
+  <article class="prose">
+    <h1>How to Pick Accurate Colours from Images</h1>
+    <p class="lede">A colour looks right in the screenshot but comes out a little off when you sample it. This guide explains where the drift comes from and how to read the true pixel value.</p>
+
+    <h2>Why colours from screenshots drift</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Interference</th><th>Why the colour becomes unreliable</th></tr></thead>
+      <tbody>
+        <tr><td>Browser scaling</td><td>Above or below 100%, adjacent pixels are interpolated; you sample an average, not a pixel</td></tr>
+        <tr><td>JPEG re-compression</td><td>Saving a screenshot as JPEG again adds blocking artefacts and chroma subsampling</td></tr>
+        <tr><td>Display colour management</td><td>sRGB and P3 differ, so identical numbers can look different on two screens</td></tr>
+        <tr><td>Antialiased edges</td><td>Text and shape edges are blend colours, never the flat colour from the design</td></tr>
+      </tbody>
+    </table></div>
+    <p>The first two are the usual suspects: the image was resampled once before it reached your eyes, so whatever you sample is already a reconstruction.</p>
+
+    <h2>Which pixel does a pick actually sample</h2>
+    <p>Two kinds of pixels are involved: pixels in the image file, and pixels on your screen. When the browser displays an image larger than its native size, interpolation spreads one source pixel across many screen pixels — sampling there returns the blended result, not the stored value.</p>
+    <p>So zoom in before picking. At native 1:1 or higher, each source pixel occupies a clear cell on screen and the sample lands on a definite pixel. The coordinate system and magnifier details are covered in the <a href="/en/guides/pixel-inspector.html">pixel inspector guide</a>.</p>
+
+    <h2>HEX, RGB and HSL conversions</h2>
+    <p>The same colour has several notations. Take <code>#4f8cff</code> as the example:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Notation</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>HEX</td><td><code>#4f8cff</code></td><td>Shorthand <code>#4f8</code> doubles each digit to <code>#44ff88</code>; letter case never matters</td></tr>
+        <tr><td>RGB</td><td><code>rgb(79, 140, 255)</code></td><td>0–255 per channel: <code>4f</code>=79, <code>8c</code>=140, <code>ff</code>=255</td></tr>
+        <tr><td>HSL</td><td><code>hsl(219°, 100%, 65.5%)</code></td><td>Hue, saturation, lightness — handier when tuning light and dark steps</td></tr>
+      </tbody>
+    </table></div>
+    <p>In ImageLab, hovering shows both HEX and RGB at once, and a single click copies both notations to the clipboard.</p>
+
+    <h2>Putting the value into CSS</h2>
+    <p>Store the picked value in a custom property instead of scattering literals:</p>
+    <pre><code>:root {
+  --brand: #4f8cff;
+}
+.button-primary { background: var(--brand); }</code></pre>
+    <p>When plugging into a design system, name tokens by role (<code>--brand</code>, <code>--text-link</code>) rather than by colour (<code>--blue</code>) — colour-named tokens go stale the moment the brand colour changes.</p>
+
+    <h2>Check contrast after picking</h2>
+    <p>A correct colour is not automatically a usable one. Body text needs a contrast ratio of at least 4.5:1 against its background; large text (≥24px) needs 3:1. Those are the WCAG minimums — run the ratio before shipping, don't rely on how it looks.</p>
+
+    <h2>The picking flow in ImageLab</h2>
+    <ol>
+      <li>Open <a href="/en/">ImageLab</a> and drop an image into the window;</li>
+      <li>hover: the sidebar and the floating tooltip show HEX and RGB in real time;</li>
+      <li>click to pick — the value is copied immediately and a toast confirms it;</li>
+      <li>the pick history keeps the last 18 entries; click any entry to copy it again.</li>
+    </ol>
+    <p>If the file is actually a 16-bit depth map, clicking copies a millimetre value instead of a colour — the right way to read those files is in the <a href="/en/guides/depth-tiff.html">depth map guide</a>.</p>
+
+    <h2>How transparent pixels are handled</h2>
+    <p>The site samples the pixels as finally displayed, with no alpha compositing: a transparent PNG region shows the checkerboard background, so you read that cell's colour rather than the hidden original. When you need alpha-aware sampling, flatten the image onto its background in a design tool first.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/en/privacy.html">Privacy</a>
+    <a href="/guides/color-picker.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+</footer>
+
+</body>
+</html>

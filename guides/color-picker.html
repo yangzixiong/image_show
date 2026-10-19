@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片取色：取准颜色的完整方法 · ImageLab</title>
+<meta name="description" content="截图取色经常取错：浏览器缩放插值、JPEG 二次压缩、抗锯齿边缘和色彩管理都会让颜色失准。本文讲清取到的是哪个像素、HEX、RGB、HSL 的换算关系与对比度检查方法，并介绍 ImageLab 中悬停读色、单击复制和取色历史的用法。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html">
+<meta property="og:title" content="图片取色：取准颜色的完整方法 · ImageLab">
+<meta property="og:description" content="为什么截图取色总是差一点：插值、JPEG 压缩、抗锯齿与色彩管理；HEX/RGB/HSL 换算、对比度检查与本站取色流程。">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="图片取色：取准颜色的完整方法 · ImageLab">
+<meta name="twitter:description" content="为什么截图取色总是差一点：插值、JPEG 压缩、抗锯齿与色彩管理；HEX/RGB/HSL 换算、对比度检查与本站取色流程。">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "图片取色：取准颜色的完整方法",
+  "description": "为什么截图取色总是差一点：插值、JPEG 压缩、抗锯齿与色彩管理；HEX/RGB/HSL 换算、对比度检查与本站取色流程。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-19",
+  "author": { "@type": "Organization", "name": "ImageLab" },
+  "publisher": { "@type": "Organization", "name": "ImageLab" },
+  "url": "https://image-show.yangzixiongh.workers.dev/guides/color-picker.html",
+  "mainEntityOfPage": "https://image-show.yangzixiongh.workers.dev/guides/color-picker.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html" aria-current="page">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/color-picker.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">图片取色</span>
+  </nav>
+
+  <article class="prose">
+    <h1>图片取色：取准颜色的完整方法</h1>
+    <p class="lede">截图里的颜色看着对，取出来却总是差一点——这篇讲清楚差在哪，以及怎么从原图像素里取到准确的值。</p>
+
+    <h2>为什么从截图取色经常取错</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>干扰来源</th><th>颜色为什么会失准</th></tr></thead>
+      <tbody>
+        <tr><td>浏览器缩放</td><td>非 100% 缩放下相邻像素被插值混合，你取到的是几个像素的平均色</td></tr>
+        <tr><td>JPEG 二次压缩</td><td>截图再存一次 JPEG 会产生块效应和色度下采样，纯色区域出现色偏</td></tr>
+        <tr><td>显示器色彩管理</td><td>sRGB 与 P3 色域不同，同一组数值在不同屏幕上观感不同</td></tr>
+        <tr><td>抗锯齿边缘</td><td>文字和图形边缘是过渡色，不是设计稿里的那个纯色</td></tr>
+      </tbody>
+    </table></div>
+    <p>四个原因里前两个最常见：图在到达你眼前之前已经被重采样过一次，取到的自然不是原始值。</p>
+
+    <h2>取到的究竟是哪个像素</h2>
+    <p>要区分两种像素：图像文件里的原图像素，和屏幕上显示的像素。浏览器把图片放大显示时，会用插值算法把一个原图像素铺成一片显示像素——这时取色取到的是插值结果，不是文件里的值。</p>
+    <p>所以取色前先放大：在原图 1:1 或更高倍率下，一个原图像素能对应屏幕上清晰的一格，取色才落在确定的像素上。坐标的定义与放大细节见<a href="/guides/pixel-inspector.html">《像素查看》</a>。</p>
+
+    <h2>HEX、RGB、HSL 的换算</h2>
+    <p>同一个颜色有多种写法，以 <code>#4f8cff</code> 为例：</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>表示法</th><th>写法</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>HEX</td><td><code>#4f8cff</code></td><td>三位简写 <code>#4f8</code> 每位展开两次，即 <code>#44ff88</code>；大小写不影响结果</td></tr>
+        <tr><td>RGB</td><td><code>rgb(79, 140, 255)</code></td><td>每通道 0–255，<code>4f</code>=79、<code>8c</code>=140、<code>ff</code>=255</td></tr>
+        <tr><td>HSL</td><td><code>hsl(219°, 100%, 65.5%)</code></td><td>色相、饱和度、亮度；调界面明暗层级时更直观</td></tr>
+      </tbody>
+    </table></div>
+    <p>在 ImageLab 里，悬停会同时给出 HEX 和 RGB，单击一次把两种写法一起复制进剪贴板。</p>
+
+    <h2>取到颜色之后：写进 CSS</h2>
+    <p>拿到值先放进自定义属性，比散落在各处的字面量好维护：</p>
+    <pre><code>:root {
+  --brand: #4f8cff;
+}
+.button-primary { background: var(--brand); }</code></pre>
+    <p>和设计系统对接时建议按语义命名（<code>--brand</code>、<code>--text-link</code>），不要按颜色命名（<code>--blue</code>）——品牌色改版时后者会让所有引用一起过期。</p>
+
+    <h2>还要检查对比度</h2>
+    <p>颜色取准了不等于能用。正文文字与背景的对比度至少 4.5:1，大字号（≥24px）至少 3:1，这是 WCAG 的最低要求。把颜色写进界面前算一次对比度，别只凭观感。</p>
+
+    <h2>在 ImageLab 里的操作流程</h2>
+    <ol>
+      <li>打开 <a href="/">ImageLab</a>，把图片拖进窗口；</li>
+      <li>鼠标悬停，侧栏和浮动提示实时显示 HEX 与 RGB；</li>
+      <li>单击取色，值立刻复制，界面弹出提示；</li>
+      <li>取色历史保留最近 18 条，点任意一条即可再次复制。</li>
+    </ol>
+    <p>如果这张图其实是 16bit 深度图，单击复制的是毫米值而不是颜色——那种图的正确看法见<a href="/guides/depth-tiff.html">《16bit TIFF 深度图》</a>。</p>
+
+    <h2>透明像素怎么处理</h2>
+    <p>本站取的是最终显示出来的像素值，不做 alpha 合成：PNG 的透明区域显示为棋盘格背景，取到的是那一格显示的颜色，不是被透明度隐藏的原始颜色。需要按透明度感知取色时，先在设计工具里把图平铺到底色上。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/privacy.html">隐私</a>
+    <a href="/en/guides/color-picker.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

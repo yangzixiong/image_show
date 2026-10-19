@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Pixel Coordinates and the Magnifier Work · ImageLab</title>
+<meta name="description" content="The image coordinate system starts at the top-left corner. Learn the three kinds of pixels, the 11x11 magnifier, the pixel grid, and cursor-anchored zoom.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html">
+<meta property="og:title" content="How Pixel Coordinates and the Magnifier Work · ImageLab">
+<meta property="og:description" content="Top-left origin, image/CSS/device pixels, the 11×11 magnifier, the grid at 14× and cursor-anchored zoom — explained for pixel-level inspection.">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How Pixel Coordinates and the Magnifier Work · ImageLab">
+<meta name="twitter:description" content="Top-left origin, image/CSS/device pixels, the 11×11 magnifier, the grid at 14× and cursor-anchored zoom — explained for pixel-level inspection.">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How Pixel Coordinates and the Magnifier Work",
+  "description": "Top-left origin, image/CSS/device pixels, the 11×11 magnifier, the grid at 14× and cursor-anchored zoom — explained for pixel-level inspection.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-19",
+  "author": { "@type": "Organization", "name": "ImageLab" },
+  "publisher": { "@type": "Organization", "name": "ImageLab" },
+  "url": "https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html",
+  "mainEntityOfPage": "https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html" aria-current="page">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/pixel-inspector.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Pixel inspector</span>
+  </nav>
+
+  <article class="prose">
+    <h1>How Pixel Coordinates and the Magnifier Work</h1>
+    <p class="lede">The point under your cursor, the pixel stored in the file, and the physical dot on the screen are three different things — this guide sorts out the coordinate system, the magnifier and the zoom anchor.</p>
+
+    <h2>The image coordinate system</h2>
+    <p>The image coordinate system starts at the top-left corner <code>(0,0)</code>: x grows to the right, y grows downward — the opposite of the axis-up system from maths class. Picking, depth reading and grid drawing all use this one system.</p>
+    <p>Coordinates address pixel cells: the point <code>(37, 12)</code> is the cell in column 38, row 13 (rows and columns are counted from 0). Off-by-one here shifts everything by a whole cell when you align against a design or write a slicing script.</p>
+
+    <h2>Three kinds of pixels</h2>
+    <p>The same "1 pixel" means three different things. On a 2× display (<code>devicePixelRatio = 2</code>) with the image shown at 100%:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>What it is</th><th>On a 2× screen</th></tr></thead>
+      <tbody>
+        <tr><td>Image pixel</td><td>Sample point stored in the file; coordinate readings use it</td><td>One becomes a 2×2 block of device pixels</td></tr>
+        <tr><td>CSS pixel</td><td>Layout unit; the basis for <code>devicePixelRatio</code> conversion</td><td>1 CSS px = 2 device px</td></tr>
+        <tr><td>Device pixel</td><td>Physical light dot on the panel, the smallest unit you actually see</td><td>Resolution is twice the nominal CSS size</td></tr>
+      </tbody>
+    </table></div>
+    <p>That is why interfaces look "twice as large" on high-DPI screens: the CSS numbers never changed — one CSS pixel simply lands on more physical dots. When reading coordinates, always trust image pixels; screen resolution plays no part.</p>
+
+    <h2>The magnifier</h2>
+    <p>While you hover, the panel next to the tooltip draws an <strong>11×11</strong> neighbourhood of pixels around the cursor, each cell 16 pixels square. The centre cell carries a white stroke — watch that frame when you pick, so a shaky hand cannot land one cell off.</p>
+    <p>Inside the magnifier, smoothing is explicitly disabled (<code>imageSmoothingEnabled = false</code>), so cell edges stay crisp instead of being blurred by interpolation. At image boundaries the area outside the picture is not mirrored: the source rectangle is clipped to the image bounds first, and cells with nothing to sample simply show the magnifier's black backing — a black edge means the cursor is against the border of the image.</p>
+
+    <h2>The pixel grid</h2>
+    <p>The pixel grid appears at <strong>14×</strong> zoom and above. Below that ratio the lines collapse into mush and only get in the way; at 14× each cell has enough screen space for the grid lines to sit exactly on pixel boundaries. The mouse wheel zooms from 2% to 6400%, and double-clicking the image fits it to the window.</p>
+
+    <h2>Zoom anchored to the cursor</h2>
+    <p>When you zoom with the wheel, the anchor stays under the cursor: after zooming in, the cursor still points at the same pixel instead of drifting away. The whole conversion is one line:</p>
+    <pre><code>view.x = px - (px - view.x) * (ns / view.scale);</code></pre>
+    <p>Read it as: new offset = cursor − (cursor − old offset) × (new scale ÷ old scale), which keeps the image point under the cursor at the same screen position across the zoom. The y direction uses the identical formula.</p>
+
+    <h2>What people use it for</h2>
+    <ul>
+      <li>Slice alignment: confirming a sprite sheet boundary does not swallow a row of pixels;</li>
+      <li>Pixel-art review: checking palette choices cell by cell along with stray pixels;</li>
+      <li>Sprite edges: verifying atlas alignment and padding after export;</li>
+      <li>Design handoff: confirming a 1px border really renders as 1px once the device pixel ratio is converted.</li>
+    </ul>
+    <p>Depth maps are read on exactly the same coordinate system — see the <a href="/en/guides/depth-tiff.html">depth map guide</a>. If you only need the colour of one cell, see the <a href="/en/guides/color-picker.html">colour picker guide</a>.</p>
+
+    <h2>Why native browser zoom is not reliable</h2>
+    <p>Full-page browser zoom takes a different rendering path: it reflows the layout first, then interpolates the image up, handing you a smoothed approximation. The result also depends on <code>image-rendering</code>, whose browser defaults differ, so the same file can look different when magnified in two browsers. The canvas here only enables interpolation while shrinking (<code>scale &lt; 1</code>); zooming in always samples nearest-neighbour. Going to 14× with the grid on is the dependable way to inspect pixels.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/en/privacy.html">Privacy</a>
+    <a href="/guides/pixel-inspector.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+</footer>
+
+</body>
+</html>

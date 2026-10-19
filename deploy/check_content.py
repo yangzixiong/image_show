@@ -4,8 +4,9 @@
 退出码：全部通过为 0，任一 FAIL 为 1。
 
 分批交付说明（docs/content-spec.md 第 10 节）：
-  PAGES 按批次扩充，第 1 批只含 depth-tiff 中英两页；
-  EXPECTED_SITEMAP 随批次更新（1:2  2:6  3:14）；
+  PAGES 按批次扩充：批 1 = depth-tiff 中英，批 2 = 另两篇 guides 中英，
+  批 3 = faq/about/privacy 中英（共 12 页）；
+  EXPECTED_SITEMAP 随批次更新（批 1/批 2 = 2，批 3 = 14，sitemap 在批 3 整体重写）；
   正文里指向「尚未交付但已规划」页面的链接由 PLANNED_URLS 放行，
   全部交付后这些 URL 都对应真实文件，检查即为真实校验。
 """
@@ -21,6 +22,10 @@ BASE = "https://image-show.yangzixiongh.workers.dev"
 PAGES = [
     ("zh", "guides/depth-tiff.html", "/guides/depth-tiff.html"),
     ("en", "en/guides/depth-tiff.html", "/en/guides/depth-tiff.html"),
+    ("zh", "guides/color-picker.html", "/guides/color-picker.html"),
+    ("en", "en/guides/color-picker.html", "/en/guides/color-picker.html"),
+    ("zh", "guides/pixel-inspector.html", "/guides/pixel-inspector.html"),
+    ("en", "en/guides/pixel-inspector.html", "/en/guides/pixel-inspector.html"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）

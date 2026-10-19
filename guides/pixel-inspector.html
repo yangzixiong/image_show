@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素坐标与放大镜：看清单个像素 · ImageLab</title>
+<meta name="description" content="图像坐标原点在左上角，与数学坐标系相反；设备像素、CSS 像素和图像像素在高 DPR 屏上并不相等。本文讲清三种像素的换算、11×11 放大镜与 14 倍才出现的像素网格、以光标为中心的缩放公式，以及浏览器原生缩放为什么看不准像素。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html">
+<meta property="og:title" content="像素坐标与放大镜：看清单个像素 · ImageLab">
+<meta property="og:description" content="图像坐标系、三种像素、11×11 放大镜、14 倍像素网格与以光标为中心的缩放公式，以及原生浏览器缩放为什么看不准。">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="像素坐标与放大镜：看清单个像素 · ImageLab">
+<meta name="twitter:description" content="图像坐标系、三种像素、11×11 放大镜、14 倍像素网格与以光标为中心的缩放公式，以及原生浏览器缩放为什么看不准。">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "像素坐标与放大镜：看清单个像素",
+  "description": "图像坐标系、三种像素、11×11 放大镜、14 倍像素网格与以光标为中心的缩放公式，以及原生浏览器缩放为什么看不准。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-19",
+  "author": { "@type": "Organization", "name": "ImageLab" },
+  "publisher": { "@type": "Organization", "name": "ImageLab" },
+  "url": "https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html",
+  "mainEntityOfPage": "https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html" aria-current="page">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/pixel-inspector.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">像素查看</span>
+  </nav>
+
+  <article class="prose">
+    <h1>像素坐标与放大镜：看清单个像素</h1>
+    <p class="lede">屏幕上的鼠标点、图片文件里的像素点、屏幕的物理发光点是三回事——这篇把坐标系、放大镜和缩放锚点讲清楚。</p>
+
+    <h2>图像坐标系</h2>
+    <p>图像坐标的原点在左上角 <code>(0,0)</code>，x 向右、y 向下——和数学课本里 y 轴向上的坐标系正好相反。取色、读深度、画网格全部用这一套坐标。</p>
+    <p>坐标指的是像素格子本身：点 <code>(37, 12)</code> 就是第 38 列、第 13 行的那个格子（行列都从 0 开始计数）。和设计稿对位、写切图脚本时，这半行差错会让结果整体偏移一个格。</p>
+
+    <h2>三种像素</h2>
+    <p>同一个"1 像素"在三个层面含义不同。以 2× 屏（<code>devicePixelRatio = 2</code>）、图片按 100% 显示为例：</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>名称</th><th>含义</th><th>2× 屏上</th></tr></thead>
+      <tbody>
+        <tr><td>图像像素</td><td>图片文件里的采样点，坐标读数以它为准</td><td>1 个被绘制成 2×2 个设备像素</td></tr>
+        <tr><td>CSS 像素</td><td>布局单位，浏览器缩放与 <code>devicePixelRatio</code> 的换算基准</td><td>1 CSS px = 2 设备 px</td></tr>
+        <tr><td>设备像素</td><td>屏幕的物理发光点，你实际看到的最小单位</td><td>分辨率是标称 CSS 尺寸的 2 倍</td></tr>
+      </tbody>
+    </table></div>
+    <p>这就是高分屏上界面"看起来是 2 倍"的原因：CSS 数值没有变，只是一个 CSS 像素落到了更多物理点上。读像素坐标时永远以图像像素为准，与屏幕分辨率无关。</p>
+
+    <h2>放大镜</h2>
+    <p>鼠标悬停时，浮动提示旁边的放大镜画出光标周围 <strong>11×11</strong> 个像素的邻域，每格 16 像素见方。中心格用白色描边标出——取色和确认坐标时看这个框，避免手抖点偏一格。</p>
+    <p>放大镜内部的绘制显式关闭了平滑（<code>imageSmoothingEnabled = false</code>），所以每个像素块边缘锐利，不会被插值抹开。靠近图像边缘时，越出图像的部分不做镜像补齐，直接保留黑色底：绘制前先把源矩形裁剪到图像边界，取不到的格子自然露出放大镜的底色——看到黑边，说明光标已经贴着图像边界了。</p>
+
+    <h2>像素网格</h2>
+    <p>缩放到 <strong>14 倍</strong>以上才会画出像素网格。低于这个倍率时格线会糊成一片，反而干扰判断；到 14 倍每格已有足够的屏幕空间，网格线正好落在图像像素的边界上，配合对齐检查用。滚轮的缩放范围是 2%–6400%，双击图像回到适配窗口。</p>
+
+    <h2>以鼠标为中心缩放</h2>
+    <p>滚轮缩放时，锚点固定在光标位置：放大之后光标指着的仍是同一个像素，不会滑走。换算只需要一行：</p>
+    <pre><code>view.x = px - (px - view.x) * (ns / view.scale);</code></pre>
+    <p>读法：新偏移 = 光标位置 −（光标 − 旧偏移）×（新倍率 ÷ 旧倍率），使光标下的图像点在缩放前后停在屏幕上的同一点。y 方向用同样的式子。</p>
+
+    <h2>常见用途</h2>
+    <ul>
+      <li>切图对位：确认雪碧图边界没有多吃进一排像素；</li>
+      <li>像素画检查：逐格核对配色与遗漏的杂点；</li>
+      <li>sprite 边界：验证导出图集的对齐与间隔；</li>
+      <li>还原设计稿：确认 1px 边框在实现里真的只有 1px（要连同设备像素比一起换算）。</li>
+    </ul>
+    <p>深度图的逐像素读数也建立在同一套坐标系上，见<a href="/guides/depth-tiff.html">《16bit TIFF 深度图》</a>；只想知道某格的颜色值，见<a href="/guides/color-picker.html">《图片取色》</a>。</p>
+
+    <h2>为什么浏览器原生缩放看不准</h2>
+    <p>浏览器的整页缩放走的是另一条渲染路径：先按布局重排，再对图片插值放大，得到的是平滑后的近似值；而且结果受 <code>image-rendering</code> 属性影响，不同浏览器的默认行为不一致，同一张图在两个浏览器里放大观感可能不同。本站的画布只在缩小时（<code>scale &lt; 1</code>）开启插值，放大时一律最近邻取样——放大到 14 倍再开网格，才是可靠的像素观察方式。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/privacy.html">隐私</a>
+    <a href="/en/guides/pixel-inspector.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>
