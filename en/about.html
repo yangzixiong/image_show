@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About ImageLab: Why and How It Exists · ImageLab</title>
+<meta name="description" content="Why ImageLab exists, how it works, who made it and how to reach them: Canvas 2D, UTIF.js, no backend, no image collection and no sign-up.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/en/about.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/about.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/about.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/about.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/en/about.html">
+<meta property="og:title" content="About ImageLab: Why and How It Exists · ImageLab">
+<meta property="og:description" content="Why the tool exists, how it is built, who maintains it and how to get in touch — Canvas 2D, UTIF.js, no backend, no image collection.">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About ImageLab: Why and How It Exists · ImageLab">
+<meta name="twitter:description" content="Why the tool exists, how it is built, who maintains it and how to get in touch — Canvas 2D, UTIF.js, no backend, no image collection.">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "About ImageLab",
+  "description": "Why the tool exists, how it is built, who maintains it and how to get in touch — Canvas 2D, UTIF.js, no backend, no image collection.",
+  "inLanguage": "en",
+  "dateModified": "2026-10-19",
+  "url": "https://image-show.yangzixiongh.workers.dev/en/about.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/about.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">About</span>
+  </nav>
+
+  <article class="prose">
+    <h1>About ImageLab</h1>
+    <p class="lede">A browser page that reads pixel and depth values out of your images — why it exists, how it works, who keeps it running.</p>
+
+    <h2>Why it exists</h2>
+    <p>Two problems keep coming up when you slice sprites, match colours or read depth data: most online tools want you to upload the image to someone else's server, and the rest simply do not open 16-bit TIFF. The first is unrealistic for unreleased assets; the second locks out exactly the files whose numbers you need. ImageLab aims to be just a page: open it, drop an image, read values — the file stays on your device the whole time.</p>
+
+    <h2>How it is built</h2>
+    <p>No backend and no build step. The page is a handful of local files: rendering is plain <code>Canvas 2D</code>, and TIFF decoding is handled by the bundled <code>UTIF.js</code>:</p>
+    <pre><code>&lt;script src="/lib/utif.js"&gt;&lt;/script&gt;
+&lt;script src="/js/decoder.js?v=2"&gt;&lt;/script&gt;</code></pre>
+    <p>The full path of one lookup:</p>
+    <ol>
+      <li>choose, drop or paste an image — the browser reads the file locally;</li>
+      <li>everyday formats go through native decoding, TIFF goes through the bundled UTIF.js;</li>
+      <li>the decoded pixels land on a canvas where zoom, pan and the pixel grid all happen;</li>
+      <li>hover to read coordinates, colours or depth, click to copy — no network request at any point.</li>
+    </ol>
+
+    <h2>Who made it and how to reach them</h2>
+    <p>ImageLab is designed and developed by <strong>yangzixiongh</strong>. For bug reports, suggestions or collaboration, email <a href="mailto:yangzixiongh@163.com">yangzixiongh@163.com</a> or leave a message at <a href="https://github.com/yangzixiong">github.com/yangzixiong</a>; the details are on the <a href="/en/faq.html">FAQ page</a>.</p>
+
+    <h2>What we promise</h2>
+    <p>No image collection, no sign-up, open and use. Images are never uploaded or written to disk, and the only thing stored locally is a language preference. The technical basis and our log handling are spelled out line by line on the <a href="/en/privacy.html">privacy page</a>.</p>
+
+    <h2>What comes next</h2>
+    <p>The three guides and help pages (<a href="/en/guides/depth-tiff.html">depth maps</a>, <a href="/en/guides/color-picker.html">colour picking</a>, <a href="/en/guides/pixel-inspector.html">pixel inspection</a>, <a href="/en/faq.html">FAQ</a>) are done. Next up: broader image format support and more documentation. To try it right away, <a href="/en/">open ImageLab</a>.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/en/privacy.html">Privacy</a>
+    <a href="/about.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常见问题：格式、隐私与使用 · ImageLab</title>
+<meta name="description" content="覆盖 ImageLab 的常见疑问：图片是否上传、支持的格式与体积上限、TIFF 压缩范围、深度值单位、黑白显示原因、取色偏差、离线使用、本地存储、广告与手机支持，并给出反馈渠道。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/faq.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/faq.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/faq.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/faq.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/faq.html">
+<meta property="og:title" content="常见问题：格式、隐私与使用 · ImageLab">
+<meta property="og:description" content="图片是否上传、支持哪些格式、TIFF 压缩与深度单位、取色偏差、离线与存储、广告与手机支持的常见问题解答。">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="常见问题：格式、隐私与使用 · ImageLab">
+<meta name="twitter:description" content="图片是否上传、支持哪些格式、TIFF 压缩与深度单位、取色偏差、离线与存储、广告与手机支持的常见问题解答。">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "图片会上传到服务器吗？",
+      "acceptedAnswer": { "@type": "Answer", "text": "不会。图片通过浏览器本地 API（FileReader 和 URL.createObjectURL）读入，代码里没有 fetch 和 XMLHttpRequest，图片从不离开你的设备。" }
+    },
+    {
+      "@type": "Question",
+      "name": "支持哪些格式？",
+      "acceptedAnswer": { "@type": "Answer", "text": "JPG、PNG、WebP、GIF、BMP 由浏览器原生解码；TIFF 由内置解码器处理，支持无压缩与 LZW / Deflate / PackBits，涵盖 8bit、16bit 彩色和 16bit 单通道深度图。其余格式取决于你的浏览器能否解码。" }
+    },
+    {
+      "@type": "Question",
+      "name": "支持多大的图片？",
+      "acceptedAnswer": { "@type": "Answer", "text": "没有人为的尺寸上限，限制来自设备内存：图片会在浏览器里解码成位图，尺寸越大占用越多。加载缓慢或卡顿，通常说明已经接近浏览器的内存上限。" }
+    },
+    {
+      "@type": "Question",
+      "name": "TIFF 的哪些压缩格式支持？",
+      "acceptedAnswer": { "@type": "Answer", "text": "无压缩、LZW、Deflate、PackBits。JPEG-in-TIFF、多页 TIFF（只读第一页）和 BigTIFF 不支持；打不开时先转存为上述四种压缩之一。" }
+    },
+    {
+      "@type": "Question",
+      "name": "深度值的单位是什么？",
+      "acceptedAnswer": { "@type": "Answer", "text": "16bit 整数 TIFF 的像素值按毫米显示；32bit 浮点 TIFF 按米解析并自动 ×1000 换算；像素值 0 视为无效深度，显示为透明。不同厂商的约定可能不同，数值离谱时先怀疑单位。完整口径见《16bit TIFF 深度图》。" }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么深度图打开是黑白的、全黑的？",
+      "acceptedAnswer": { "@type": "Answer", "text": "看图软件把单通道数据当灰度渲染，而深度值通常只占 0–65535 的一小段，整张图便挤在最暗的一端。判断文件字段与正确看法见《16bit TIFF 深度图》指南。" }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么取到的颜色和设计稿不一样？",
+      "acceptedAnswer": { "@type": "Answer", "text": "常见原因是浏览器缩放插值、截图被 JPEG 二次压缩、抗锯齿边缘和显示器色彩管理。放大到原图 1:1 再取色可以避开大部分问题，详见《图片取色》指南。" }
+    },
+    {
+      "@type": "Question",
+      "name": "可以离线使用吗？",
+      "acceptedAnswer": { "@type": "Answer", "text": "图片处理全部在本地进行，本身不依赖网络；但首次打开需要联网加载页面，之后能否离线再次打开取决于浏览器缓存（静态资源缓存 7 天），本站没有提供离线安装包。" }
+    },
+    {
+      "@type": "Question",
+      "name": "会把我的图片存下来吗？",
+      "acceptedAnswer": { "@type": "Answer", "text": "不会。图片不写入服务器，也不写入浏览器的持久化存储；本站唯一的本地存储是语言偏好 imagelab.lang，在浏览器设置里清除本站的站点数据即可删除。" }
+    },
+    {
+      "@type": "Question",
+      "name": "免费吗？有广告吗？",
+      "acceptedAnswer": { "@type": "Answer", "text": "免费使用，不需要注册。当前页面没有接入任何广告；若将来接入，会在《隐私说明》里写明。" }
+    },
+    {
+      "@type": "Question",
+      "name": "支持手机吗？",
+      "acceptedAnswer": { "@type": "Answer", "text": "手机浏览器可以打开页面、选择图片并查看，但画布的拖动与缩放目前只绑定了鼠标事件，未实现触屏拖动和双指缩放，精细操作建议使用桌面浏览器。" }
+    },
+    {
+      "@type": "Question",
+      "name": "发现 bug 怎么反馈？",
+      "acceptedAnswer": { "@type": "Answer", "text": "发邮件到 yangzixiongh@163.com，或到 github.com/yangzixiong 提出问题。反馈时请附上以下信息：" }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html" aria-current="page">常见问题</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/faq.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">常见问题</span>
+  </nav>
+
+  <article class="prose">
+    <h1>常见问题</h1>
+    <p class="lede">关于格式支持、隐私与日常使用的常见疑问，集中回答在这里。</p>
+
+    <h3>图片会上传到服务器吗？</h3>
+    <p>不会。图片通过浏览器本地 API（<code>FileReader</code> 和 <code>URL.createObjectURL</code>）读入，代码里没有 <code>fetch</code> 和 <code>XMLHttpRequest</code>，图片从不离开你的设备。</p>
+
+    <h3>支持哪些格式？</h3>
+    <p>JPG、PNG、WebP、GIF、BMP 由浏览器原生解码；TIFF 由内置解码器处理，支持无压缩与 LZW / Deflate / PackBits，涵盖 8bit、16bit 彩色和 16bit 单通道深度图。其余格式取决于你的浏览器能否解码。</p>
+
+    <h3>支持多大的图片？</h3>
+    <p>没有人为的尺寸上限，限制来自设备内存：图片会在浏览器里解码成位图，尺寸越大占用越多。加载缓慢或卡顿，通常说明已经接近浏览器的内存上限。</p>
+
+    <h3>TIFF 的哪些压缩格式支持？</h3>
+    <p>无压缩、LZW、Deflate、PackBits。JPEG-in-TIFF、多页 TIFF（只读第一页）和 BigTIFF 不支持；打不开时先转存为上述四种压缩之一。</p>
+
+    <h3>深度值的单位是什么？</h3>
+    <p>16bit 整数 TIFF 的像素值按毫米显示；32bit 浮点 TIFF 按米解析并自动 ×1000 换算；像素值 0 视为无效深度，显示为透明。不同厂商的约定可能不同，数值离谱时先怀疑单位。完整口径见<a href="/guides/depth-tiff.html">《16bit TIFF 深度图》</a>。</p>
+
+    <h3>为什么深度图打开是黑白的、全黑的？</h3>
+    <p>看图软件把单通道数据当灰度渲染，而深度值通常只占 0–65535 的一小段，整张图便挤在最暗的一端。判断文件字段与正确看法见<a href="/guides/depth-tiff.html">《16bit TIFF 深度图》</a>指南。</p>
+
+    <h3>为什么取到的颜色和设计稿不一样？</h3>
+    <p>常见原因是浏览器缩放插值、截图被 JPEG 二次压缩、抗锯齿边缘和显示器色彩管理。放大到原图 1:1 再取色可以避开大部分问题，详见<a href="/guides/color-picker.html">《图片取色》</a>指南。</p>
+
+    <h3>可以离线使用吗？</h3>
+    <p>图片处理全部在本地进行，本身不依赖网络；但首次打开需要联网加载页面，之后能否离线再次打开取决于浏览器缓存（静态资源缓存 7 天），本站没有提供离线安装包。</p>
+
+    <h3>会把我的图片存下来吗？</h3>
+    <p>不会。图片不写入服务器，也不写入浏览器的持久化存储；本站唯一的本地存储是语言偏好 <code>imagelab.lang</code>，在浏览器设置里清除本站的站点数据即可删除。</p>
+
+    <h3>免费吗？有广告吗？</h3>
+    <p>免费使用，不需要注册。当前页面没有接入任何广告；若将来接入，会在<a href="/privacy.html">《隐私说明》</a>里写明。</p>
+
+    <h3>支持手机吗？</h3>
+    <p>手机浏览器可以打开页面、选择图片并查看，但画布的拖动与缩放目前只绑定了鼠标事件，未实现触屏拖动和双指缩放，精细操作建议使用桌面浏览器。</p>
+
+    <h3>发现 bug 怎么反馈？</h3>
+    <p>发邮件到 <a href="mailto:yangzixiongh@163.com">yangzixiongh@163.com</a>，或到 <a href="https://github.com/yangzixiong">github.com/yangzixiong</a> 提出问题。反馈时请附上以下信息：</p>
+    <ol>
+      <li>浏览器与版本</li>
+      <li>操作系统</li>
+      <li>复现步骤</li>
+      <li>出问题的示例图片</li>
+    </ol>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/privacy.html">隐私</a>
+    <a href="/en/faq.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

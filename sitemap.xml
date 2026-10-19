@@ -3,7 +3,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
-  <!-- 中文版（默认版本） -->
+  <!-- 首页 -->
   <url>
     <loc>https://image-show.yangzixiongh.workers.dev/</loc>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/"/>
@@ -13,8 +13,6 @@
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- English version -->
   <url>
     <loc>https://image-show.yangzixiongh.workers.dev/en/</loc>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/"/>
@@ -23,6 +21,126 @@
     <lastmod>2026-10-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+  </url>
+
+  <!-- 16bit TIFF 深度图 -->
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/depth-tiff.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/depth-tiff.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 图片取色 -->
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/guides/color-picker.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/color-picker.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/color-picker.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 像素坐标与放大镜 -->
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/guides/pixel-inspector.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/guides/pixel-inspector.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 常见问题 -->
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/faq.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/faq.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/en/faq.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/faq.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/faq.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 关于 -->
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/about.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/about.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/about.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/about.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/en/about.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/about.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/about.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/about.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- 隐私说明 -->
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/privacy.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://image-show.yangzixiongh.workers.dev/en/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/privacy.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
 
 </urlset>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy: Your Images Never Leave the Browser · ImageLab</title>
+<meta name="description" content="Images never leave your browser: local decoding with no fetch or XMLHttpRequest, one localStorage key for language, notes on Cloudflare logs and the ad policy.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/en/privacy.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/privacy.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/privacy.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/privacy.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/en/privacy.html">
+<meta property="og:title" content="Privacy: Your Images Never Leave the Browser · ImageLab">
+<meta property="og:description" content="Why images stay local, the single localStorage key, Cloudflare access logs, the advertising policy and how to contact us.">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Privacy: Your Images Never Leave the Browser · ImageLab">
+<meta name="twitter:description" content="Why images stay local, the single localStorage key, Cloudflare access logs, the advertising policy and how to contact us.">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Privacy: Your Images Never Leave the Browser",
+  "description": "Why images stay local, the single localStorage key, Cloudflare access logs, the advertising policy and how to contact us.",
+  "inLanguage": "en",
+  "dateModified": "2026-10-19",
+  "url": "https://image-show.yangzixiongh.workers.dev/en/privacy.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/privacy.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Privacy</span>
+  </nav>
+
+  <article class="prose">
+    <h1>Privacy</h1>
+    <p class="lede">One page covering what this site cannot touch, what it stores, and what ends up in the logs — every claim checkable for yourself.</p>
+
+    <h2>Images never leave the browser</h2>
+    <p>From the moment you pick a file, it is handled locally: <code>FileReader</code> or <code>URL.createObjectURL</code> reads it in the browser, then it is decoded and drawn on the canvas. The scripts contain no <code>fetch</code> and no <code>XMLHttpRequest</code> — there is no code path that could upload an image. Nothing is sent to this site's server, and nothing is sent to any third party.</p>
+
+    <h2>What this site stores</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Item</th><th>What is stored</th><th>Where</th><th>How to remove it</th></tr></thead>
+      <tbody>
+        <tr><td>Language preference</td><td>The language you chose last</td><td><code>localStorage</code> key <code>imagelab.lang</code></td><td>Clear this site's data in your browser settings</td></tr>
+        <tr><td>Images and pixel data</td><td>Never written to disk; decoded and shown in memory</td><td>Page memory</td><td>Gone when you close the page</td></tr>
+        <tr><td>Cookies</td><td>This site sets no cookies</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table></div>
+    <p>Beyond the table above there is no account system, no record of your image content and no behavioural tracking.</p>
+
+    <h2>What the server logs</h2>
+    <p>The site is hosted on Cloudflare. Your images generate no upload requests at all, but every page view is recorded by Cloudflare as routine access logs — IP, User-Agent, timestamps and similar — for security and traffic statistics, kept under the host's own retention policy. Those logs never contain your image content.</p>
+
+    <h2>About advertising</h2>
+    <p>There are currently no ads on this site and no advertising cookies are set. If Google AdSense is added later, Google and its partners may use cookies for ad data collection; this page will be updated to explain the use, with a link to the <a href="https://policies.google.com/technologies/ads">Google advertising privacy policy</a> kept here for reference. The current content of this page is the source of truth for ad status.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this statement, or requests regarding your data, go to <a href="mailto:yangzixiongh@163.com">yangzixiongh@163.com</a> or leave a message at <a href="https://github.com/yangzixiong">github.com/yangzixiong</a>. Usage questions are answered on the <a href="/en/faq.html">FAQ page</a>; project background is on the <a href="/en/about.html">about page</a>.</p>
+
+    <h2>Last updated</h2>
+    <p>This page was last updated on 2026-10-19.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/en/privacy.html">Privacy</a>
+    <a href="/privacy.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+</footer>
+
+</body>
+</html>

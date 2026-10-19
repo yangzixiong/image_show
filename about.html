@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关于 ImageLab：动机与实现 · ImageLab</title>
+<meta name="description" content="为什么做这个工具、用什么技术实现、谁做的、如何联系，以及本站对图片与注册的承诺：Canvas 2D 渲染、UTIF.js 解码 TIFF、无后端、不收集图片、打开即用。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/about.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/about.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/about.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/about.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/about.html">
+<meta property="og:title" content="关于 ImageLab：动机与实现 · ImageLab">
+<meta property="og:description" content="为什么做这个工具、怎么实现、谁做的、如何联系：Canvas 2D、UTIF.js、无后端、不收集图片。">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="关于 ImageLab：动机与实现 · ImageLab">
+<meta name="twitter:description" content="为什么做这个工具、怎么实现、谁做的、如何联系：Canvas 2D、UTIF.js、无后端、不收集图片。">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "关于 ImageLab",
+  "description": "为什么做这个工具、怎么实现、谁做的、如何联系：Canvas 2D、UTIF.js、无后端、不收集图片。",
+  "inLanguage": "zh-CN",
+  "dateModified": "2026-10-19",
+  "url": "https://image-show.yangzixiongh.workers.dev/about.html",
+  "image": "https://image-show.yangzixiongh.workers.dev/img/og-cover.png"
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/about.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">关于</span>
+  </nav>
+
+  <article class="prose">
+    <h1>关于 ImageLab</h1>
+    <p class="lede">一个把图片像素与深度值读出来的浏览器工具——它为什么存在、怎么工作、谁在维护。</p>
+
+    <h2>为什么做它</h2>
+    <p>做切图、对色或读深度数据时，能随手上手的在线工具有两个通病：要么要你把图片上传到别人的服务器，要么干脆不认 16bit TIFF。前者对还没发布的素材不现实，后者把最需要读数值的文件挡在门外。ImageLab 想要的只是一个页面：打开、拖图、读数，图片从头到尾留在自己的设备上。</p>
+
+    <h2>怎么实现</h2>
+    <p>没有后端，也没有构建步骤。页面本身是几个本地文件，渲染用 <code>Canvas 2D</code>，TIFF 解码用内置的 <code>UTIF.js</code>：</p>
+    <pre><code>&lt;script src="lib/utif.js"&gt;&lt;/script&gt;
+&lt;script src="js/decoder.js?v=2"&gt;&lt;/script&gt;</code></pre>
+    <p>一次查看的完整流程：</p>
+    <ol>
+      <li>选择、拖入或 Ctrl+V 粘贴图片，浏览器在本地读取文件；</li>
+      <li>普通格式交给浏览器原生解码，TIFF 交给内置的 UTIF.js；</li>
+      <li>解码结果画到 Canvas 画布上，缩放、平移、像素网格都在画布内完成；</li>
+      <li>悬停读出坐标、颜色或深度值，单击复制——全程没有任何网络请求。</li>
+    </ol>
+
+    <h2>谁做的、怎么联系</h2>
+    <p>ImageLab 由 <strong>yangzixiongh</strong> 设计与开发。发现问题、提建议或想聊聊合作，可以发邮件到 <a href="mailto:yangzixiongh@163.com">yangzixiongh@163.com</a>，或到 <a href="https://github.com/yangzixiong">github.com/yangzixiong</a> 留言；反馈方式的详细说明见<a href="/faq.html">常见问题</a>。</p>
+
+    <h2>我们承诺什么</h2>
+    <p>不收集图片，不需要注册，打开即用。图片不上传、不落盘，本地只存一个语言偏好。技术依据与日志说明写在<a href="/privacy.html">隐私说明</a>里，可以逐条核对。</p>
+
+    <h2>后续计划</h2>
+    <p>三篇指南与帮助页面（<a href="/guides/depth-tiff.html">深度图</a>、<a href="/guides/color-picker.html">取色</a>、<a href="/guides/pixel-inspector.html">像素查看</a>、<a href="/faq.html">常见问题</a>）已经完成。接下来会继续扩展图片格式支持，并补充更多使用文档。想先动手试试，<a href="/">打开 ImageLab</a> 即可。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/privacy.html">隐私</a>
+    <a href="/en/about.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

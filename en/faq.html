@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ: Formats, Privacy and Usage · ImageLab</title>
+<meta name="description" content="Answers to common ImageLab questions: formats, TIFF compression, depth units, colour accuracy, offline use, local storage, ads, mobile support and bug reports.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://image-show.yangzixiongh.workers.dev/en/faq.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://image-show.yangzixiongh.workers.dev/faq.html">
+<link rel="alternate" hreflang="en" href="https://image-show.yangzixiongh.workers.dev/en/faq.html">
+<link rel="alternate" hreflang="x-default" href="https://image-show.yangzixiongh.workers.dev/faq.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://image-show.yangzixiongh.workers.dev/en/faq.html">
+<meta property="og:title" content="FAQ: Formats, Privacy and Usage · ImageLab">
+<meta property="og:description" content="Are images uploaded, which formats work, TIFF compression and depth units, colour accuracy, offline use, storage, ads and mobile support.">
+<meta property="og:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FAQ: Formats, Privacy and Usage · ImageLab">
+<meta name="twitter:description" content="Are images uploaded, which formats work, TIFF compression and depth units, colour accuracy, offline use, storage, ads and mobile support.">
+<meta name="twitter:image" content="https://image-show.yangzixiongh.workers.dev/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=2">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Are my images uploaded to a server?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Images are read through local browser APIs (FileReader and URL.createObjectURL); the code contains no fetch and no XMLHttpRequest, and your image never leaves your device." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which formats are supported?",
+      "acceptedAnswer": { "@type": "Answer", "text": "JPG, PNG, WebP, GIF and BMP are decoded natively by the browser; TIFF is handled by the built-in decoder with no compression plus LZW / Deflate / PackBits, covering 8-bit, 16-bit colour and 16-bit single-channel depth maps. Anything else depends on whether your browser can decode it." }
+    },
+    {
+      "@type": "Question",
+      "name": "How large an image can I open?",
+      "acceptedAnswer": { "@type": "Answer", "text": "There is no artificial size limit; the real constraint is device memory, because each image is decoded into a bitmap in the browser. Slow loading or stutter usually means you are close to the browser's memory ceiling." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which TIFF compressions work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "None, LZW, Deflate and PackBits. JPEG-in-TIFF, multi-page TIFF (only the first page is read) and BigTIFF are not supported — if a file will not open, re-save it with one of those four compressions first." }
+    },
+    {
+      "@type": "Question",
+      "name": "What unit do depth values use?",
+      "acceptedAnswer": { "@type": "Answer", "text": "16-bit integer TIFF pixel values are shown as millimetres; 32-bit float TIFF is parsed as metres and converted with ×1000 automatically; a pixel value of 0 counts as invalid depth and renders transparent. Vendor conventions vary, so suspect the unit first when the numbers look absurd. Full details are in the depth map guide." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my depth map open black and white?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Image viewers render single-channel data as greyscale, while depth values usually occupy only a small slice of 0–65535, so the whole image is squeezed into the darkest end. For the file fields and the right way to view it, see the depth map guide." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my picked colour differ from the design?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The usual causes are browser scaling interpolation, JPEG re-compression of screenshots, antialiased edges and display colour management. Zoom to native 1:1 before picking to avoid most of it — see the colour picker guide." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work offline?",
+      "acceptedAnswer": { "@type": "Answer", "text": "All image processing happens locally and needs no network itself, but the first visit must load the page online; after that, whether it opens offline depends on your browser cache (assets are cached for 7 days). There is no offline install package." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you store my images?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Images are never written to a server or to persistent browser storage; the only local storage used is the language preference imagelab.lang, which you can delete by clearing this site's data in your browser settings." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it free? Are there ads?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Free to use, no registration required. The pages currently contain no ads; if any are added later, the privacy page will say so." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work on phones?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The page opens on mobile browsers and you can choose and view images, but canvas panning and zooming are currently bound to mouse events only — touch dragging and pinch zoom are not implemented, so detailed work is better on a desktop browser." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I report a bug?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Email yangzixiongh@163.com or raise it at github.com/yangzixiong. When reporting, please include:" }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html" aria-current="page">FAQ</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/faq.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">FAQ</span>
+  </nav>
+
+  <article class="prose">
+    <h1>Frequently Asked Questions</h1>
+    <p class="lede">Straight answers on formats, privacy and everyday use.</p>
+
+    <h3>Are my images uploaded to a server?</h3>
+    <p>No. Images are read through local browser APIs (<code>FileReader</code> and <code>URL.createObjectURL</code>); the code contains no <code>fetch</code> and no <code>XMLHttpRequest</code>, and your image never leaves your device.</p>
+
+    <h3>Which formats are supported?</h3>
+    <p>JPG, PNG, WebP, GIF and BMP are decoded natively by the browser; TIFF is handled by the built-in decoder with no compression plus LZW / Deflate / PackBits, covering 8-bit, 16-bit colour and 16-bit single-channel depth maps. Anything else depends on whether your browser can decode it.</p>
+
+    <h3>How large an image can I open?</h3>
+    <p>There is no artificial size limit; the real constraint is device memory, because each image is decoded into a bitmap in the browser. Slow loading or stutter usually means you are close to the browser's memory ceiling.</p>
+
+    <h3>Which TIFF compressions work?</h3>
+    <p>None, LZW, Deflate and PackBits. JPEG-in-TIFF, multi-page TIFF (only the first page is read) and BigTIFF are not supported — if a file will not open, re-save it with one of those four compressions first.</p>
+
+    <h3>What unit do depth values use?</h3>
+    <p>16-bit integer TIFF pixel values are shown as millimetres; 32-bit float TIFF is parsed as metres and converted with ×1000 automatically; a pixel value of 0 counts as invalid depth and renders transparent. Vendor conventions vary, so suspect the unit first when the numbers look absurd. Full details are in the <a href="/en/guides/depth-tiff.html">depth map guide</a>.</p>
+
+    <h3>Why does my depth map open black and white?</h3>
+    <p>Image viewers render single-channel data as greyscale, while depth values usually occupy only a small slice of 0–65535, so the whole image is squeezed into the darkest end. For the file fields and the right way to view it, see the <a href="/en/guides/depth-tiff.html">depth map guide</a>.</p>
+
+    <h3>Why does my picked colour differ from the design?</h3>
+    <p>The usual causes are browser scaling interpolation, JPEG re-compression of screenshots, antialiased edges and display colour management. Zoom to native 1:1 before picking to avoid most of it — see the <a href="/en/guides/color-picker.html">colour picker guide</a>.</p>
+
+    <h3>Does it work offline?</h3>
+    <p>All image processing happens locally and needs no network itself, but the first visit must load the page online; after that, whether it opens offline depends on your browser cache (assets are cached for 7 days). There is no offline install package.</p>
+
+    <h3>Do you store my images?</h3>
+    <p>No. Images are never written to a server or to persistent browser storage; the only local storage used is the language preference <code>imagelab.lang</code>, which you can delete by clearing this site's data in your browser settings.</p>
+
+    <h3>Is it free? Are there ads?</h3>
+    <p>Free to use, no registration required. The pages currently contain no ads; if any are added later, the <a href="/en/privacy.html">privacy page</a> will say so.</p>
+
+    <h3>Does it work on phones?</h3>
+    <p>The page opens on mobile browsers and you can choose and view images, but canvas panning and zooming are currently bound to mouse events only — touch dragging and pinch zoom are not implemented, so detailed work is better on a desktop browser.</p>
+
+    <h3>How do I report a bug?</h3>
+    <p>Email <a href="mailto:yangzixiongh@163.com">yangzixiongh@163.com</a> or raise it at <a href="https://github.com/yangzixiong">github.com/yangzixiong</a>. When reporting, please include:</p>
+    <ol>
+      <li>Browser and version</li>
+      <li>Operating system</li>
+      <li>Steps to reproduce</li>
+      <li>A sample image that shows the problem</li>
+    </ol>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/guides/depth-tiff.html">Depth maps</a>
+    <a href="/en/guides/color-picker.html">Colour picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/en/privacy.html">Privacy</a>
+    <a href="/faq.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+</footer>
+
+</body>
+</html>

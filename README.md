@@ -33,7 +33,7 @@
 - 顶栏 `中文 | EN` 是普通链接，不做 JS 重绘；`localStorage` 只用来记录"上次选了另一种语言"，从不自动跳转。
 - 两页共用同一套 CSS/JS，所以 **DOM 的 id 必须保持一致**，`deploy/check_i18n.py` 会校验这一点。
 
-改完 js/css 记得把两个 HTML 里 `?v=1` 的版本号加一（这些资源缓存 7 天）。
+改完 js/css 记得把各 HTML 里 `?v=2` 的版本号加一（这些资源缓存 7 天）。
 
 加第三种语言：复制 `en/index.html` 到 `/ja/index.html`，改 `lang`、`canonical`、`title`/`description`、hreflang，在 `js/i18n.js` 的 `DICT` 里补一份文案，再在 `sitemap.xml` 加一条 URL。
 
@@ -115,7 +115,8 @@ index.html      中文页面骨架与广告位
 en/index.html   英文页面（同结构，lang="en"，资源用根绝对路径）
 404.html        自定义 404 页（中英双语）
 robots.txt      爬虫规则：放行广告抓取器，屏蔽 AI 训练/SEO 抓虫（君子协定层）
-sitemap.xml     站点地图（中文 + 英文两个 URL，带 hreflang 互指）
+sitemap.xml     站点地图（2 个首页 + 12 个内容页共 14 条 URL，带 hreflang 互指）
+guides/ faq.html about.html privacy.html  内容页（英文版在 en/ 下，成对互指）
 ads.txt         广告授权文件（AdSense 接入后填写发布商 ID）
 favicon.ico     站点图标
 site.webmanifest  PWA 清单（图标 192/512）
@@ -127,6 +128,7 @@ deploy/
   image_show.conf  nginx 完整配置：限速/恶意UA拦截/垃圾Referer拦截/静态缓存
   check_seo.py     SEO 自检：h1/canonical/og:image/JSON-LD/图标
   check_i18n.py    多语言自检：中英页面配对、id 一致、文案 key 无缺失
+  check_content.py 内容页自检：12 个内容页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
   make_og_image.py 生成分享图与 PWA 图标（需要 Pillow）
 img/            分享图 og-cover.png(1200×630) 与 PWA 图标
 css/style.css   深色工具风样式

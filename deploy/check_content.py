@@ -6,7 +6,7 @@
 分批交付说明（docs/content-spec.md 第 10 节）：
   PAGES 按批次扩充：批 1 = depth-tiff 中英，批 2 = 另两篇 guides 中英，
   批 3 = faq/about/privacy 中英（共 12 页）；
-  EXPECTED_SITEMAP 随批次更新（批 1/批 2 = 2，批 3 = 14，sitemap 在批 3 整体重写）；
+  EXPECTED_SITEMAP：批 1/批 2 = 2，批 3（本状态）= 14，sitemap 整体重写完成；
   正文里指向「尚未交付但已规划」页面的链接由 PLANNED_URLS 放行，
   全部交付后这些 URL 都对应真实文件，检查即为真实校验。
 """
@@ -26,6 +26,12 @@ PAGES = [
     ("en", "en/guides/color-picker.html", "/en/guides/color-picker.html"),
     ("zh", "guides/pixel-inspector.html", "/guides/pixel-inspector.html"),
     ("en", "en/guides/pixel-inspector.html", "/en/guides/pixel-inspector.html"),
+    ("zh", "faq.html", "/faq.html"),
+    ("en", "en/faq.html", "/en/faq.html"),
+    ("zh", "about.html", "/about.html"),
+    ("en", "en/about.html", "/en/about.html"),
+    ("zh", "privacy.html", "/privacy.html"),
+    ("en", "en/privacy.html", "/en/privacy.html"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
@@ -37,7 +43,7 @@ PLANNED_URLS = {
     "/en/faq.html", "/en/about.html", "/en/privacy.html",
 }
 
-EXPECTED_SITEMAP = 2  # 第 1 批后 sitemap 仍为 2 条；第 3 批交付完整 14 条
+EXPECTED_SITEMAP = 14  # 2 个首页 + 12 个内容页（spec §8）
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
