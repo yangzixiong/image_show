@@ -57,13 +57,13 @@
 
   function addFiles(fileList) {
     var files = Array.prototype.filter.call(fileList, isImageFile);
-    if (!files.length) { toast("未发现可识别的图片文件"); return; }
+    if (!files.length) { toast(t("toast.noFiles")); return; }
     var firstNew = images.length;
     var done = 0;
     files.forEach(function (f) {
       Decoder.decode(f)
         .then(function (img) { images.push(img); })
-        .catch(function () { toast("无法解析: " + f.name); })
+        .catch(function () { toast(t("toast.decodeFail", { name: f.name })); })
         .then(function () {
           done++;
           if (done === files.length) {
@@ -91,7 +91,7 @@
     if (!images.length) {
       var d = document.createElement("div");
       d.className = "hint-muted";
-      d.textContent = "暂无图片，拖入或点击「打开图片」";
+      d.textContent = t("ui.noImages");
       els.thumbList.appendChild(d);
       return;
     }
@@ -111,12 +111,15 @@
     var img = images[i];
     Viewer.setImage(img);
     document.body.classList.remove("no-img");
-    els.imgName.textContent = img.name + (img.kind === "depth" ? " · 深度图" : "");
-    els.stSize.textContent = img.width + " × " + img.height + (img.kind === "depth" ? " · 16bit" : "");
+    els.imgName.textContent = img.name + (img.kind === "depth" ? t("label.depthImage") : "");
+    els.stSize.textContent = img.width + " × " + img.height + (img.kind === "depth" ? t("label.depth16") : "");
     var isDepth = img.kind === "depth";
     els.depthPanel.hidden = !isDepth;
     if (isDepth) {
-      els.depthRange.textContent = "范围: " + Decoder.fmtDepth(img.dmin) + " ~ " + Decoder.fmtDepth(img.dmax) + " mm" + (img.hasZero ? "（0 = 无效值）" : "");
+      els.depthRange.textContent = t("label.range", {
+        min: Decoder.fmtDepth(img.dmin),
+        max: Decoder.fmtDepth(img.dmax)
+      }) + (img.hasZero ? t("label.zeroInvalid") : "");
       els.cmapSelect.value = img.cmap;
     }
     Inspector.clear();

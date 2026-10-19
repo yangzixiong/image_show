@@ -17,7 +17,7 @@ var Picker = (function () {
     var text;
     if (img.kind === "depth") {
       var d = img.depth[p.y * img.width + p.x];
-      text = d === 0 ? "0 mm (无效)" : Decoder.fmtDepth(d) + " mm";
+      text = d === 0 ? t("picker.zeroInvalid") : Decoder.fmtDepth(d) + " mm";
     } else {
       text = hex + "  rgb(" + r + ", " + g + ", " + b + ")";
     }
@@ -25,7 +25,7 @@ var Picker = (function () {
     history.unshift({ text: text, color: hex });
     if (history.length > 18) history.length = 18;
     render();
-    toastFn("已复制  " + text);
+    toastFn(t("toast.copied", { value: text }));
   }
 
   function copy(text) {
@@ -55,10 +55,10 @@ var Picker = (function () {
       var b = document.createElement("button");
       b.className = "pk";
       b.style.backgroundColor = h.color;
-      b.title = h.text + "（点击复制）";
+      b.title = h.text + t("tip.copyHint");
       b.addEventListener("click", function () {
         copy(h.text);
-        toastFn("已复制  " + h.text);
+        toastFn(t("toast.copied", { value: h.text }));
       });
       list.appendChild(b);
     });

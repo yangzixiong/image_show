@@ -145,6 +145,32 @@ WAF、限速、Bot Fight Mode、Block AI bots 都是**区域（zone）级**功�
 
 ---
 
+## 多语言：中文 / English
+
+站点按路径分语言，两个真实 URL：
+
+| 地址 | 语言 | 说明 |
+|---|---|---|
+| `/` | 中文 `zh-CN` | 默认版本，`x-default` 也指向它 |
+| `/en/` | English | 独立页面，独立 canonical |
+
+要点：
+
+- 两个页面各自写死自己的静态文字（爬虫不执行 JS 也读得到），JS 拼出来的字符串统一在 `js/i18n.js` 的 `DICT` 里，由 `<html lang>` 决定用哪一份。
+- 顶栏 `中文 | EN` 是普通链接，**不做自动跳转**（按浏览器语言 302 会干扰抓取，也让分享出去的链接对别人显示错语言）。`localStorage` 只记录上次的选择，用来在顶栏显示一个不打扰的提示。
+- 两页共用同一套 JS，所以 **DOM 的 id 必须完全一致**——改了一边记得改另一边，否则共用脚本会报 `null` 错误。
+- 改完 `js/` 或 `css/` 要把两个 HTML 里的 `?v=1` 加一。这些资源在 `_headers` 里缓存 7 天，不加版本号老访客会继续用旧文件。
+- 上线后跑一次 `python deploy/check_i18n.py`，它会校验：lang 属性、canonical、hreflang 三条、两页 id 一致、本地资源存在、中英文案 key 一一对应、JS 用到的 key 都有定义、sitemap 收录两个 URL。
+
+### 加第三种语言
+
+1. 复制 `en/index.html` → `/ja/index.html`，把 `lang`、`canonical`、`title`/`description`、`og:*`、`og:locale`、JSON-LD 的 `inLanguage` 改掉。
+2. 在 `js/i18n.js` 的 `DICT` 里加一份 `ja: { ... }`，key 与中英完全一致（脚本会校验）。
+3. 中英两个页面的 `<link rel="alternate" hreflang>` 各补上 `ja` 一行。
+4. `sitemap.xml` 加一条 URL，并在每条 URL 里补 `hreflang="ja"`。
+
+---
+
 ## 日常更新流程
 
 改完代码，两条命令上线：
@@ -164,7 +190,7 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 
 - **Git 集成之后不能改成 Direct Upload**（Cloudflare 的硬限制）。仍想用命令行直传时，可以在项目设置里关掉自动部署，再用 `npx wrangler pages deploy .` 推，但项目类型不变。
 - **`_headers` 对 HTML 之外的文件按路径通配**：本项目用的是 `/*.css`、`/*.js` 这类后缀匹配。以后新增资源目录（比如 `img/`）如果也想长缓存，需要在 `_headers` 里补一条规则。
-- **CSS/JS 文件名不含内容哈希**：`max-age=604800` 意味着改完样式后，老访客最多 7 天内可能仍用旧缓存。想改完立刻生效，就把 `_headers` 里对应 `max-age` 调小。
+- **CSS/JS 文件名不含内容哈希**：`max-age=604800` 意味着改完样式后，老访客最多 7 天内可能仍用旧缓存。本项目用 `?v=1` 查询串做版本控制——改完 js/css 把两个 HTML 里的版本号加一，就等于换了新 URL，老访客立刻拿到新文件。
 - **`.assetsignore`** 用于把 `README.md`、`deploy/` 排除在发布内容之外；如果 Cloudflare 的上传器忽略它，最坏结果只是这些文件能被直接访问，不影响站点运行。
 - **别忘了 `ads.txt`**：接入 AdSense 后要填发布商 ID 并推一次，否则广告收益归属校验会失败。
 

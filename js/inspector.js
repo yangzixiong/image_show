@@ -21,9 +21,9 @@ var Inspector = (function () {
   }
 
   function clear() {
-    els.pos.textContent = "X: -  Y: -";
+    els.pos.textContent = t("pos.none");
     els.hex.textContent = "-";
-    els.rgb.textContent = "R: -  G: -  B: -";
+    els.rgb.textContent = t("rgb.none");
     els.swatch.style.backgroundColor = "transparent";
     els.depth.hidden = true;
     tip.classList.remove("show");
@@ -38,17 +38,17 @@ var Inspector = (function () {
     var hex = "#" + to2(r) + to2(g) + to2(b);
 
     els.pos.textContent = "X: " + p.x + "  Y: " + p.y;
-    els.rgb.textContent = "R: " + r + "  G: " + g + "  B: " + b;
+    els.rgb.textContent = t("rgb.values", { r: r, g: g, b: b });
     els.hex.textContent = hex;
     els.swatch.style.backgroundColor = hex;
 
     var tipStr = hex + "  " + r + "," + g + "," + b;
     if (img.kind === "depth") {
       var d = img.depth[p.y * img.width + p.x];
-      var ds = d === 0 ? "无效" : Decoder.fmtDepth(d) + " mm";
+      var ds = d === 0 ? t("label.invalid") : Decoder.fmtDepth(d) + " mm";
       els.depth.hidden = false;
-      els.depth.textContent = "深度: " + ds;
-      tipStr = "深度 " + ds + "  ·  " + hex;
+      els.depth.textContent = t("label.depthValue", { value: ds });
+      tipStr = t("tip.depth", { value: ds, hex: hex });
     } else {
       els.depth.hidden = true;
     }

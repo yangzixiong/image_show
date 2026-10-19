@@ -1,0 +1,136 @@
+"use strict";
+/**
+ * ImageLab 多语言文案表（只存放「由 JS 生成」的文本）
+ *
+ * 设计取舍：
+ *   - 页面上的静态文字直接写在各自的 HTML 里（/index.html 中文、/en/index.html 英文），
+ *     这样爬虫不执行 JS 也能读到完整内容，禁用 JS 的用户也看得懂。
+ *   - 本文件只负责 JS 运行时拼出来的字符串（toast、侧栏提示、深度值等）。
+ *   - 语言由 <html lang="..."> 决定，不做自动跳转（自动跳转会干扰搜索引擎抓取）。
+ *
+ * 新增语言：在 DICT 里加一份文案，再复制一份 HTML 到对应目录即可。
+ */
+var I18N = (function () {
+  var DICT = {
+    zh: {
+      "ui.noImages": "暂无图片，拖入或点击「打开图片」",
+      "ui.langHint": "查看中文版 →",
+
+      "toast.noFiles": "未发现可识别的图片文件",
+      "toast.decodeFail": "无法解析: {name}",
+      "toast.copied": "已复制  {value}",
+
+      "label.depthImage": " · 深度图",
+      "label.depth16": " · 16bit",
+      "label.range": "范围: {min} ~ {max} mm",
+      "label.zeroInvalid": "（0 = 无效值）",
+      "label.depthValue": "深度: {value}",
+      "label.invalid": "无效",
+
+      "pos.none": "X: -  Y: -",
+      "rgb.none": "R: -  G: -  B: -",
+      "rgb.values": "R: {r}  G: {g}  B: {b}",
+
+      "tip.depth": "深度 {value}  ·  {hex}",
+      "tip.copyHint": "（点击复制）",
+
+      "picker.zeroInvalid": "0 mm (无效)"
+    },
+
+    en: {
+      "ui.noImages": "No images yet — drop one here or click “Open image”",
+      "ui.langHint": "View this page in English →",
+
+      "toast.noFiles": "No recognisable image files found",
+      "toast.decodeFail": "Could not decode: {name}",
+      "toast.copied": "Copied  {value}",
+
+      "label.depthImage": " · depth map",
+      "label.depth16": " · 16-bit",
+      "label.range": "Range: {min} ~ {max} mm",
+      "label.zeroInvalid": " (0 = invalid)",
+      "label.depthValue": "Depth: {value}",
+      "label.invalid": "invalid",
+
+      "pos.none": "X: -  Y: -",
+      "rgb.none": "R: -  G: -  B: -",
+      "rgb.values": "R: {r}  G: {g}  B: {b}",
+
+      "tip.depth": "Depth {value}  ·  {hex}",
+      "tip.copyHint": " (click to copy)",
+
+      "picker.zeroInvalid": "0 mm (invalid)"
+    }
+  };
+
+  var FALLBACK = "zh";
+  var PREF_KEY = "imagelab.lang";
+
+  // 语言来自 <html lang="zh-CN"> 或 <html lang="en">
+  var LANG = (function () {
+    var l = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    return l.indexOf("en") === 0 ? "en" : "zh";
+  })();
+
+  var warned = {};
+
+  function t(key, vars) {
+    var table = DICT[LANG] || DICT[FALLBACK];
+    var s = table[key];
+    if (s === undefined) {
+      // 缺 key 时回落中文并只警告一次，避免控制台被刷屏
+      if (!warned[key] && window.console) {
+        warned[key] = 1;
+        console.warn("[i18n] 缺少文案 key: " + key + "（语言: " + LANG + "）");
+      }
+      s = DICT[FALLBACK][key] !== undefined ? DICT[FALLBACK][key] : key;
+    }
+    if (!vars) return s;
+    return s.replace(/\{(\w+)\}/g, function (m, name) {
+      return vars[name] === undefined ? m : String(vars[name]);
+    });
+  }
+
+  function lang() { return LANG; }
+
+  function readPref() {
+    try { return localStorage.getItem(PREF_KEY); } catch (e) { return null; }
+  }
+
+  /** 记住用户点过的语言版本（只记录，不自动跳转） */
+  function bindSwitcher() {
+    var links = document.querySelectorAll("[data-lang-switch]");
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener("click", function () {
+        try { localStorage.setItem(PREF_KEY, this.getAttribute("data-lang-switch")); } catch (e) {}
+      });
+    }
+  }
+
+  /** 如果访客上次选了另一种语言，就在顶栏给一个不打扰的入口 */
+  function showPrefHint() {
+    var pref = readPref();
+    if (!pref || pref === LANG || !DICT[pref]) return;
+    var box = document.getElementById("langHint");
+    if (!box) return;
+    box.href = pref === "en" ? "/en/" : "/";
+    box.textContent = (DICT[pref]["ui.langHint"]) || box.textContent;
+    box.hidden = false;
+  }
+
+  function boot() {
+    bindSwitcher();
+    showPrefHint();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  return { t: t, lang: lang };
+})();
+
+/** 全局快捷方式，供 main.js / inspector.js / picker.js 直接调用 */
+function t(key, vars) { return I18N.t(key, vars); }
