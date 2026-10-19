@@ -1,0 +1,15 @@
+# 依赖 / 构建产物
+node_modules/
+dist/
+.wrangler/
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+
+# 编辑器与系统垃圾
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

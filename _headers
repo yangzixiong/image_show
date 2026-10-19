@@ -1,0 +1,32 @@
+# Cloudflare Pages 响应头配置
+# 作用等价于原 nginx 配置里的 expires / add_header，部署到 Cloudflare 后由本文件接管，
+# deploy/image_show.conf 不再参与线上运行（可保留作自建服务器备份）。
+# 语法：第一行是路径模式，随后缩进行是 "名称: 值"；同一路径命中多条规则时头部合并。
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+
+# 静态资源：浏览器缓存 7 天（与 nginx 的 expires 7d 一致）
+# 注意：这些文件名不带内容哈希，改动 css/js 后老访客最多 7 天内仍用旧缓存。
+# 如果需要「改完立刻生效」，把 max-age 调小（如 3600）或给文件名加版本号。
+/*.css
+  Cache-Control: public, max-age=604800
+
+/*.js
+  Cache-Control: public, max-age=604800
+
+/*.ico
+  Cache-Control: public, max-age=604800
+
+/*.svg
+  Cache-Control: public, max-age=604800
+
+/*.woff2
+  Cache-Control: public, max-age=604800
+
+# HTML 每次回源校验，保证发版后立刻看到新页面
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

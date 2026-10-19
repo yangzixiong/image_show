@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ImageLab · 图片查看与像素/深度分析</title>
+<meta name="description" content="在浏览器里查看图片像素与深度：悬停即显示坐标、RGB、HEX 和深度值（mm），支持 16bit TIFF 深度图伪彩色映射、单击取色复制、滚轮缩放与像素网格。">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ImageLab · 图片查看与像素/深度分析">
+<meta property="og:description" content="浏览器内的图片像素与深度查看器：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放平移与像素网格。">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="no-img">
+
+<header class="topbar">
+  <div class="brand">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></div>
+  <button id="btnOpen" class="btn">打开图片</button>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
+  <div class="img-name" id="imgName"></div>
+</header>
+
+<!-- 广告位：顶部横幅 728×90。接入广告时删除占位 span，放入广告代码（如 AdSense ins 标签） -->
+<div class="ad-slot ad-top"><span>广告位 728 × 90</span></div>
+
+<main class="layout">
+  <aside class="sidebar">
+    <section class="panel">
+      <h3>图片列表</h3>
+      <div class="thumb-list" id="thumbList"><div class="hint-muted">暂无图片，拖入或点击「打开图片」</div></div>
+    </section>
+
+    <section class="panel">
+      <h3>像素信息</h3>
+      <div class="inspect">
+        <canvas id="magCanvas" width="176" height="176"></canvas>
+        <div class="coords mono" id="posText">X: -  Y: -</div>
+        <div class="swatch-row"><span class="swatch" id="swatchBox"></span><span class="mono hex-big" id="hexText">-</span></div>
+        <div class="mono" id="rgbText">R: -  G: -  B: -</div>
+        <div class="mono depth-text" id="depthText" hidden>深度: -</div>
+      </div>
+    </section>
+
+    <section class="panel" id="depthPanel" hidden>
+      <h3>深度设置</h3>
+      <label class="label-row">伪彩色映射
+        <select id="cmapSelect" class="select">
+          <option value="jet">Jet</option>
+          <option value="viridis">Viridis</option>
+          <option value="gray">灰度</option>
+        </select>
+      </label>
+      <div class="mono depth-range" id="depthRange"></div>
+    </section>
+
+    <section class="panel">
+      <h3>取色历史<span class="h3-tip">单击图片取色并复制</span></h3>
+      <div class="pick-history" id="pickHistory"><div class="hint-muted" id="pickHint">暂无取色记录</div></div>
+    </section>
+
+    <!-- 广告位：侧栏 300×600。接入广告时删除占位 span，放入广告代码 -->
+    <div class="ad-slot ad-side"><span>广告位 300 × 600</span></div>
+  </aside>
+
+  <section class="stage" id="stage">
+    <canvas id="viewCanvas"></canvas>
+    <div class="drop-hint" id="dropHint">
+      <div class="drop-box">
+        <div class="drop-title">拖入图片到此处</div>
+        <div class="drop-sub">或点击「打开图片」 · 支持 Ctrl+V 粘贴</div>
+        <div class="drop-sub">JPG / PNG / WebP / GIF / BMP / TIFF（含 16bit 深度图）</div>
+      </div>
+    </div>
+    <div class="px-tip" id="pxTip"><span class="tip-swatch" id="tipSwatch"></span><span class="mono" id="tipText"></span></div>
+    <div class="statusbar mono" id="statusbar">
+      <span id="stZoom">-</span>
+      <span id="stSize"></span>
+      <span id="stPos"></span>
+      <span class="st-tip">滚轮缩放 · 拖拽平移 · 双击适配 · 单击取色</span>
+    </div>
+    <div class="toast" id="toast"></div>
+  </section>
+</main>
+
+<script src="lib/utif.js"></script>
+<script src="js/decoder.js"></script>
+<script src="js/viewer.js"></script>
+<script src="js/inspector.js"></script>
+<script src="js/picker.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
