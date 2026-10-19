@@ -5,6 +5,7 @@
 
 README.md
 deploy/
+docs/
 .git/
 .gitignore
 .assetsignore
