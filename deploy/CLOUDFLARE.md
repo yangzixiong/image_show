@@ -3,6 +3,10 @@
 本项目是纯静态站点（无构建步骤），走 Cloudflare Pages 的 Git 集成：**以后 push 到 GitHub 就自动上线**。
 下面的步骤按顺序做一遍即可，全程免费额度内（Pages 免费版：无限请求与带宽，每月 500 次构建，静态站点足够）。
 
+> **实际状态（2026-10-19）**：站点最终没有走 Pages，而是用 **Workers 静态资源（Static Assets）** 面板直传上线的，
+> 线上地址 `https://image-show.yangzixiongh.workers.dev`。两者差别见文末「Workers 静态资源 vs Pages」。
+> 本文的 Pages 步骤保留作为备选方案（万一以后要迁回 Pages 或接 Git 自动构建）。
+
 ---
 
 ## 第 1 步：把项目推到 GitHub
@@ -163,6 +167,39 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 - **CSS/JS 文件名不含内容哈希**：`max-age=604800` 意味着改完样式后，老访客最多 7 天内可能仍用旧缓存。想改完立刻生效，就把 `_headers` 里对应 `max-age` 调小。
 - **`.assetsignore`** 用于把 `README.md`、`deploy/` 排除在发布内容之外；如果 Cloudflare 的上传器忽略它，最坏结果只是这些文件能被直接访问，不影响站点运行。
 - **别忘了 `ads.txt`**：接入 AdSense 后要填发布商 ID 并推一次，否则广告收益归属校验会失败。
+
+---
+
+## Workers 静态资源 vs Pages
+
+本项目实际走的是 **Workers 静态资源**（面板里 Create → Worker → 上传静态文件），不是 Pages。行为差异：
+
+| 项目 | Pages | Workers 静态资源 |
+|---|---|---|
+| 静态请求计费 | 免费不限量 | **免费不限量**（只有调用 Worker 脚本才计费，本项目没有脚本） |
+| 默认 `Cache-Control` | 无 | `public, max-age=0, must-revalidate` |
+| `_headers` | 支持 | 支持，语法相同，覆盖上面的默认值 |
+| 自定义 404 | 自动使用根目录 `404.html` | **不会自动生效**，必须在 `wrangler.jsonc` 里写 `"assets": { "not_found_handling": "404-page" }` |
+| 访问域名 | `<name>.pages.dev` | `<name>.<子域>.workers.dev` |
+| 自定义域名 | Custom domains | Settings → Domains & Routes → Custom domain |
+| WAF / 防爬 | 需绑自有域名 | 需绑自有域名（同样是 zone 级功能） |
+
+结论：静态站用 Workers 更合适（Cloudflare 现在的新项目默认引导到 Workers，Pages 处于维护状态），不需要迁回 Pages。
+唯一要留意的是 **自定义 404 不会自动生效**。想恢复，就在项目根目录加一个 `wrangler.jsonc`：
+
+```jsonc
+{
+  "name": "image-show",
+  "compatibility_date": "2026-10-19",
+  "assets": {
+    "directory": "./",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}
+```
+
+然后用 `npx wrangler deploy` 发布（面板直传的方式改不了这个设置）。
 
 ---
 

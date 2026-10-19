@@ -1,4 +1,4 @@
-# robots.txt - 上线前把 Sitemap 行中的域名替换为实际域名
+# robots.txt - Sitemap 行已指向线上地址 image-show.yangzixiongh.workers.dev
 # 君子协定层：以下声明只对守规矩的爬虫有效，强制拦截见 deploy/image_show.conf
 
 User-agent: *
@@ -58,4 +58,4 @@ Disallow: /
 User-agent: PetalBot
 Disallow: /
 
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://image-show.yangzixiongh.workers.dev/sitemap.xml
