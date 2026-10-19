@@ -34,7 +34,22 @@ var I18N = (function () {
       "tip.depth": "深度 {value}  ·  {hex}",
       "tip.copyHint": "（点击复制）",
 
-      "picker.zeroInvalid": "0 mm (无效)"
+      "picker.zeroInvalid": "0 mm (无效)",
+
+      "tool.noImage": "请先选择一张图片",
+      "tool.decodeFail": "无法解析: {name}",
+      "hist.empty": "尚未载入图片",
+      "hist.size": "尺寸: {w} × {h}",
+      "hist.samples": "采样: {n} 像素",
+      "hist.mean": "平均亮度: {v}",
+      "hist.clipLow": "暗部溢出: {p}%",
+      "hist.clipHigh": "高光溢出: {p}%",
+      "hist.depthValid": "有效像素: {n}",
+      "hist.depthInvalid": "无效像素 (0): {n}",
+      "hist.depthRange": "范围: {min} ~ {max} mm",
+      "hist.depthMean": "平均深度: {v} mm",
+      "flip.outSize": "输出尺寸: {w} × {h}",
+      "flip.downloaded": "已下载 {name}（{size}）"
     },
 
     en: {
@@ -59,7 +74,22 @@ var I18N = (function () {
       "tip.depth": "Depth {value}  ·  {hex}",
       "tip.copyHint": " (click to copy)",
 
-      "picker.zeroInvalid": "0 mm (invalid)"
+      "picker.zeroInvalid": "0 mm (invalid)",
+
+      "tool.noImage": "Choose an image first",
+      "tool.decodeFail": "Could not decode: {name}",
+      "hist.empty": "No image loaded yet",
+      "hist.size": "Size: {w} × {h}",
+      "hist.samples": "Sampled: {n} px",
+      "hist.mean": "Mean luminance: {v}",
+      "hist.clipLow": "Shadow clipping: {p}%",
+      "hist.clipHigh": "Highlight clipping: {p}%",
+      "hist.depthValid": "Valid pixels: {n}",
+      "hist.depthInvalid": "Invalid (0): {n}",
+      "hist.depthRange": "Range: {min} ~ {max} mm",
+      "hist.depthMean": "Mean depth: {v} mm",
+      "flip.outSize": "Output size: {w} × {h}",
+      "flip.downloaded": "Downloaded {name} ({size})"
     }
   };
 

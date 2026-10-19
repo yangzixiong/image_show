@@ -27,7 +27,7 @@
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/css/style.css?v=2">
+<link rel="stylesheet" href="/css/style.css?v=3">
 <meta name="theme-color" content="#0f1216">
 
 <script type="application/ld+json">
@@ -77,7 +77,7 @@
     <h2>怎么实现</h2>
     <p>没有后端，也没有构建步骤。页面本身是几个本地文件，渲染用 <code>Canvas 2D</code>，TIFF 解码用内置的 <code>UTIF.js</code>：</p>
     <pre><code>&lt;script src="lib/utif.js"&gt;&lt;/script&gt;
-&lt;script src="js/decoder.js?v=2"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="js/decoder.js?v=3"&gt;&lt;/script&gt;</code></pre>
     <p>一次查看的完整流程：</p>
     <ol>
       <li>选择、拖入或 Ctrl+V 粘贴图片，浏览器在本地读取文件；</li>
@@ -104,6 +104,8 @@
 <footer class="site-footer">
   <nav aria-label="站内导航">
     <a href="/">首页</a>
+    <a href="/tools/histogram.html">直方图</a>
+    <a href="/tools/flip.html">翻转旋转</a>
     <a href="/guides/depth-tiff.html">16bit 深度图</a>
     <a href="/guides/color-picker.html">图片取色</a>
     <a href="/guides/pixel-inspector.html">像素查看</a>

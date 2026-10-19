@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flip, Rotate &amp; Mirror an Image Online | ImageLab</title>
+<meta name="description" content="Flip an image horizontally or vertically, rotate it 90 or 180 degrees, then export as PNG, JPEG or WebP at full resolution. All local, in your browser.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/flip.html">
+
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/flip.html">
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/flip.html">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/flip.html">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/flip.html">
+<meta property="og:title" content="Flip, Rotate &amp; Mirror an Image Online | ImageLab">
+<meta property="og:description" content="Mirror horizontally or vertically, rotate 90 or 180 degrees and export PNG, JPEG or WebP at full resolution.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Flip, Rotate &amp; Mirror an Image Online | ImageLab">
+<meta name="twitter:description" content="Mirror horizontally or vertically, rotate 90 or 180 degrees and export PNG, JPEG or WebP at full resolution.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=3">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Flip, Rotate & Mirror an Image",
+  "url": "https://yangzixiong.com/en/tools/flip.html",
+  "description": "Flip an image horizontally or vertically, rotate it 90 or 180 degrees, then export as PNG, JPEG or WebP at full resolution.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">pixels · RGB · depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/tools/histogram.html">Histogram</a>
+    <a href="/en/tools/flip.html" aria-current="page">Flip &amp; rotate</a>
+    <a href="/en/guides/depth-tiff.html">16-bit depth</a>
+    <a href="/en/guides/color-picker.html">Color picker</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/flip.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Flip, Rotate &amp; Mirror an Image</h1>
+    <p class="tool-sub">Mirror horizontally or vertically, rotate 90 or 180 degrees, preview live and export. The output carries no EXIF orientation tag, so no viewer will rotate it a second time.</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>Click to choose an image</strong>, or drop a file here
+    <span class="dz-hint">You can also press Ctrl+V to paste · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box tool-stage" aria-label="Preview">
+      <canvas id="flipCanvas"></canvas>
+    </section>
+
+    <aside class="tool-side">
+      <h2>Transform</h2>
+      <div class="btn-row">
+        <button class="btn ghost" id="btnFlipH" type="button">Flip H</button>
+        <button class="btn ghost" id="btnFlipV" type="button">Flip V</button>
+        <button class="btn ghost" id="btnRotL" type="button">Rotate left</button>
+        <button class="btn ghost" id="btnRotR" type="button">Rotate right</button>
+        <button class="btn ghost" id="btnReset" type="button">Reset</button>
+      </div>
+      <div class="stat-list"><div id="outSize">No image loaded yet</div></div>
+
+      <h2 class="side-h2">Export</h2>
+      <div class="ctl-row">
+        <span>Format</span>
+        <select id="formatSelect" class="select">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <span>Quality <b id="qualityVal">92%</b></span>
+        <input type="range" id="qualityRange" min="0.4" max="1" step="0.02" value="0.92">
+      </div>
+      <button class="btn" id="btnDownload" type="button">Download image</button>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>When you need this</h2>
+    <p>A generated image came out mirrored, a scan is oriented the wrong way, you need a flipped copy of a symmetric asset, or a UI screenshot has to face the other direction for a doc. None of that is worth opening Photoshop — drop the file in, press a button or two, export.</p>
+
+    <h2>Rotating swaps width and height</h2>
+    <p>A 90-degree turn in either direction swaps the dimensions: 1920×1080 becomes 1080×1920. Flips and rotations stack, one press each, and the output size box always shows the result before you export. Reset returns to the original orientation.</p>
+
+    <h2>Which export format</h2>
+    <p>PNG is lossless but large and keeps transparency; JPEG is small but has no alpha channel, so transparent areas are flattened onto white; WebP gives better quality at the same size and is supported by every current browser. The quality slider only affects JPEG and WebP.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/histogram.html">Image histogram viewer</a> · Reading: <a href="/en/guides/color-picker.html">Color picker guide</a>, <a href="/en/guides/pixel-inspector.html">Pixel inspection guide</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/tools/histogram.html">Histogram</a>
+    <a href="/en/tools/flip.html">Flip &amp; rotate</a>
+    <a href="/en/guides/depth-tiff.html">16-bit depth</a>
+    <a href="/en/guides/color-picker.html">Color picker</a>
+    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
+    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/about.html">About</a>
+    <a href="/tools/flip.html" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/tools/flip.js?v=3"></script>
+</body>
+</html>

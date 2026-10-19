@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片翻转旋转镜像工具 · ImageLab</title>
+<meta name="description" content="在线翻转、旋转、镜像图片：左右上下翻转，顺时针逆时针 90 度与 180 度旋转，导出 PNG / JPEG / WebP 并保持原始尺寸。全部在浏览器本地完成，图片不会上传。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/flip.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/flip.html">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/flip.html">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/flip.html">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/flip.html">
+<meta property="og:title" content="图片翻转旋转镜像工具 · ImageLab">
+<meta property="og:description" content="在线翻转、旋转、镜像图片，支持 90/180 度旋转与水平垂直翻转，导出 PNG / JPEG / WebP。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="图片翻转旋转镜像工具 · ImageLab">
+<meta name="twitter:description" content="在线翻转、旋转、镜像图片，支持 90/180 度旋转与水平垂直翻转，导出 PNG / JPEG / WebP。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=3">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "图片翻转旋转镜像工具",
+  "url": "https://yangzixiong.com/tools/flip.html",
+  "description": "在线翻转、旋转、镜像图片：左右上下翻转，顺时针逆时针 90 度与 180 度旋转，导出 PNG / JPEG / WebP 并保持原始尺寸。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/tools/histogram.html">直方图</a>
+    <a href="/tools/flip.html" aria-current="page">翻转旋转</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/flip.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>图片翻转 / 旋转 / 镜像</h1>
+    <p class="tool-sub">水平翻转、垂直翻转、90 度与 180 度旋转，实时预览后导出。导出不留 EXIF 方向标记，不会再被看图软件转一次。</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>点击选择图片</strong>，或把文件拖到这里
+    <span class="dz-hint">也可以直接 Ctrl+V 粘贴 · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box tool-stage" aria-label="预览">
+      <canvas id="flipCanvas"></canvas>
+    </section>
+
+    <aside class="tool-side">
+      <h2>变换</h2>
+      <div class="btn-row">
+        <button class="btn ghost" id="btnFlipH" type="button">水平翻转</button>
+        <button class="btn ghost" id="btnFlipV" type="button">垂直翻转</button>
+        <button class="btn ghost" id="btnRotL" type="button">左转 90°</button>
+        <button class="btn ghost" id="btnRotR" type="button">右转 90°</button>
+        <button class="btn ghost" id="btnReset" type="button">重置</button>
+      </div>
+      <div class="stat-list"><div id="outSize">尚未载入图片</div></div>
+
+      <h2 class="side-h2">导出</h2>
+      <div class="ctl-row">
+        <span>格式</span>
+        <select id="formatSelect" class="select">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <span>质量 <b id="qualityVal">92%</b></span>
+        <input type="range" id="qualityRange" min="0.4" max="1" step="0.02" value="0.92">
+      </div>
+      <button class="btn" id="btnDownload" type="button">下载图片</button>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>什么时候用得上</h2>
+    <p>贴图时发现 AI 生成的图左右反了、扫描件方向不对、镜像对称的素材需要复制一份、UI 截图要翻转后放进文档，这些都不值得打开 Photoshop。拖进来点两下，导出即可。</p>
+
+    <h2>旋转会交换宽高</h2>
+    <p>顺时针或逆时针转 90 度后，宽和高会互换：1920×1080 会变成 1080×1920。翻转和旋转可以叠加，按钮点几次就是几次，右侧的「输出尺寸」实时显示最终结果。点「重置」回到原图状态。</p>
+
+    <h2>导出格式怎么选</h2>
+    <p>PNG 无损但体积大，适合带透明通道的素材；JPEG 体积小但不支持透明，透明区域会自动铺白底；WebP 在同等体积下质量更好，现代浏览器都支持。质量滑块只对 JPEG 和 WebP 生效。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/histogram.html">图片直方图查看器</a> · 相关阅读：<a href="/guides/color-picker.html">图片取色指南</a>、<a href="/guides/pixel-inspector.html">像素查看指南</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/tools/histogram.html">直方图</a>
+    <a href="/tools/flip.html">翻转旋转</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/en/tools/flip.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/tools/flip.js?v=3"></script>
+</body>
+</html>

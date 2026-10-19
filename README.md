@@ -33,9 +33,24 @@
 - 顶栏 `中文 | EN` 是普通链接，不做 JS 重绘；`localStorage` 只用来记录"上次选了另一种语言"，从不自动跳转。
 - 两页共用同一套 CSS/JS，所以 **DOM 的 id 必须保持一致**，`deploy/check_i18n.py` 会校验这一点。
 
-改完 js/css 记得把各 HTML 里 `?v=2` 的版本号加一（这些资源缓存 7 天）。
+改完 js/css 记得把各 HTML 里 `?v=3` 的版本号加一（这些资源缓存 7 天）。
 
 加第三种语言：复制 `en/index.html` 到 `/ja/index.html`，改 `lang`、`canonical`、`title`/`description`、hreflang，在 `js/i18n.js` 的 `DICT` 里补一份文案，再在 `sitemap.xml` 加一条 URL。
+
+## 工具页（一功能一页，便于被单独搜索到）
+
+| 路径 | 功能 |
+|---|---|
+| `/tools/histogram.html` · `/en/tools/histogram.html` | 图片直方图：RGB/亮度分布、对数刻度、溢出百分比、16bit 深度图分布 |
+| `/tools/flip.html` · `/en/tools/flip.html` | 翻转 / 旋转 / 镜像，导出 PNG / JPEG / WebP |
+
+新增工具页的约定：
+
+- 页面放 `tools/<name>.html`（英文 `en/tools/<name>.html`），逻辑放 `tools/<name>.js`，共用能力放 `js/toolkit.js`（选文件、拖放、下载、格式化、toast）与 `js/decoder.js`（解码，含 16bit TIFF）。
+- 页面 `body` 用 `class="doc tool"`，样式类 `.tool-main` / `.dropzone` / `.tool-grid` / `.tool-notes` / `.related` 已在 `css/style.css` 里备好。
+- 脚本加载顺序固定为：`i18n.js` → `lib/utif.js` → `decoder.js` → `toolkit.js` → 本页脚本，全部带同一个 `?v=` 版本号。
+- 新增文案写进 `js/i18n.js` 的中英两份 `DICT`（两份 key 必须一致，`deploy/check_i18n.py` 会校验）。
+- 新页要同时改：`sitemap.xml`、`deploy/check_content.py` 的 `PAGES`/`PLANNED_URLS`/`EXPECTED_SITEMAP`、以及各个页脚的站内导航。
 
 ## 本地运行（任选其一）
 
@@ -115,8 +130,9 @@ index.html      中文页面骨架与广告位
 en/index.html   英文页面（同结构，lang="en"，资源用根绝对路径）
 404.html        自定义 404 页（中英双语）
 robots.txt      爬虫规则：放行广告抓取器，屏蔽 AI 训练/SEO 抓虫（君子协定层）
-sitemap.xml     站点地图（2 个首页 + 12 个内容页共 14 条 URL，带 hreflang 互指）
+sitemap.xml     站点地图（2 个首页 + 12 个内容页 + 4 个工具页共 18 条 URL，带 hreflang 互指）
 guides/ faq.html about.html privacy.html  内容页（英文版在 en/ 下，成对互指）
+tools/          工具页：histogram.html 直方图、flip.html 翻转旋转（英文版在 en/tools/ 下）
 ads.txt         广告授权文件（AdSense 接入后填写发布商 ID）
 favicon.ico     站点图标
 site.webmanifest  PWA 清单（图标 192/512）
@@ -128,15 +144,18 @@ deploy/
   image_show.conf  nginx 完整配置：限速/恶意UA拦截/垃圾Referer拦截/静态缓存
   check_seo.py     SEO 自检：h1/canonical/og:image/JSON-LD/图标
   check_i18n.py    多语言自检：中英页面配对、id 一致、文案 key 无缺失
-  check_content.py 内容页自检：12 个内容页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
+  check_content.py 内容页自检：16 个内容页/工具页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
   make_og_image.py 生成分享图与 PWA 图标（需要 Pillow）
 img/            分享图 og-cover.png(1200×630) 与 PWA 图标
-css/style.css   深色工具风样式
+css/style.css   深色工具风样式（含工具页布局类）
 js/i18n.js      多语言文案表与 t()（只存 JS 动态生成的文字）
+js/toolkit.js   工具页共用：选文件、拖放、下载、体积格式化、toast
 js/decoder.js   图片解码（原生 + UTIF/TIFF）、深度伪彩色
 js/viewer.js    Canvas 渲染、缩放平移、像素网格
 js/inspector.js 悬停像素信息（浮动提示 + 放大镜）
 js/picker.js    取色与剪贴板复制
 js/main.js      入口：文件加载、列表切换、事件接线
+tools/histogram.js  直方图统计（采样上限 200 万）与三种绘制模式
+tools/flip.js       翻转旋转的变换矩阵与导出
 lib/utif.js     TIFF 解码库（photopea/UTIF.js，MIT 协议）
 ```

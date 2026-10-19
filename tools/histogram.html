@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片直方图查看器 · ImageLab</title>
+<meta name="description" content="在线查看图片直方图：实时统计 RGB 三通道与亮度分布，支持对数刻度、暗部与高光溢出百分比，也能读取 16bit TIFF 深度图的深度分布。全部在浏览器本地计算，图片不会上传。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/histogram.html">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/histogram.html">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/histogram.html">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/histogram.html">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/histogram.html">
+<meta property="og:title" content="图片直方图查看器 · ImageLab">
+<meta property="og:description" content="在线查看图片直方图：RGB 三通道与亮度分布、对数刻度、溢出百分比，支持 16bit TIFF 深度图。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="图片直方图查看器 · ImageLab">
+<meta name="twitter:description" content="在线查看图片直方图：RGB 三通道与亮度分布、对数刻度、溢出百分比，支持 16bit TIFF 深度图。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=3">
+<meta name="theme-color" content="#0f1216">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "图片直方图查看器",
+  "url": "https://yangzixiong.com/tools/histogram.html",
+  "description": "在线查看图片直方图：实时统计 RGB 三通道与亮度分布，支持对数刻度、暗部与高光溢出百分比，也能读取 16bit TIFF 深度图的深度分布。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/tools/histogram.html" aria-current="page">直方图</a>
+    <a href="/tools/flip.html">翻转旋转</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/histogram.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>图片直方图查看器</h1>
+    <p class="tool-sub">查看 RGB 三通道与亮度分布，支持对数刻度、溢出统计；打开 16bit TIFF 深度图时会自动切换成深度分布模式。</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>点击选择图片</strong>，或把文件拖到这里
+    <span class="dz-hint">也可以直接 Ctrl+V 粘贴 · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box" aria-label="直方图">
+      <canvas id="histCanvas"></canvas>
+    </section>
+
+    <aside class="tool-side">
+      <h2>显示设置</h2>
+      <div class="ctl-row">
+        <span>模式</span>
+        <select id="modeSelect" class="select">
+          <option value="overlay">RGB 叠加</option>
+          <option value="separate">通道分离</option>
+          <option value="luma">仅亮度</option>
+        </select>
+      </div>
+      <label class="ctl-row"><span>对数刻度</span><input type="checkbox" id="logCheck"></label>
+
+      <h2 class="side-h2">统计</h2>
+      <div class="stat-list" id="stats"><div>尚未载入图片</div></div>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>怎么看这张图</h2>
+    <p>横轴是从 0 到 255 的亮度值，纵轴是落在该亮度上的像素个数。曲线集中在左侧说明画面偏暗，集中在右侧说明偏亮，中间隆起说明曝光正常。RGB 叠加模式下，谁在最上面谁在那一段占主导——灰色区域代表三通道重合。</p>
+
+    <h2>溢出百分比比图形更直接</h2>
+    <p>直方图两端被削平，说明有像素已经是纯黑或纯白，细节找不回来了。本站把 0–4 记为暗部溢出、251–255 记为高光溢出，直接给出百分比：超过 1% 基本可以认为该区域已经丢失细节，需要回原图或调曝光重出。</p>
+
+    <h2>深度图模式</h2>
+    <p>打开 16bit TIFF 深度图时，直方图会切换成单通道模式：横轴是深度范围（毫米），纵轴是像素个数，值为 0 的像素按无效值单独统计、不参与分布。这个视角能一眼看出深度图是否集中在某一层、有没有大面积缺失。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/flip.html">图片翻转旋转镜像</a> · 相关阅读：<a href="/guides/depth-tiff.html">如何查看 16bit TIFF 深度图</a>、<a href="/guides/pixel-inspector.html">像素查看指南</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/tools/histogram.html">直方图</a>
+    <a href="/tools/flip.html">翻转旋转</a>
+    <a href="/guides/depth-tiff.html">16bit 深度图</a>
+    <a href="/guides/color-picker.html">图片取色</a>
+    <a href="/guides/pixel-inspector.html">像素查看</a>
+    <a href="/faq.html">常见问题</a>
+    <a href="/about.html">关于</a>
+    <a href="/en/tools/histogram.html" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/tools/histogram.js?v=3"></script>
+</body>
+</html>

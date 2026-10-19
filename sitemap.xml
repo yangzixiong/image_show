@@ -23,6 +23,46 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- 直方图 -->
+  <url>
+    <loc>https://yangzixiong.com/tools/histogram.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/histogram.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/histogram.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/histogram.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/tools/histogram.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/histogram.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/histogram.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/histogram.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 翻转旋转 -->
+  <url>
+    <loc>https://yangzixiong.com/tools/flip.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/flip.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/flip.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/flip.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/tools/flip.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/flip.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/flip.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/flip.html"/>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- 16bit TIFF 深度图 -->
   <url>
     <loc>https://yangzixiong.com/guides/depth-tiff.html</loc>

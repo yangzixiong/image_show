@@ -106,7 +106,8 @@ for k in sorted(en_keys - zh_keys):
 
 # 8) JS 里用到的 key 必须都在表里
 used = set()
-for js in sorted((ROOT / "js").glob("*.js")):
+scripts = list((ROOT / "js").glob("*.js")) + list((ROOT / "tools").glob("*.js"))
+for js in sorted(scripts):
     if js.name == "i18n.js":
         continue
     used |= set(re.findall(r'\bt\(\s*"([\w.]+)"', js.read_text(encoding="utf-8")))
