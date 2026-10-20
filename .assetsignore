@@ -1,11 +1,10 @@
-# Cloudflare Pages 发布时排除的文件/目录
-# 目的是别把仓库里的开发文档、自建服务器配置当成网页发出去。
-# 说明：不同版本的 Pages 上传器对这个文件的处理不完全一致；即使它被忽略，
-# 最坏结果也只是 /README.md 和 /deploy/image_show.conf 能被直接访问，不影响站点运行。
-
+# Workers 静态资源发布时排除的文件/目录（2026-10-20 线上实测生效：README/deploy/docs 均 404）
+# 目的是别把仓库里的开发文档、自建服务器配置、部署配置当成网页发出去。
 README.md
 deploy/
 docs/
 .git/
 .gitignore
+.gitattributes
 .assetsignore
+wrangler.jsonc

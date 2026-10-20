@@ -3,10 +3,11 @@
 本项目是纯静态站点（无构建步骤），走 Cloudflare Pages 的 Git 集成：**以后 push 到 GitHub 就自动上线**。
 下面的步骤按顺序做一遍即可，全程免费额度内（Pages 免费版：无限请求与带宽，每月 500 次构建，静态站点足够）。
 
-> **实际状态（2026-10-19）**：站点最终没有走 Pages，而是用 **Workers 静态资源（Static Assets）** 面板直传上线的，
-> 初始地址 `image-show.yangzixiongh.workers.dev`，正在切换到自有域名 `https://yangzixiong.com`（代码内全部绝对 URL 已改好）。
+> **实际状态（2026-10-20）**：站点现为 **Workers 静态资源 + Git 集成**（GitHub `main` 分支 push 即自动构建上线，
+> 2026-10-19 之前为面板直传）。域名切换已完成，线上地址 `https://yangzixiong.com`；
+> `wrangler.jsonc` 的自定义 404 与 `auto-trailing-slash` 均已实测生效。
 > 两者差别见文末「Workers 静态资源 vs Pages」。
-> 本文的 Pages 步骤保留作为备选方案（万一以后要迁回 Pages 或接 Git 自动构建）。
+> 本文的 Pages 步骤保留作为备选方案（万一以后要迁回 Pages）。
 
 ---
 
@@ -192,14 +193,14 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 - **Git 集成之后不能改成 Direct Upload**（Cloudflare 的硬限制）。仍想用命令行直传时，可以在项目设置里关掉自动部署，再用 `npx wrangler pages deploy .` 推，但项目类型不变。
 - **`_headers` 对 HTML 之外的文件按路径通配**：本项目用的是 `/*.css`、`/*.js` 这类后缀匹配。以后新增资源目录（比如 `img/`）如果也想长缓存，需要在 `_headers` 里补一条规则。
 - **CSS/JS 文件名不含内容哈希**：`max-age=604800` 意味着改完样式后，老访客最多 7 天内可能仍用旧缓存。本项目用 `?v=1` 查询串做版本控制——改完 js/css 把两个 HTML 里的版本号加一，就等于换了新 URL，老访客立刻拿到新文件。
-- **`.assetsignore`** 用于把 `README.md`、`deploy/` 排除在发布内容之外；如果 Cloudflare 的上传器忽略它，最坏结果只是这些文件能被直接访问，不影响站点运行。
+- **`.assetsignore`** 用于把 `README.md`、`deploy/`、`docs/`、`wrangler.jsonc` 等排除在发布内容之外；2026-10-20 线上实测生效（上述路径请求均 404）。
 - **别忘了 `ads.txt`**：接入 AdSense 后要填发布商 ID 并推一次，否则广告收益归属校验会失败。
 
 ---
 
 ## Workers 静态资源 vs Pages
 
-本项目实际走的是 **Workers 静态资源**（面板里 Create → Worker → 上传静态文件），不是 Pages。行为差异：
+本项目实际走的是 **Workers 静态资源 + Git 集成**（2026-10-19 之前为面板直传，之后改为 Git 自动构建），不是 Pages。行为差异：
 
 | 项目 | Pages | Workers 静态资源 |
 |---|---|---|
@@ -212,7 +213,7 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 | WAF / 防爬 | 需绑自有域名 | 需绑自有域名（同样是 zone 级功能） |
 
 结论：静态站用 Workers 更合适（Cloudflare 现在的新项目默认引导到 Workers，Pages 处于维护状态），不需要迁回 Pages。
-唯一要留意的是 **自定义 404 不会自动生效**。想恢复，就在项目根目录加一个 `wrangler.jsonc`：
+唯一要留意的是 **自定义 404 不会自动生效**，需要在项目根目录的 `wrangler.jsonc` 里声明（本仓库已配置）：
 
 ```jsonc
 {
@@ -226,7 +227,33 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 }
 ```
 
-然后用 `npx wrangler deploy` 发布（面板直传的方式改不了这个设置）。
+Git 集成构建会自动读取这份配置，push 即生效；本地命令行则用 `npx wrangler deploy` 发布（面板拖拽直传改不了这个设置）。
+2026-10-20 实测：自定义 404 页生效，`.html` 请求 307 到无扩展名 URL。
+
+---
+
+## 2026-10-20：4xx 响应诊断记录
+
+**现象**：Cloudflare Analytics 里出现大量 4xx。**结论：公网扫描噪音，非部署故障；全部自有 URL 实测健康。**
+
+证据链（`curl` 逐条探测线上）：
+
+- sitemap 全部 18 个 URL 最终全部 200（其中 16 个经 1 次 307：`.html` → 无扩展名）；
+- robots / sitemap / css / js / ads.txt / webmanifest / favicon 全部 200，`_headers` 缓存与安全头已生效；
+- 任意不存在的路径返回真 404 状态码 + 根目录 `404.html`（`not_found_handling: "404-page"` 生效）；
+- `deploy/`、`docs/`、`README.md` 均 404（`.assetsignore` 生效；当时 `wrangler.jsonc` 漏排除，本次已补）。
+
+成因：公网扫描器（`/.env`、`/wp-admin/`、`/xmlrpc.php` 等）请求不存在的路径，平台如实返回 404 计入 4xx。
+原 nginx 防爬层（恶意 UA 403、限速 429）在 Cloudflare 上不生效，防护改用 WAF / Bots 开关（见第 4 步）。
+
+本次处理：
+
+1. 站内全部绝对 URL 从 `.html` 改为无扩展名规范形式（对齐 `auto-trailing-slash` 的规范 URL，消除 307 跳转）；
+2. `.assetsignore` 追加 `wrangler.jsonc`、`.gitattributes`；
+3. WAF 自定义规则 + Bot Fight Mode + Block AI bots（面板操作，见第 4 步）；
+4. `www.yangzixiong.com` 加 CNAME + Redirect Rule 301 到 apex。
+
+预期管理：4xx 计数不会明显下降（403/429 同样计入 4xx）；健康指标是「自有 URL 的 4xx = 0」，已满足。
 
 ---
 

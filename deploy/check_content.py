@@ -20,22 +20,22 @@ BASE = "https://yangzixiong.com"
 
 # 本批已交付页面：(语言, 相对仓库的文件路径, 站点路径)
 PAGES = [
-    ("zh", "guides/depth-tiff.html", "/guides/depth-tiff.html"),
-    ("en", "en/guides/depth-tiff.html", "/en/guides/depth-tiff.html"),
-    ("zh", "guides/color-picker.html", "/guides/color-picker.html"),
-    ("en", "en/guides/color-picker.html", "/en/guides/color-picker.html"),
-    ("zh", "guides/pixel-inspector.html", "/guides/pixel-inspector.html"),
-    ("en", "en/guides/pixel-inspector.html", "/en/guides/pixel-inspector.html"),
-    ("zh", "faq.html", "/faq.html"),
-    ("en", "en/faq.html", "/en/faq.html"),
-    ("zh", "about.html", "/about.html"),
-    ("en", "en/about.html", "/en/about.html"),
-    ("zh", "privacy.html", "/privacy.html"),
-    ("en", "en/privacy.html", "/en/privacy.html"),
-    ("zh", "tools/histogram.html", "/tools/histogram.html"),
-    ("en", "en/tools/histogram.html", "/en/tools/histogram.html"),
-    ("zh", "tools/flip.html", "/tools/flip.html"),
-    ("en", "en/tools/flip.html", "/en/tools/flip.html"),
+    ("zh", "guides/depth-tiff.html", "/guides/depth-tiff"),
+    ("en", "en/guides/depth-tiff.html", "/en/guides/depth-tiff"),
+    ("zh", "guides/color-picker.html", "/guides/color-picker"),
+    ("en", "en/guides/color-picker.html", "/en/guides/color-picker"),
+    ("zh", "guides/pixel-inspector.html", "/guides/pixel-inspector"),
+    ("en", "en/guides/pixel-inspector.html", "/en/guides/pixel-inspector"),
+    ("zh", "faq.html", "/faq"),
+    ("en", "en/faq.html", "/en/faq"),
+    ("zh", "about.html", "/about"),
+    ("en", "en/about.html", "/en/about"),
+    ("zh", "privacy.html", "/privacy"),
+    ("en", "en/privacy.html", "/en/privacy"),
+    ("zh", "tools/histogram.html", "/tools/histogram"),
+    ("en", "en/tools/histogram.html", "/en/tools/histogram"),
+    ("zh", "tools/flip.html", "/tools/flip"),
+    ("en", "en/tools/flip.html", "/en/tools/flip"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
@@ -75,12 +75,14 @@ def attr(html, pattern):
 
 
 def href_to_path(href, page_path):
-    """把页面里的 href 解析成仓库内路径；外部协议返回 None，目录 URL 补 index.html。"""
+    """把页面里的 href 解析成仓库内路径；外部协议返回 None，目录 URL 补 index.html，无扩展名路径补 .html。"""
     href = href.split("?")[0].split("#")[0]
     if not href or href.startswith(("data:", "http:", "https:", "mailto:", "tel:")):
         return None
     if href.endswith("/"):
         href += "index.html"
+    elif not Path(href).suffix:
+        href += ".html"
     if href.startswith("/"):
         rel = href[1:]
     else:

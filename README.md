@@ -41,8 +41,8 @@
 
 | 路径 | 功能 |
 |---|---|
-| `/tools/histogram.html` · `/en/tools/histogram.html` | 图片直方图：RGB/亮度分布、对数刻度、溢出百分比、16bit 深度图分布 |
-| `/tools/flip.html` · `/en/tools/flip.html` | 翻转 / 旋转 / 镜像，导出 PNG / JPEG / WebP |
+| `/tools/histogram` · `/en/tools/histogram` | 图片直方图：RGB/亮度分布、对数刻度、溢出百分比、16bit 深度图分布 |
+| `/tools/flip` · `/en/tools/flip` | 翻转 / 旋转 / 镜像，导出 PNG / JPEG / WebP |
 
 新增工具页的约定：
 
@@ -58,10 +58,10 @@
 - `python -m http.server 8000`，访问 http://localhost:8000
 - `npx serve`
 
-## 部署到 Cloudflare Pages（推荐，免费）
+## 部署到 Cloudflare（推荐，免费）
 
-纯静态站点走 Cloudflare Pages 的 Git 集成，push 即上线，自带 HTTPS 和全球 CDN，不需要服务器。
-完整步骤见 [`deploy/CLOUDFLARE.md`](deploy/CLOUDFLARE.md)，关键配置：
+纯静态站点走 Workers 静态资源 + Git 集成（当前实际方式，push 到 `main` 即自动上线），自带 HTTPS 和全球 CDN，不需要服务器。
+完整步骤见 [`deploy/CLOUDFLARE.md`](deploy/CLOUDFLARE.md)；Pages 时代的关键配置（历史参考）：
 
 | 配置项 | 值 |
 |---|---|
@@ -136,9 +136,9 @@ tools/          工具页：histogram.html 直方图、flip.html 翻转旋转（
 ads.txt         广告授权文件（AdSense 接入后填写发布商 ID）
 favicon.ico     站点图标
 site.webmanifest  PWA 清单（图标 192/512）
-wrangler.jsonc  Workers 静态资源配置：自定义 404 需要它（仅 npx wrangler deploy 生效）
-_headers        Cloudflare Pages 响应头：缓存策略与安全头（替代 nginx 的 expires/add_header）
-.assetsignore   Cloudflare Pages 发布排除清单（不让 README/deploy 变成网页）
+wrangler.jsonc  Workers 静态资源配置：自定义 404 需要它（Git 构建与 wrangler deploy 均生效）
+_headers        Cloudflare 响应头（Pages/Workers 通用）：缓存策略与安全头（替代 nginx 的 expires/add_header）
+.assetsignore   发布排除清单（Workers/Pages 通用，不让 README/deploy/docs 变成网页）
 deploy/
   CLOUDFLARE.md    Cloudflare 部署分步手册（GitHub 集成 + 防爬设置）
   image_show.conf  nginx 完整配置：限速/恶意UA拦截/垃圾Referer拦截/静态缓存

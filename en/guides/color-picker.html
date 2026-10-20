@@ -6,16 +6,16 @@
 <title>How to Pick Accurate Colours from Images · ImageLab</title>
 <meta name="description" content="Screenshot colours are often wrong. Learn which pixel your pick samples, how HEX and RGB relate, and how to pick accurate values in ImageLab.">
 <meta name="robots" content="index,follow">
-<link rel="canonical" href="https://yangzixiong.com/en/guides/color-picker.html">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/color-picker">
 
-<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/color-picker.html">
-<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/color-picker.html">
-<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/color-picker.html">
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/color-picker">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/color-picker">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/color-picker">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="ImageLab">
 <meta property="og:locale" content="en_US">
-<meta property="og:url" content="https://yangzixiong.com/en/guides/color-picker.html">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/color-picker">
 <meta property="og:title" content="How to Pick Accurate Colours from Images · ImageLab">
 <meta property="og:description" content="Why screenshot colour picking drifts, how HEX, RGB and HSL relate, and the hover, click and history flow for reading colours in your browser.">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
@@ -41,8 +41,8 @@
   "dateModified": "2026-10-19",
   "author": { "@type": "Organization", "name": "ImageLab" },
   "publisher": { "@type": "Organization", "name": "ImageLab" },
-  "url": "https://yangzixiong.com/en/guides/color-picker.html",
-  "mainEntityOfPage": "https://yangzixiong.com/en/guides/color-picker.html",
+  "url": "https://yangzixiong.com/en/guides/color-picker",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/color-picker",
   "image": "https://yangzixiong.com/img/og-cover.png"
 }
 </script>
@@ -52,14 +52,14 @@
 <header class="topbar doc-topbar">
   <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
   <nav class="doc-nav" aria-label="Site navigation">
-    <a href="/en/guides/depth-tiff.html">Depth maps</a>
-    <a href="/en/guides/color-picker.html" aria-current="page">Colour picker</a>
-    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
-    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker" aria-current="page">Colour picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
   </nav>
   <div class="topbar-right">
     <nav class="lang-switch" aria-label="Language">
-      <a href="/guides/color-picker.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="/guides/color-picker" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
       <span class="lang-sep">|</span>
       <span class="lang-on" aria-current="true">EN</span>
     </nav>
@@ -89,7 +89,7 @@
 
     <h2>Which pixel does a pick actually sample</h2>
     <p>Two kinds of pixels are involved: pixels in the image file, and pixels on your screen. When the browser displays an image larger than its native size, interpolation spreads one source pixel across many screen pixels — sampling there returns the blended result, not the stored value.</p>
-    <p>So zoom in before picking. At native 1:1 or higher, each source pixel occupies a clear cell on screen and the sample lands on a definite pixel. The coordinate system and magnifier details are covered in the <a href="/en/guides/pixel-inspector.html">pixel inspector guide</a>.</p>
+    <p>So zoom in before picking. At native 1:1 or higher, each source pixel occupies a clear cell on screen and the sample lands on a definite pixel. The coordinate system and magnifier details are covered in the <a href="/en/guides/pixel-inspector">pixel inspector guide</a>.</p>
 
     <h2>HEX, RGB and HSL conversions</h2>
     <p>The same colour has several notations. Take <code>#4f8cff</code> as the example:</p>
@@ -121,7 +121,7 @@
       <li>click to pick — the value is copied immediately and a toast confirms it;</li>
       <li>the pick history keeps the last 18 entries; click any entry to copy it again.</li>
     </ol>
-    <p>If the file is actually a 16-bit depth map, clicking copies a millimetre value instead of a colour — the right way to read those files is in the <a href="/en/guides/depth-tiff.html">depth map guide</a>.</p>
+    <p>If the file is actually a 16-bit depth map, clicking copies a millimetre value instead of a colour — the right way to read those files is in the <a href="/en/guides/depth-tiff">depth map guide</a>.</p>
 
     <h2>How transparent pixels are handled</h2>
     <p>The site samples the pixels as finally displayed, with no alpha compositing: a transparent PNG region shows the checkerboard background, so you read that cell's colour rather than the hidden original. When you need alpha-aware sampling, flatten the image onto its background in a design tool first.</p>
@@ -135,15 +135,15 @@
 <footer class="site-footer">
   <nav aria-label="Site navigation">
     <a href="/en/">Home</a>
-    <a href="/en/tools/histogram.html">Histogram</a>
-    <a href="/en/tools/flip.html">Flip &amp; rotate</a>
-    <a href="/en/guides/depth-tiff.html">Depth maps</a>
-    <a href="/en/guides/color-picker.html">Colour picker</a>
-    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
-    <a href="/en/faq.html">FAQ</a>
-    <a href="/en/about.html">About</a>
-    <a href="/en/privacy.html">Privacy</a>
-    <a href="/guides/color-picker.html" lang="zh-CN">中文版</a>
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker">Colour picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
+    <a href="/en/about">About</a>
+    <a href="/en/privacy">Privacy</a>
+    <a href="/guides/color-picker" lang="zh-CN">中文版</a>
   </nav>
   <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
 </footer>

@@ -32,6 +32,10 @@ def local_refs(html):
             if url.startswith(("data:", "http:", "https:", "#", "mailto:")):
                 continue
             url = url.split("?")[0].split("#")[0]
+            if url.endswith("/"):
+                url += "index.html"
+            elif "." not in url.rsplit("/", 1)[-1]:
+                url += ".html"
             if url.startswith("/"):
                 url = url[1:]
             refs.add(url)

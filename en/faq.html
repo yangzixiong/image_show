@@ -6,16 +6,16 @@
 <title>FAQ: Formats, Privacy and Usage · ImageLab</title>
 <meta name="description" content="Answers to common ImageLab questions: formats, TIFF compression, depth units, colour accuracy, offline use, local storage, ads, mobile support and bug reports.">
 <meta name="robots" content="index,follow">
-<link rel="canonical" href="https://yangzixiong.com/en/faq.html">
+<link rel="canonical" href="https://yangzixiong.com/en/faq">
 
-<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/faq.html">
-<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/faq.html">
-<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/faq.html">
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/faq">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/faq">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/faq">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="ImageLab">
 <meta property="og:locale" content="en_US">
-<meta property="og:url" content="https://yangzixiong.com/en/faq.html">
+<meta property="og:url" content="https://yangzixiong.com/en/faq">
 <meta property="og:title" content="FAQ: Formats, Privacy and Usage · ImageLab">
 <meta property="og:description" content="Are images uploaded, which formats work, TIFF compression and depth units, colour accuracy, offline use, storage, ads and mobile support.">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
@@ -104,14 +104,14 @@
 <header class="topbar doc-topbar">
   <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
   <nav class="doc-nav" aria-label="Site navigation">
-    <a href="/en/guides/depth-tiff.html">Depth maps</a>
-    <a href="/en/guides/color-picker.html">Colour picker</a>
-    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
-    <a href="/en/faq.html" aria-current="page">FAQ</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker">Colour picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq" aria-current="page">FAQ</a>
   </nav>
   <div class="topbar-right">
     <nav class="lang-switch" aria-label="Language">
-      <a href="/faq.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="/faq" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
       <span class="lang-sep">|</span>
       <span class="lang-on" aria-current="true">EN</span>
     </nav>
@@ -140,13 +140,13 @@
     <p>None, LZW, Deflate and PackBits. JPEG-in-TIFF, multi-page TIFF (only the first page is read) and BigTIFF are not supported — if a file will not open, re-save it with one of those four compressions first.</p>
 
     <h3>What unit do depth values use?</h3>
-    <p>16-bit integer TIFF pixel values are shown as millimetres; 32-bit float TIFF is parsed as metres and converted with ×1000 automatically; a pixel value of 0 counts as invalid depth and renders transparent. Vendor conventions vary, so suspect the unit first when the numbers look absurd. Full details are in the <a href="/en/guides/depth-tiff.html">depth map guide</a>.</p>
+    <p>16-bit integer TIFF pixel values are shown as millimetres; 32-bit float TIFF is parsed as metres and converted with ×1000 automatically; a pixel value of 0 counts as invalid depth and renders transparent. Vendor conventions vary, so suspect the unit first when the numbers look absurd. Full details are in the <a href="/en/guides/depth-tiff">depth map guide</a>.</p>
 
     <h3>Why does my depth map open black and white?</h3>
-    <p>Image viewers render single-channel data as greyscale, while depth values usually occupy only a small slice of 0–65535, so the whole image is squeezed into the darkest end. For the file fields and the right way to view it, see the <a href="/en/guides/depth-tiff.html">depth map guide</a>.</p>
+    <p>Image viewers render single-channel data as greyscale, while depth values usually occupy only a small slice of 0–65535, so the whole image is squeezed into the darkest end. For the file fields and the right way to view it, see the <a href="/en/guides/depth-tiff">depth map guide</a>.</p>
 
     <h3>Why does my picked colour differ from the design?</h3>
-    <p>The usual causes are browser scaling interpolation, JPEG re-compression of screenshots, antialiased edges and display colour management. Zoom to native 1:1 before picking to avoid most of it — see the <a href="/en/guides/color-picker.html">colour picker guide</a>.</p>
+    <p>The usual causes are browser scaling interpolation, JPEG re-compression of screenshots, antialiased edges and display colour management. Zoom to native 1:1 before picking to avoid most of it — see the <a href="/en/guides/color-picker">colour picker guide</a>.</p>
 
     <h3>Does it work offline?</h3>
     <p>All image processing happens locally and needs no network itself, but the first visit must load the page online; after that, whether it opens offline depends on your browser cache (assets are cached for 7 days). There is no offline install package.</p>
@@ -155,7 +155,7 @@
     <p>No. Images are never written to a server or to persistent browser storage; the only local storage used is the language preference <code>imagelab.lang</code>, which you can delete by clearing this site's data in your browser settings.</p>
 
     <h3>Is it free? Are there ads?</h3>
-    <p>Free to use, no registration required. The pages currently contain no ads; if any are added later, the <a href="/en/privacy.html">privacy page</a> will say so.</p>
+    <p>Free to use, no registration required. The pages currently contain no ads; if any are added later, the <a href="/en/privacy">privacy page</a> will say so.</p>
 
     <h3>Does it work on phones?</h3>
     <p>The page opens on mobile browsers and you can choose and view images, but canvas panning and zooming are currently bound to mouse events only — touch dragging and pinch zoom are not implemented, so detailed work is better on a desktop browser.</p>
@@ -178,15 +178,15 @@
 <footer class="site-footer">
   <nav aria-label="Site navigation">
     <a href="/en/">Home</a>
-    <a href="/en/tools/histogram.html">Histogram</a>
-    <a href="/en/tools/flip.html">Flip &amp; rotate</a>
-    <a href="/en/guides/depth-tiff.html">Depth maps</a>
-    <a href="/en/guides/color-picker.html">Colour picker</a>
-    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
-    <a href="/en/faq.html">FAQ</a>
-    <a href="/en/about.html">About</a>
-    <a href="/en/privacy.html">Privacy</a>
-    <a href="/faq.html" lang="zh-CN">中文版</a>
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker">Colour picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
+    <a href="/en/about">About</a>
+    <a href="/en/privacy">Privacy</a>
+    <a href="/faq" lang="zh-CN">中文版</a>
   </nav>
   <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
 </footer>

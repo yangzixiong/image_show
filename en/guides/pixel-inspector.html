@@ -6,16 +6,16 @@
 <title>How Pixel Coordinates and the Magnifier Work · ImageLab</title>
 <meta name="description" content="The image coordinate system starts at the top-left corner. Learn the three kinds of pixels, the 11x11 magnifier, the pixel grid, and cursor-anchored zoom.">
 <meta name="robots" content="index,follow">
-<link rel="canonical" href="https://yangzixiong.com/en/guides/pixel-inspector.html">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/pixel-inspector">
 
-<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/pixel-inspector.html">
-<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/pixel-inspector.html">
-<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/pixel-inspector.html">
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/pixel-inspector">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/pixel-inspector">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/pixel-inspector">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="ImageLab">
 <meta property="og:locale" content="en_US">
-<meta property="og:url" content="https://yangzixiong.com/en/guides/pixel-inspector.html">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/pixel-inspector">
 <meta property="og:title" content="How Pixel Coordinates and the Magnifier Work · ImageLab">
 <meta property="og:description" content="Top-left origin, image/CSS/device pixels, the 11×11 magnifier, the grid at 14× and cursor-anchored zoom — explained for pixel-level inspection.">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
@@ -41,8 +41,8 @@
   "dateModified": "2026-10-19",
   "author": { "@type": "Organization", "name": "ImageLab" },
   "publisher": { "@type": "Organization", "name": "ImageLab" },
-  "url": "https://yangzixiong.com/en/guides/pixel-inspector.html",
-  "mainEntityOfPage": "https://yangzixiong.com/en/guides/pixel-inspector.html",
+  "url": "https://yangzixiong.com/en/guides/pixel-inspector",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/pixel-inspector",
   "image": "https://yangzixiong.com/img/og-cover.png"
 }
 </script>
@@ -52,14 +52,14 @@
 <header class="topbar doc-topbar">
   <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
   <nav class="doc-nav" aria-label="Site navigation">
-    <a href="/en/guides/depth-tiff.html">Depth maps</a>
-    <a href="/en/guides/color-picker.html">Colour picker</a>
-    <a href="/en/guides/pixel-inspector.html" aria-current="page">Pixel inspector</a>
-    <a href="/en/faq.html">FAQ</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker">Colour picker</a>
+    <a href="/en/guides/pixel-inspector" aria-current="page">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
   </nav>
   <div class="topbar-right">
     <nav class="lang-switch" aria-label="Language">
-      <a href="/guides/pixel-inspector.html" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <a href="/guides/pixel-inspector" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
       <span class="lang-sep">|</span>
       <span class="lang-on" aria-current="true">EN</span>
     </nav>
@@ -110,7 +110,7 @@
       <li>Sprite edges: verifying atlas alignment and padding after export;</li>
       <li>Design handoff: confirming a 1px border really renders as 1px once the device pixel ratio is converted.</li>
     </ul>
-    <p>Depth maps are read on exactly the same coordinate system — see the <a href="/en/guides/depth-tiff.html">depth map guide</a>. If you only need the colour of one cell, see the <a href="/en/guides/color-picker.html">colour picker guide</a>.</p>
+    <p>Depth maps are read on exactly the same coordinate system — see the <a href="/en/guides/depth-tiff">depth map guide</a>. If you only need the colour of one cell, see the <a href="/en/guides/color-picker">colour picker guide</a>.</p>
 
     <h2>Why native browser zoom is not reliable</h2>
     <p>Full-page browser zoom takes a different rendering path: it reflows the layout first, then interpolates the image up, handing you a smoothed approximation. The result also depends on <code>image-rendering</code>, whose browser defaults differ, so the same file can look different when magnified in two browsers. The canvas here only enables interpolation while shrinking (<code>scale &lt; 1</code>); zooming in always samples nearest-neighbour. Going to 14× with the grid on is the dependable way to inspect pixels.</p>
@@ -124,15 +124,15 @@
 <footer class="site-footer">
   <nav aria-label="Site navigation">
     <a href="/en/">Home</a>
-    <a href="/en/tools/histogram.html">Histogram</a>
-    <a href="/en/tools/flip.html">Flip &amp; rotate</a>
-    <a href="/en/guides/depth-tiff.html">Depth maps</a>
-    <a href="/en/guides/color-picker.html">Colour picker</a>
-    <a href="/en/guides/pixel-inspector.html">Pixel inspector</a>
-    <a href="/en/faq.html">FAQ</a>
-    <a href="/en/about.html">About</a>
-    <a href="/en/privacy.html">Privacy</a>
-    <a href="/guides/pixel-inspector.html" lang="zh-CN">中文版</a>
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker">Colour picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
+    <a href="/en/about">About</a>
+    <a href="/en/privacy">Privacy</a>
+    <a href="/guides/pixel-inspector" lang="zh-CN">中文版</a>
   </nav>
   <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
 </footer>

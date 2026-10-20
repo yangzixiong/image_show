@@ -6,16 +6,16 @@
 <title>常见问题：格式、隐私与使用 · ImageLab</title>
 <meta name="description" content="覆盖 ImageLab 的常见疑问：图片是否上传、支持的格式与体积上限、TIFF 压缩范围、深度值单位、黑白显示原因、取色偏差、离线使用、本地存储、广告与手机支持，并给出反馈渠道。">
 <meta name="robots" content="index,follow">
-<link rel="canonical" href="https://yangzixiong.com/faq.html">
+<link rel="canonical" href="https://yangzixiong.com/faq">
 
-<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/faq.html">
-<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/faq.html">
-<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/faq.html">
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/faq">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/faq">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/faq">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="ImageLab">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:url" content="https://yangzixiong.com/faq.html">
+<meta property="og:url" content="https://yangzixiong.com/faq">
 <meta property="og:title" content="常见问题：格式、隐私与使用 · ImageLab">
 <meta property="og:description" content="图片是否上传、支持哪些格式、TIFF 压缩与深度单位、取色偏差、离线与存储、广告与手机支持的常见问题解答。">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
@@ -104,16 +104,16 @@
 <header class="topbar doc-topbar">
   <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
   <nav class="doc-nav" aria-label="站内导航">
-    <a href="/guides/depth-tiff.html">16bit 深度图</a>
-    <a href="/guides/color-picker.html">图片取色</a>
-    <a href="/guides/pixel-inspector.html">像素查看</a>
-    <a href="/faq.html" aria-current="page">常见问题</a>
+    <a href="/guides/depth-tiff">16bit 深度图</a>
+    <a href="/guides/color-picker">图片取色</a>
+    <a href="/guides/pixel-inspector">像素查看</a>
+    <a href="/faq" aria-current="page">常见问题</a>
   </nav>
   <div class="topbar-right">
     <nav class="lang-switch" aria-label="语言">
       <span class="lang-on" aria-current="true">中文</span>
       <span class="lang-sep">|</span>
-      <a href="/en/faq.html" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+      <a href="/en/faq" hreflang="en" lang="en" data-lang-switch="en">EN</a>
     </nav>
   </div>
 </header>
@@ -140,13 +140,13 @@
     <p>无压缩、LZW、Deflate、PackBits。JPEG-in-TIFF、多页 TIFF（只读第一页）和 BigTIFF 不支持；打不开时先转存为上述四种压缩之一。</p>
 
     <h3>深度值的单位是什么？</h3>
-    <p>16bit 整数 TIFF 的像素值按毫米显示；32bit 浮点 TIFF 按米解析并自动 ×1000 换算；像素值 0 视为无效深度，显示为透明。不同厂商的约定可能不同，数值离谱时先怀疑单位。完整口径见<a href="/guides/depth-tiff.html">《16bit TIFF 深度图》</a>。</p>
+    <p>16bit 整数 TIFF 的像素值按毫米显示；32bit 浮点 TIFF 按米解析并自动 ×1000 换算；像素值 0 视为无效深度，显示为透明。不同厂商的约定可能不同，数值离谱时先怀疑单位。完整口径见<a href="/guides/depth-tiff">《16bit TIFF 深度图》</a>。</p>
 
     <h3>为什么深度图打开是黑白的、全黑的？</h3>
-    <p>看图软件把单通道数据当灰度渲染，而深度值通常只占 0–65535 的一小段，整张图便挤在最暗的一端。判断文件字段与正确看法见<a href="/guides/depth-tiff.html">《16bit TIFF 深度图》</a>指南。</p>
+    <p>看图软件把单通道数据当灰度渲染，而深度值通常只占 0–65535 的一小段，整张图便挤在最暗的一端。判断文件字段与正确看法见<a href="/guides/depth-tiff">《16bit TIFF 深度图》</a>指南。</p>
 
     <h3>为什么取到的颜色和设计稿不一样？</h3>
-    <p>常见原因是浏览器缩放插值、截图被 JPEG 二次压缩、抗锯齿边缘和显示器色彩管理。放大到原图 1:1 再取色可以避开大部分问题，详见<a href="/guides/color-picker.html">《图片取色》</a>指南。</p>
+    <p>常见原因是浏览器缩放插值、截图被 JPEG 二次压缩、抗锯齿边缘和显示器色彩管理。放大到原图 1:1 再取色可以避开大部分问题，详见<a href="/guides/color-picker">《图片取色》</a>指南。</p>
 
     <h3>可以离线使用吗？</h3>
     <p>图片处理全部在本地进行，本身不依赖网络；但首次打开需要联网加载页面，之后能否离线再次打开取决于浏览器缓存（静态资源缓存 7 天），本站没有提供离线安装包。</p>
@@ -155,7 +155,7 @@
     <p>不会。图片不写入服务器，也不写入浏览器的持久化存储；本站唯一的本地存储是语言偏好 <code>imagelab.lang</code>，在浏览器设置里清除本站的站点数据即可删除。</p>
 
     <h3>免费吗？有广告吗？</h3>
-    <p>免费使用，不需要注册。当前页面没有接入任何广告；若将来接入，会在<a href="/privacy.html">《隐私说明》</a>里写明。</p>
+    <p>免费使用，不需要注册。当前页面没有接入任何广告；若将来接入，会在<a href="/privacy">《隐私说明》</a>里写明。</p>
 
     <h3>支持手机吗？</h3>
     <p>手机浏览器可以打开页面、选择图片并查看，但画布的拖动与缩放目前只绑定了鼠标事件，未实现触屏拖动和双指缩放，精细操作建议使用桌面浏览器。</p>
@@ -178,15 +178,15 @@
 <footer class="site-footer">
   <nav aria-label="站内导航">
     <a href="/">首页</a>
-    <a href="/tools/histogram.html">直方图</a>
-    <a href="/tools/flip.html">翻转旋转</a>
-    <a href="/guides/depth-tiff.html">16bit 深度图</a>
-    <a href="/guides/color-picker.html">图片取色</a>
-    <a href="/guides/pixel-inspector.html">像素查看</a>
-    <a href="/faq.html">常见问题</a>
-    <a href="/about.html">关于</a>
-    <a href="/privacy.html">隐私</a>
-    <a href="/en/faq.html" lang="en">English version</a>
+    <a href="/tools/histogram">直方图</a>
+    <a href="/tools/flip">翻转旋转</a>
+    <a href="/guides/depth-tiff">16bit 深度图</a>
+    <a href="/guides/color-picker">图片取色</a>
+    <a href="/guides/pixel-inspector">像素查看</a>
+    <a href="/faq">常见问题</a>
+    <a href="/about">关于</a>
+    <a href="/privacy">隐私</a>
+    <a href="/en/faq" lang="en">English version</a>
   </nav>
   <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
 </footer>
