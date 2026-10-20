@@ -59,16 +59,8 @@ PAGES = [
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
-# 批4 已交付全部 12 个工具页；余下 guides/faq/about/privacy 等批5 收口时清空
-PLANNED_URLS = {
-    "/", "/en/",
-    "/guides/depth-tiff.html", "/guides/color-picker.html", "/guides/pixel-inspector.html",
-    "/faq.html", "/about.html", "/privacy.html",
-    "/en/guides/depth-tiff.html", "/en/guides/color-picker.html", "/en/guides/pixel-inspector.html",
-    "/en/faq.html", "/en/about.html", "/en/privacy.html",
-    "/tools/histogram.html", "/tools/flip.html", "/tools/crop.html", "/tools/grid.html", "/tools/remove-bg.html",
-    "/en/tools/histogram.html", "/en/tools/flip.html", "/en/tools/crop.html", "/en/tools/grid.html", "/en/tools/remove-bg.html",
-}
+# 批5 收口：全部 36 页已交付，清空
+PLANNED_URLS = set()
 
 EXPECTED_SITEMAP = 38  # 2 个首页 + 12 个内容页 + 24 个工具页（12 个工具 × 中英）
 
