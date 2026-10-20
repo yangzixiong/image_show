@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crop Image to 1:1, 9:16, 16:9 Online · ImageLab</title>
+<meta name="description" content="Online image cropper with 1:1, 4:3, 16:9 and 9:16 fixed ratios plus 512, 768, 1024 output for Stable Diffusion. Lossless PNG export, all local, no upload.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/crop">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/crop">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/crop">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/crop">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/crop">
+<meta property="og:title" content="Crop Image to 1:1, 9:16, 16:9 Online · ImageLab">
+<meta property="og:description" content="Online image cropper with fixed 1:1, 4:3, 16:9 and 9:16 ratios and 512, 768 or 1024 px output. Lossless PNG export, runs locally in your browser.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Crop Image to 1:1, 9:16, 16:9 Online · ImageLab">
+<meta name="twitter:description" content="Online image cropper with fixed 1:1, 4:3, 16:9 and 9:16 ratios and 512, 768 or 1024 px output. Lossless PNG export, runs locally in your browser.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=4">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* Crop overlay (page-scoped, global style.css untouched) */
+  #cropStage { position: relative; display: inline-block; max-width: 100%; }
+  #cropStage canvas { display: block; max-width: 100%; max-height: 58vh; width: auto; height: auto; }
+  #cropBox {
+    position: absolute;
+    border: 1px solid #e8ecf2;
+    box-shadow: 0 0 0 9999px rgba(15, 18, 22, .55);
+    cursor: move;
+    touch-action: none;
+  }
+  #cropBox[hidden] { display: none; }
+  .hd { position: absolute; width: 11px; height: 11px; background: #fff; border: 1.5px solid var(--accent); border-radius: 2px; touch-action: none; }
+  .hd[data-dir="nw"] { left: -6px; top: -6px; cursor: nwse-resize; }
+  .hd[data-dir="n"]  { left: 50%; margin-left: -6px; top: -6px; cursor: ns-resize; }
+  .hd[data-dir="ne"] { right: -6px; top: -6px; cursor: nesw-resize; }
+  .hd[data-dir="e"]  { right: -6px; top: 50%; margin-top: -6px; cursor: ew-resize; }
+  .hd[data-dir="se"] { right: -6px; bottom: -6px; cursor: nwse-resize; }
+  .hd[data-dir="s"]  { left: 50%; margin-left: -6px; bottom: -6px; cursor: ns-resize; }
+  .hd[data-dir="sw"] { left: -6px; bottom: -6px; cursor: nesw-resize; }
+  .hd[data-dir="w"]  { left: -6px; top: 50%; margin-top: -6px; cursor: ew-resize; }
+  .btn.ghost.on { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Image Aspect Ratio Cropper",
+  "url": "https://yangzixiong.com/en/tools/crop",
+  "description": "Online image cropper with fixed 1:1, 4:3, 16:9 and 9:16 ratios plus 512, 768 and 1024 px output for Stable Diffusion. Lossless PNG export, all processed locally in your browser.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">pixels · RGB · depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/tools/crop" aria-current="page">Crop</a>
+    <a href="/en/tools/grid">Grid split</a>
+    <a href="/en/tools/remove-bg">Remove BG</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/crop" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Crop an Image to a Fixed Ratio</h1>
+    <p class="tool-sub">Square avatars, 9:16 story frames, 16:9 covers, or 512 / 768 / 1024 canvases for Stable Diffusion — pick a ratio, drag the box, watch the output size update live, export lossless PNG.</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>Click to choose an image</strong>, or drop a file here
+    <span class="dz-hint">You can also press Ctrl+V to paste · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box" aria-label="Crop preview">
+      <div id="cropStage">
+        <canvas id="cropCanvas"></canvas>
+        <div id="cropBox" hidden>
+          <div class="hd" data-dir="nw"></div><div class="hd" data-dir="n"></div><div class="hd" data-dir="ne"></div>
+          <div class="hd" data-dir="e"></div><div class="hd" data-dir="se"></div><div class="hd" data-dir="s"></div>
+          <div class="hd" data-dir="sw"></div><div class="hd" data-dir="w"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="tool-side">
+      <h2>Aspect ratio</h2>
+      <div class="btn-row">
+        <button class="btn ghost ratio-chip" data-ratio="0" type="button">1:1</button>
+        <button class="btn ghost ratio-chip" data-ratio="1" type="button">4:3</button>
+        <button class="btn ghost ratio-chip" data-ratio="2" type="button">3:4</button>
+        <button class="btn ghost ratio-chip" data-ratio="3" type="button">16:9</button>
+        <button class="btn ghost ratio-chip" data-ratio="4" type="button">9:16</button>
+        <button class="btn ghost ratio-chip" data-ratio="5" type="button">3:2</button>
+        <button class="btn ghost ratio-chip" data-ratio="6" type="button">2:3</button>
+        <button class="btn ghost ratio-chip on" data-ratio="free" type="button">Free</button>
+      </div>
+      <div class="stat-list"><div id="outInfo">No image loaded yet</div></div>
+
+      <h2 class="side-h2">Export</h2>
+      <div class="ctl-row">
+        <span>Long side</span>
+        <select id="longSide" class="select">
+          <option value="0">Original pixels</option>
+          <option value="512">512</option>
+          <option value="768">768</option>
+          <option value="1024">1024</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <span>Format</span>
+        <select id="formatSelect" class="select">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <span>Quality <b id="qualityVal">92%</b></span>
+        <input type="range" id="qualityRange" min="0.4" max="1" step="0.02" value="0.92">
+      </div>
+      <button class="btn" id="btnDownload" type="button">Download image</button>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>Where these ratios fit</h2>
+    <p>1:1 for avatars and product shots, 9:16 for phone screens and story covers, 16:9 for video and desktop wallpapers, 3:2 / 2:3 close to camera originals. Stable Diffusion 1.5 works best around 512×512 and 512×768, SDXL around 1024 — pick the ratio, set the long side, and you have a ready canvas.</p>
+
+    <h2>About lossless</h2>
+    <p>With “Original pixels” and PNG, cropping only moves pixels — no resampling, no re-compression, truly lossless. Choosing 512 / 768 / 1024 applies one high-quality resize; JPEG and WebP are lossy but smaller, and the quality slider only affects those two formats.</p>
+
+    <h2>Touch friendly</h2>
+    <p>The box and its eight handles use pointer events, so they drag the same way with a finger on phones and tablets. The dimmed area is what gets cut; the output size updates live in the side panel.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/histogram">Image histogram viewer</a>, <a href="/en/tools/flip">Flip &amp; rotate</a> · Reading: <a href="/en/guides/color-picker">Color picker guide</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/tools/crop">Crop</a>
+    <a href="/en/tools/grid">Grid split</a>
+    <a href="/en/tools/remove-bg">Remove BG</a>
+    <a href="/en/guides/depth-tiff">16-bit depth</a>
+    <a href="/en/guides/color-picker">Color picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
+    <a href="/en/about">About</a>
+    <a href="/tools/crop" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/tools/crop.js?v=3"></script>
+</body>
+</html>

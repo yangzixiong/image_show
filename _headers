@@ -33,6 +33,16 @@
 /*.woff2
   Cache-Control: public, max-age=604800
 
+# ONNX 模型与 WASM 推理引擎：大文件且内容不变，缓存 30 天
+/*.onnx
+  Cache-Control: public, max-age=2592000
+
+/*.wasm
+  Cache-Control: public, max-age=2592000
+
+/*.mjs
+  Cache-Control: public, max-age=2592000
+
 # HTML 每次回源校验，保证发版后立刻看到新页面
 /*.html
   Cache-Control: public, max-age=0, must-revalidate

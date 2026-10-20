@@ -43,6 +43,9 @@
 |---|---|
 | `/tools/histogram` · `/en/tools/histogram` | 图片直方图：RGB/亮度分布、对数刻度、溢出百分比、16bit 深度图分布 |
 | `/tools/flip` · `/en/tools/flip` | 翻转 / 旋转 / 镜像，导出 PNG / JPEG / WebP |
+| `/tools/crop` · `/en/tools/crop` | 固定比例裁剪（1:1 / 4:3 / 16:9 / 9:16 等），长边 512/768/1024 输出，PNG 无损导出 |
+| `/tools/grid` · `/en/tools/grid` | 九宫格 / 四宫格 / 自定义行列分割，逐块无损 PNG 打包 zip 下载（fflate） |
+| `/tools/remove-bg` · `/en/tools/remove-bg` | 浏览器内 ONNX 抠图：人像 MODNet / 通用 U2Netp 双模型，透明 PNG + 黑白遮罩（ControlNet 可用） |
 
 新增工具页的约定：
 
@@ -132,7 +135,7 @@ en/index.html   英文页面（同结构，lang="en"，资源用根绝对路径�
 robots.txt      爬虫规则：放行广告抓取器，屏蔽 AI 训练/SEO 抓虫（君子协定层）
 sitemap.xml     站点地图（2 个首页 + 12 个内容页 + 4 个工具页共 18 条 URL，带 hreflang 互指）
 guides/ faq.html about.html privacy.html  内容页（英文版在 en/ 下，成对互指）
-tools/          工具页：histogram.html 直方图、flip.html 翻转旋转（英文版在 en/tools/ 下）
+tools/          工具页：histogram.html 直方图、flip.html 翻转旋转、crop.html 裁剪、grid.html 网格分割、remove-bg.html 抠图（英文版在 en/tools/ 下）
 ads.txt         广告授权文件（AdSense 接入后填写发布商 ID）
 favicon.ico     站点图标
 site.webmanifest  PWA 清单（图标 192/512）
@@ -157,5 +160,11 @@ js/picker.js    取色与剪贴板复制
 js/main.js      入口：文件加载、列表切换、事件接线
 tools/histogram.js  直方图统计（采样上限 200 万）与三种绘制模式
 tools/flip.js       翻转旋转的变换矩阵与导出
+tools/crop.js       比例裁剪框（Pointer 拖拽）与按长边缩放导出
+tools/grid.js       行列网格切块与 fflate zip 打包
+tools/remove-bg.js  ONNX 抠图管线（按需加载 ort 与模型、遮罩合成与导出）
 lib/utif.js     TIFF 解码库（photopea/UTIF.js，MIT 协议）
+lib/fflate.js   zip 打包库（fflate 0.8.2 UMD 版，MIT 协议）
+lib/ort/        onnxruntime-web 1.22.0 wasm 后端（MIT 协议，按需加载）
+models/         ONNX 模型：modnet-uint8（人像，Apache-2.0）、u2netp（通用，Apache-2.0）
 ```

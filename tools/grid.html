@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片九宫格分割工具 · ImageLab</title>
+<meta name="description" content="在线把图片切成九宫格、四宫格或自定义行列网格：一键拆分导出无损 PNG 并打包成 zip 下载，每块保持原始像素，适合社交连发与排版拼版，浏览器本地处理不上传。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/grid">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/grid">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/grid">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/grid">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/grid">
+<meta property="og:title" content="图片九宫格分割工具 · ImageLab">
+<meta property="og:description" content="在线把图片切成九宫格、四宫格或自定义行列，逐块导出无损 PNG 打包 zip 下载，浏览器本地处理。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="图片九宫格分割工具 · ImageLab">
+<meta name="twitter:description" content="在线把图片切成九宫格、四宫格或自定义行列，逐块导出无损 PNG 打包 zip 下载，浏览器本地处理。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=4">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* 网格预览（仅本页使用，不动全局 style.css） */
+  #gridWrap { display: grid; gap: 4px; }
+  #gridWrap canvas { width: 100%; height: auto; display: block; border-radius: 2px; }
+  #gridEmpty { color: var(--muted); font-size: 13px; padding: 48px 0; text-align: center; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "图片九宫格分割工具",
+  "url": "https://yangzixiong.com/tools/grid",
+  "description": "在线把图片切成九宫格、四宫格或自定义行列网格：一键拆分导出无损 PNG 并打包成 zip 下载，每块保持原始像素，全部在浏览器本地完成。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/tools/histogram">直方图</a>
+    <a href="/tools/flip">翻转旋转</a>
+    <a href="/tools/crop">裁剪</a>
+    <a href="/tools/grid" aria-current="page">网格分割</a>
+    <a href="/tools/remove-bg">抠图</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/grid" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>图片网格分割</h1>
+    <p class="tool-sub">把一张图切成九宫格、四宫格或任意行列的网格。每块都是原始像素的无损 PNG，一键打包成 zip 下载，适合社交平台连发、对比图和拼版素材。</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>点击选择图片</strong>，或把文件拖到这里
+    <span class="dz-hint">也可以直接 Ctrl+V 粘贴 · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box" aria-label="网格预览">
+      <div id="gridWrap"><div id="gridEmpty">尚未载入图片</div></div>
+    </section>
+
+    <aside class="tool-side">
+      <h2>网格</h2>
+      <div class="btn-row">
+        <button class="btn ghost grid-chip" data-grid="2x2" type="button">2×2</button>
+        <button class="btn ghost grid-chip on" data-grid="3x3" type="button">3×3</button>
+        <button class="btn ghost grid-chip" data-grid="4x4" type="button">4×4</button>
+      </div>
+      <div class="ctl-row">
+        <span>行</span>
+        <select id="rowSel" class="select">
+          <option>1</option><option>2</option><option selected>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+        </select>
+      </div>
+      <div class="ctl-row">
+        <span>列</span>
+        <select id="colSel" class="select">
+          <option>1</option><option>2</option><option selected>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+        </select>
+      </div>
+      <div class="stat-list"><div id="gridInfo">尚未载入图片</div></div>
+
+      <h2 class="side-h2">导出</h2>
+      <button class="btn" id="btnDownload" type="button">下载 ZIP</button>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>九宫格用在哪</h2>
+    <p>社交平台的「一张图拆九张」连发、摄影九宫格展示、把长图切片分页排版，或是给印刷品做拼版前的粗切。行列可以不同，比如 1×3 切横条、3×1 切竖条。</p>
+
+    <h2>块是像素级无损的</h2>
+    <p>切割按 floor(i × 边长 ÷ n) 计算边界：块与块不重叠、不丢像素，除不尽的余数由边缘块吸收。每块导出 PNG 无损格式，zip 打包时不再二次压缩，尺寸就是原始像素。</p>
+
+    <h2>命名规则</h2>
+    <p>文件名是「原图名_r行c列.png」，例如 photo_r2c3.png 表示第 2 行第 3 块，按顺序排列即可拼回原图。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/crop">图片比例裁剪</a>、<a href="/tools/flip">图片翻转旋转</a> · 相关阅读：<a href="/guides/pixel-inspector">像素查看指南</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/tools/histogram">直方图</a>
+    <a href="/tools/flip">翻转旋转</a>
+    <a href="/tools/crop">裁剪</a>
+    <a href="/tools/grid">网格分割</a>
+    <a href="/tools/remove-bg">抠图</a>
+    <a href="/guides/depth-tiff">16bit 深度图</a>
+    <a href="/guides/color-picker">图片取色</a>
+    <a href="/guides/pixel-inspector">像素查看</a>
+    <a href="/faq">常见问题</a>
+    <a href="/about">关于</a>
+    <a href="/en/tools/grid" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/lib/fflate.js"></script>
+<script src="/tools/grid.js?v=3"></script>
+</body>
+</html>

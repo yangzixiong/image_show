@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remove Background from Image Online · ImageLab</title>
+<meta name="description" content="Remove backgrounds from portraits and objects in your browser: local ONNX inference, transparent PNG plus a ControlNet mask. Free, no upload, no sign-up.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/remove-bg">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/remove-bg">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/remove-bg">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/remove-bg">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/remove-bg">
+<meta property="og:title" content="Remove Background from Image Online · ImageLab">
+<meta property="og:description" content="Neural background removal that runs entirely in your browser: transparent PNG plus a grayscale ControlNet mask. No upload, no sign-up.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Remove Background from Image Online · ImageLab">
+<meta name="twitter:description" content="Neural background removal that runs entirely in your browser: transparent PNG plus a grayscale ControlNet mask. No upload, no sign-up.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=4">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* Two-pane result preview (page-scoped, global style.css untouched) */
+  #rbWrap { display: flex; gap: 16px; flex-wrap: wrap; }
+  .rb-pane { flex: 1 1 240px; min-width: 0; }
+  .rb-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .rb-pane canvas { max-width: 100%; max-height: 44vh; display: block; border: 1px solid var(--border); border-radius: 4px; }
+  #cutCanvas { background: repeating-conic-gradient(#e8ebf0 0% 25%, #ffffff 0% 50%) 0 0 / 20px 20px; }
+  .rb-pane .btn { margin-top: 10px; width: 100%; }
+  #rbEmpty { color: var(--muted); font-size: 13px; padding: 48px 0; text-align: center; }
+  #rbWrap[hidden] { display: none; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Online Background Remover",
+  "url": "https://yangzixiong.com/en/tools/remove-bg",
+  "description": "Remove backgrounds from portraits and objects in your browser: local ONNX inference produces a transparent PNG plus a grayscale ControlNet mask. Free, no upload, no sign-up.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">pixels · RGB · depth</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/tools/crop">Crop</a>
+    <a href="/en/tools/grid">Grid split</a>
+    <a href="/en/tools/remove-bg" aria-current="page">Remove BG</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/remove-bg" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Background Removal &amp; Cutout Masks</h1>
+    <p class="tool-sub">A neural network runs inside your browser to separate the foreground: MODNet for portraits, U2Netp for objects. You get two results — a transparent PNG and a grayscale mask ready for ControlNet. The image never leaves your machine.</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>Click to choose an image</strong>, or drop a file here
+    <span class="dz-hint">You can also press Ctrl+V to paste · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box" aria-label="Result preview">
+      <div id="rbWrap" hidden>
+        <div class="rb-pane">
+          <div class="rb-label">Transparent cutout (checkerboard = transparency)</div>
+          <canvas id="cutCanvas"></canvas>
+          <button class="btn ghost" id="btnPng" type="button">Download transparent PNG</button>
+        </div>
+        <div class="rb-pane">
+          <div class="rb-label">Grayscale mask (ControlNet ready)</div>
+          <canvas id="maskCanvas"></canvas>
+          <button class="btn ghost" id="btnMask" type="button">Download mask PNG</button>
+        </div>
+      </div>
+      <div id="rbEmpty">Load an image, then press “Remove background”</div>
+    </section>
+
+    <aside class="tool-side">
+      <h2>Model</h2>
+      <label class="ctl-row"><input type="radio" name="modelKey" value="portrait" checked> Portrait (MODNet)</label>
+      <label class="ctl-row"><input type="radio" name="modelKey" value="general"> Object (U2Netp)</label>
+      <div class="stat-list">
+        <div>Portrait model ≈ 6.3 MB</div>
+        <div>Object model ≈ 4.4 MB</div>
+        <div id="rbInfo">Models download on first use</div>
+      </div>
+
+      <h2 class="side-h2">Process</h2>
+      <button class="btn" id="btnRun" type="button">Remove background</button>
+      <button class="btn ghost" id="btnZip" type="button" style="margin-top:8px">Download both as ZIP</button>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>Slow once, fast after</h2>
+    <p>The inference engine (~11 MB) and the model download only when you first press the button; the browser caches them afterwards. Inference itself runs locally: a few seconds on a modern machine, possibly longer on an old one. Inputs are automatically resized to what the model needs, which keeps things fast.</p>
+
+    <h2>Which model to pick</h2>
+    <p>Person in the photo? Pick Portrait — MODNet is matting-focused and noticeably better on hair edges. Products, animals, still objects? Pick Object — U2Netp is a general saliency segmenter that handles anything, with slightly rougher edges. When in doubt, run both and keep the better result.</p>
+
+    <h2>The mask is ControlNet-ready</h2>
+    <p>In the grayscale mask, white marks the foreground to keep and black the background — exactly the format ControlNet (seg / scribble controls) expects, no post-processing needed. The transparent PNG is for compositing onto new backgrounds.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/crop">Image cropper</a>, <a href="/en/tools/grid">Grid splitter</a> · Reading: <a href="/en/guides/depth-tiff">16-bit depth map guide</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="Site navigation">
+    <a href="/en/">Home</a>
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/tools/crop">Crop</a>
+    <a href="/en/tools/grid">Grid split</a>
+    <a href="/en/tools/remove-bg">Remove BG</a>
+    <a href="/en/guides/depth-tiff">16-bit depth</a>
+    <a href="/en/guides/color-picker">Color picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+    <a href="/en/faq">FAQ</a>
+    <a href="/en/about">About</a>
+    <a href="/tools/remove-bg" lang="zh-CN">中文版</a>
+  </nav>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/lib/fflate.js"></script>
+<script src="/tools/remove-bg.js?v=3"></script>
+</body>
+</html>

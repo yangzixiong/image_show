@@ -36,6 +36,12 @@ PAGES = [
     ("en", "en/tools/histogram.html", "/en/tools/histogram"),
     ("zh", "tools/flip.html", "/tools/flip"),
     ("en", "en/tools/flip.html", "/en/tools/flip"),
+    ("zh", "tools/crop.html", "/tools/crop"),
+    ("en", "en/tools/crop.html", "/en/tools/crop"),
+    ("zh", "tools/grid.html", "/tools/grid"),
+    ("en", "en/tools/grid.html", "/en/tools/grid"),
+    ("zh", "tools/remove-bg.html", "/tools/remove-bg"),
+    ("en", "en/tools/remove-bg.html", "/en/tools/remove-bg"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
@@ -45,18 +51,20 @@ PLANNED_URLS = {
     "/faq.html", "/about.html", "/privacy.html",
     "/en/guides/depth-tiff.html", "/en/guides/color-picker.html", "/en/guides/pixel-inspector.html",
     "/en/faq.html", "/en/about.html", "/en/privacy.html",
-    "/tools/histogram.html", "/tools/flip.html",
-    "/en/tools/histogram.html", "/en/tools/flip.html",
+    "/tools/histogram.html", "/tools/flip.html", "/tools/crop.html", "/tools/grid.html", "/tools/remove-bg.html",
+    "/en/tools/histogram.html", "/en/tools/flip.html", "/en/tools/crop.html", "/en/tools/grid.html", "/en/tools/remove-bg.html",
 }
 
-EXPECTED_SITEMAP = 18  # 2 个首页 + 12 个内容页 + 4 个工具页
+EXPECTED_SITEMAP = 24  # 2 个首页 + 12 个内容页 + 10 个工具页（histogram/flip/crop/grid/remove-bg × 中英）
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
     "css/style.css",
     "js/i18n.js", "js/decoder.js", "js/viewer.js", "js/inspector.js", "js/picker.js", "js/main.js",
-    "js/toolkit.js", "tools/histogram.js", "tools/flip.js",
-    "lib/utif.js",
+    "js/toolkit.js", "tools/histogram.js", "tools/flip.js", "tools/crop.js", "tools/grid.js", "tools/remove-bg.js",
+    "lib/utif.js", "lib/fflate.js",
+    "lib/ort/ort.min.js", "lib/ort/ort-wasm-simd-threaded.mjs", "lib/ort/ort-wasm-simd-threaded.wasm",
+    "models/modnet-uint8.onnx", "models/u2netp.onnx",
 ]
 
 ok = True

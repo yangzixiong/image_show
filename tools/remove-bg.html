@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线抠图去背景工具 · ImageLab</title>
+<meta name="description" content="在线人像与物体抠图：浏览器内 ONNX 推理自动分离前景，一键导出透明 PNG 与黑白遮罩（可直接用于 ControlNet），图片不上传、免费、无需注册。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/remove-bg">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/remove-bg">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/remove-bg">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/remove-bg">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/remove-bg">
+<meta property="og:title" content="在线抠图去背景工具 · ImageLab">
+<meta property="og:description" content="浏览器内 ONNX 推理自动抠图：透明 PNG + 黑白遮罩（ControlNet 可用），图片不上传。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="在线抠图去背景工具 · ImageLab">
+<meta name="twitter:description" content="浏览器内 ONNX 推理自动抠图：透明 PNG + 黑白遮罩（ControlNet 可用），图片不上传。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=4">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* 结果双栏预览（仅本页使用，不动全局 style.css） */
+  #rbWrap { display: flex; gap: 16px; flex-wrap: wrap; }
+  .rb-pane { flex: 1 1 240px; min-width: 0; }
+  .rb-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .rb-pane canvas { max-width: 100%; max-height: 44vh; display: block; border: 1px solid var(--border); border-radius: 4px; }
+  #cutCanvas { background: repeating-conic-gradient(#e8ebf0 0% 25%, #ffffff 0% 50%) 0 0 / 20px 20px; }
+  .rb-pane .btn { margin-top: 10px; width: 100%; }
+  #rbEmpty { color: var(--muted); font-size: 13px; padding: 48px 0; text-align: center; }
+  #rbWrap[hidden] { display: none; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "在线抠图去背景工具",
+  "url": "https://yangzixiong.com/tools/remove-bg",
+  "description": "在线人像与物体抠图：浏览器内 ONNX 推理自动分离前景，一键导出透明 PNG 与黑白遮罩（可直接用于 ControlNet），图片不上传。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/tools/histogram">直方图</a>
+    <a href="/tools/flip">翻转旋转</a>
+    <a href="/tools/crop">裁剪</a>
+    <a href="/tools/grid">网格分割</a>
+    <a href="/tools/remove-bg" aria-current="page">抠图</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/remove-bg" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>抠图与背景移除</h1>
+    <p class="tool-sub">浏览器内运行神经网络自动分离前景：人像选 MODNet，物体选 U2Netp。结果给两份——透明背景 PNG 和黑白遮罩 PNG，后者可以直接拿去喂 ControlNet。图片全程不出本机。</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>点击选择图片</strong>，或把文件拖到这里
+    <span class="dz-hint">也可以直接 Ctrl+V 粘贴 · JPG / PNG / WebP / GIF / BMP / TIFF</span>
+  </label>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box" aria-label="结果预览">
+      <div id="rbWrap" hidden>
+        <div class="rb-pane">
+          <div class="rb-label">透明背景（棋盘格代表透明）</div>
+          <canvas id="cutCanvas"></canvas>
+          <button class="btn ghost" id="btnPng" type="button">下载透明 PNG</button>
+        </div>
+        <div class="rb-pane">
+          <div class="rb-label">黑白遮罩（ControlNet 可用）</div>
+          <canvas id="maskCanvas"></canvas>
+          <button class="btn ghost" id="btnMask" type="button">下载遮罩 PNG</button>
+        </div>
+      </div>
+      <div id="rbEmpty">载入图片后点右侧「开始抠图」</div>
+    </section>
+
+    <aside class="tool-side">
+      <h2>模型</h2>
+      <label class="ctl-row"><input type="radio" name="modelKey" value="portrait" checked> 人像（MODNet）</label>
+      <label class="ctl-row"><input type="radio" name="modelKey" value="general"> 物体（U2Netp）</label>
+      <div class="stat-list">
+        <div>人像模型约 6.3 MB</div>
+        <div>通用模型约 4.4 MB</div>
+        <div id="rbInfo">首次使用需下载模型</div>
+      </div>
+
+      <h2 class="side-h2">处理</h2>
+      <button class="btn" id="btnRun" type="button">开始抠图</button>
+      <button class="btn ghost" id="btnZip" type="button" style="margin-top:8px">打包下载两份结果</button>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>第一次会慢，之后很快</h2>
+    <p>推理引擎（约 11 MB）和模型在你第一次点「开始抠图」时才下载，之后由浏览器缓存，再次使用几乎秒开。推理本身在本地完成：现代电脑约几秒，老机器可能十几秒——遮罩越小越快，工具已自动把输入压到模型所需的尺寸。</p>
+
+    <h2>两个模型怎么选</h2>
+    <p>照片主体是人，选「人像」：MODNet 是人像抠图专用模型，发丝边缘明显更好。商品、动物、静物等一般物体选「物体」：U2Netp 是通用显著性分割模型，什么都能试，但边缘精度略粗。拿不准就两个都跑一遍，留下效果好的一份。</p>
+
+    <h2>遮罩就是 ControlNet 的输入</h2>
+    <p>黑白遮罩里白色代表保留的前景、黑色代表背景，这正好是 ControlNet（seg / scribble 类控制）需要的格式，下载后无需再处理。透明 PNG 则适合直接合成到新背景上。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/crop">图片比例裁剪</a>、<a href="/tools/grid">网格分割</a> · 相关阅读：<a href="/guides/depth-tiff">16bit 深度图指南</a></p>
+</main>
+
+<footer class="site-footer">
+  <nav aria-label="站内导航">
+    <a href="/">首页</a>
+    <a href="/tools/histogram">直方图</a>
+    <a href="/tools/flip">翻转旋转</a>
+    <a href="/tools/crop">裁剪</a>
+    <a href="/tools/grid">网格分割</a>
+    <a href="/tools/remove-bg">抠图</a>
+    <a href="/guides/depth-tiff">16bit 深度图</a>
+    <a href="/guides/color-picker">图片取色</a>
+    <a href="/guides/pixel-inspector">像素查看</a>
+    <a href="/faq">常见问题</a>
+    <a href="/about">关于</a>
+    <a href="/en/tools/remove-bg" lang="en">English version</a>
+  </nav>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/lib/fflate.js"></script>
+<script src="/tools/remove-bg.js?v=3"></script>
+</body>
+</html>
