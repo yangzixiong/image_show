@@ -1,7 +1,7 @@
 {
   "name": "ImageLab · AI 绘图与图片处理工具箱",
   "short_name": "ImageLab",
-  "description": "十二个浏览器工具：像素与深度查看、图片编辑导出、Stable Diffusion 提示词处理。全部本地运行，文件不上传。",
+  "description": "十四个浏览器工具：像素与深度查看、图片编辑导出、Stable Diffusion 提示词处理、视频抓帧。全部本地运行，文件不上传。",
   "lang": "zh-CN",
   "dir": "ltr",
   "start_url": "/",
