@@ -376,3 +376,38 @@ body.tool .toast { position: fixed; top: auto; bottom: 28px; z-index: 40; }
   .tool-head h1 { font-size: 22px; }
   .tool-main { padding: 18px 16px 52px; }
 }
+
+/* ==================== 页脚分组（定位改版批 1） ==================== */
+.footer-groups {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
+  gap: 18px 24px;
+  max-width: 1100px;
+  margin: 0 auto 14px;
+  text-align: left;
+}
+.site-footer .footer-group .fg-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.site-footer .footer-group nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 0;
+}
+@media (max-width: 860px) {
+  .footer-groups { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+}
+@media (max-width: 480px) {
+  .footer-groups { grid-template-columns: 1fr; }
+}
+
+/* 工具页「← 全部工具」返回链接（定位改版批 1） */
+.tool-back { margin-top: 18px; font-size: 13px; }
+.tool-back a { color: var(--muted); text-decoration: none; }
+.tool-back a:hover { color: var(--accent); }

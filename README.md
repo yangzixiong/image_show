@@ -1,6 +1,6 @@
-# ImageLab · 图片查看与像素/深度分析
+# ImageLab · AI 绘图与图片处理工具箱
 
-纯静态网页应用，无构建步骤、无后端、无外部 CDN 依赖（TIFF 解码库已内置），把整个目录拷到任意静态服务器即可运行，Linux / Windows 通用。
+为 AI 绘图与图片处理准备的浏览器工具——图片和提示词都不上传。纯静态网页应用，无构建步骤、无后端、无外部 CDN 依赖（TIFF 解码库已内置），把整个目录拷到任意静态服务器即可运行，Linux / Windows 通用。
 
 ## 功能
 
@@ -142,6 +142,7 @@ site.webmanifest  PWA 清单（图标 192/512）
 wrangler.jsonc  Workers 静态资源配置：自定义 404 需要它（Git 构建与 wrangler deploy 均生效）
 _headers        Cloudflare 响应头（Pages/Workers 通用）：缓存策略与安全头（替代 nginx 的 expires/add_header）
 .assetsignore   发布排除清单（Workers/Pages 通用，不让 README/deploy/docs 变成网页）
+docs/            站点定位与内容规范：positioning-spec.md（定位/URL/SEO）、opencode-task-positioning.md（改版任务书），不上线
 deploy/
   CLOUDFLARE.md    Cloudflare 部署分步手册（GitHub 集成 + 防爬设置）
   image_show.conf  nginx 完整配置：限速/恶意UA拦截/垃圾Referer拦截/静态缓存

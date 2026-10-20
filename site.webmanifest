@@ -1,7 +1,7 @@
 {
-  "name": "ImageLab · 图片查看与像素/深度分析",
+  "name": "ImageLab · AI 绘图与图片处理工具箱",
   "short_name": "ImageLab",
-  "description": "在浏览器里查看图片像素与深度：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放与像素网格。",
+  "description": "十二个浏览器工具：像素与深度查看、图片编辑导出、Stable Diffusion 提示词处理。全部本地运行，文件不上传。",
   "lang": "zh-CN",
   "dir": "ltr",
   "start_url": "/",

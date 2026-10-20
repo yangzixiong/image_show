@@ -45,6 +45,7 @@ PAGES = [
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
+# 批1 先登记：查看器（批2 迁移到 /tools/pixel-viewer）+ 6 个提示词工具（批3/批4 交付）
 PLANNED_URLS = {
     "/", "/en/",
     "/guides/depth-tiff.html", "/guides/color-picker.html", "/guides/pixel-inspector.html",
@@ -53,6 +54,13 @@ PLANNED_URLS = {
     "/en/faq.html", "/en/about.html", "/en/privacy.html",
     "/tools/histogram.html", "/tools/flip.html", "/tools/crop.html", "/tools/grid.html", "/tools/remove-bg.html",
     "/en/tools/histogram.html", "/en/tools/flip.html", "/en/tools/crop.html", "/en/tools/grid.html", "/en/tools/remove-bg.html",
+    "/tools/pixel-viewer.html", "/en/tools/pixel-viewer.html",
+    "/tools/prompt-weight.html", "/en/tools/prompt-weight.html",
+    "/tools/prompt-split.html", "/en/tools/prompt-split.html",
+    "/tools/negative-prompt.html", "/en/tools/negative-prompt.html",
+    "/tools/random-prompt.html", "/en/tools/random-prompt.html",
+    "/tools/prompt-translate.html", "/en/tools/prompt-translate.html",
+    "/tools/token-counter.html", "/en/tools/token-counter.html",
 }
 
 EXPECTED_SITEMAP = 24  # 2 个首页 + 12 个内容页 + 10 个工具页（histogram/flip/crop/grid/remove-bg × 中英）
@@ -145,7 +153,7 @@ for lang, rel, site_path in PAGES:
     else:
         check(False, f"{label} JSON-LD 存在")
 
-    check(bool(re.search(r"css/style\.css\?v=4", html)), f"{label} 样式表引用为 ?v=3")
+    check(bool(re.search(r"css/style\.css\?v=5", html)), f"{label} 样式表引用为 ?v=5")
 
     broken = []
     for href in re.findall(r'href="([^"]+)"', html):
@@ -195,13 +203,13 @@ except Exception as e:
 for asset in EXPECTED_ASSETS:
     check((ROOT / asset).exists(), f"资源存在: {asset}")
 
-# ---- 全站 ?v=3（所有引用 style.css 的页面）----
+# ---- 全站 ?v=5（所有引用 style.css 的页面）----
 stale = []
 for html_file in sorted(ROOT.rglob("*.html")):
     text = html_file.read_text(encoding="utf-8")
-    if "style.css" in text and "style.css?v=4" not in text:
+    if "style.css" in text and "style.css?v=5" not in text:
         stale.append(html_file.relative_to(ROOT).as_posix())
-check(not stale, "所有引用样式表的页面均使用 ?v=3")
+check(not stale, "所有引用样式表的页面均使用 ?v=5")
 for s in stale:
     print("      未升级:", s)
 

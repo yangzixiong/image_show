@@ -79,14 +79,26 @@ if ids(htmls["zh"]) != ids(htmls["en"]):
     print("   仅英文有:", sorted(ids(htmls["en"]) - ids(htmls["zh"])))
 
 # 5) 本地资源都存在（英文页用根绝对路径，仍映射到仓库根）
+# 规划中、尚未交付的页脚链接放行：批1 登记（查看器批2、提示词工具批3/批4 交付），批5 清空
+PLANNED = {
+    "tools/pixel-viewer.html", "en/tools/pixel-viewer.html",
+    "tools/prompt-weight.html", "en/tools/prompt-weight.html",
+    "tools/prompt-split.html", "en/tools/prompt-split.html",
+    "tools/negative-prompt.html", "en/tools/negative-prompt.html",
+    "tools/random-prompt.html", "en/tools/random-prompt.html",
+    "tools/prompt-translate.html", "en/tools/prompt-translate.html",
+    "tools/token-counter.html", "en/tools/token-counter.html",
+}
 missing = set()
 for lang, html in htmls.items():
     for ref in local_refs(html):
         if not ref or ref.endswith("/"):
             continue
+        if ref in PLANNED:
+            continue
         if not (ROOT / ref).exists():
             missing.add(ref)
-check(not missing, "页面引用的本地资源全部存在")
+check(not missing, "页面引用的本地资源全部存在（规划中 URL 除外）")
 for ref in sorted(missing):
     print("   缺失:", ref)
 

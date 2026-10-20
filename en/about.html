@@ -27,7 +27,7 @@
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/css/style.css?v=4">
+<link rel="stylesheet" href="/css/style.css?v=5">
 <meta name="theme-color" content="#ffffff">
 
 <script type="application/ld+json">
@@ -46,13 +46,12 @@
 <body class="doc">
 
 <header class="topbar doc-topbar">
-  <a class="brand" href="/en/">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></a>
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
   <nav class="doc-nav" aria-label="Site navigation">
-    <a href="/en/tools/histogram">Histogram</a>
-    <a href="/en/tools/flip">Flip &amp; rotate</a>
-    <a href="/en/tools/crop">Crop</a>
-    <a href="/en/tools/grid">Grid split</a>
-    <a href="/en/tools/remove-bg">Remove BG</a>
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt">Prompts</a>
+    <a href="/en/#guides">Guides</a>
   </nav>
   <div class="topbar-right">
     <nav class="lang-switch" aria-label="Language">
@@ -103,22 +102,53 @@
 </main>
 
 <footer class="site-footer">
-  <nav aria-label="Site navigation">
-    <a href="/en/">Home</a>
-    <a href="/en/tools/histogram">Histogram</a>
-    <a href="/en/tools/flip">Flip &amp; rotate</a>
-    <a href="/en/tools/crop">Crop</a>
-    <a href="/en/tools/grid">Grid split</a>
-    <a href="/en/tools/remove-bg">Remove BG</a>
-    <a href="/en/guides/depth-tiff">Depth maps</a>
-    <a href="/en/guides/color-picker">Colour picker</a>
-    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
-    <a href="/en/faq">FAQ</a>
-    <a href="/en/about">About</a>
-    <a href="/en/privacy">Privacy</a>
-    <a href="/about" lang="zh-CN">中文版</a>
-  </nav>
-  <p>ImageLab · All processing happens locally in your browser — images are never uploaded</p>
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
 </footer>
 
 </body>

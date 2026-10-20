@@ -61,8 +61,8 @@ def make_og() -> Path:
 
     # 主标题
     d.text((88, 150), "ImageLab", font=font("seguibl.ttf", 104), fill=TEXT)
-    d.text((92, 285), "在线图片像素与深度查看器", font=font("msyhbd.ttc", 46), fill=TEXT)
-    d.text((94, 362), "RGB / HEX 取色 · 16bit TIFF 深度图 · 像素网格",
+    d.text((92, 285), "AI 绘图 · 图片工具", font=font("msyhbd.ttc", 46), fill=TEXT)
+    d.text((94, 362), "图片像素 · 直方图 · 裁剪抠图 · AI 提示词",
            font=font("msyh.ttc", 28), fill=MUTED)
 
     # 三枚功能标签
