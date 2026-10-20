@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 绘图随机提示词生成器 · ImageLab</title>
+<meta name="description" content="随机提示词生成器：按画质、主体、动作、场景、光照、镜头六层随机抽取，支持锁定某层、种子复现与分享链接，标签流与自然语言两种输出，纯浏览器离线可用。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/random-prompt">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/random-prompt">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/random-prompt">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/random-prompt">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/random-prompt">
+<meta property="og:title" content="AI 绘图随机提示词生成器 · ImageLab">
+<meta property="og:description" content="六层随机抽取提示词，可锁定、可种子复现、可复制分享链接，标签流与自然语言双输出。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI 绘图随机提示词生成器 · ImageLab">
+<meta name="twitter:description" content="六层随机抽取提示词，可锁定、可种子复现、可复制分享链接，标签流与自然语言双输出。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  .rp-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 14px 0; }
+  .rp-head .rp-seedlab { font-size: 13px; color: var(--muted); }
+  .rp-head input[type="number"] { width: 120px; box-sizing: border-box; padding: 7px 10px;
+    font: 13px Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .rp-head input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .rp-radios { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+  .rp-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .rp-radios input { accent-color: var(--accent); }
+  .rp-rows { display: flex; flex-direction: column; gap: 8px; }
+  .rp-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .rp-row.locked { border-color: var(--accent); background: var(--panel2); }
+  .rp-lab { flex: 0 0 44px; font-size: 13px; font-weight: 700; color: var(--text); }
+  .rp-chip { display: inline-flex; align-items: baseline; gap: 8px; flex: 1 1 200px; min-width: 0; }
+  .rp-chip code { font: 13px/1.5 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--accent);
+    word-break: break-all; }
+  .rp-mean { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .rp-row .btn { padding: 4px 10px; font-size: 12px; }
+  .rp-out { width: 100%; box-sizing: border-box; min-height: 96px; margin-top: 12px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .rp-stat { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .rp-load { font-size: 13px; color: var(--muted); margin-top: 14px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI 绘图随机提示词生成器",
+  "url": "https://yangzixiong.com/tools/random-prompt",
+  "description": "按画质、主体、动作、场景、光照、镜头六层随机抽取提示词，支持锁定、种子复现与分享链接，纯浏览器运行。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt" aria-current="page">提示词</a>
+    <a href="/#guides">教程</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/random-prompt" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>随机提示词生成器</h1>
+    <p class="tool-sub">按画质、主体、动作、场景、光照、镜头六层各抽一条，组合成一段可直接粘贴进 Stable Diffusion 的提示词。某一层不满意可以单独换，喜欢的层可以锁定；同一颗种子永远得到同一组结果，复制分享链接给朋友就能复现你的画面。</p>
+  </div>
+
+  <div class="rp-head">
+    <span class="rp-seedlab"><label for="rpSeed">随机种子</label></span>
+    <input type="number" id="rpSeed" min="0" step="1" value="0">
+    <button class="btn" id="rpRoll" type="button">全部重抽</button>
+    <button class="btn ghost" id="rpShare" type="button">复制分享链接</button>
+    <button class="btn ghost" id="rpCopy" type="button">复制提示词</button>
+    <span class="rp-radios">
+      <label><input type="radio" name="rpMode" value="tags" checked> 标签流</label>
+      <label><input type="radio" name="rpMode" value="nl"> 自然语言</label>
+    </span>
+  </div>
+
+  <div class="rp-rows" id="rpLayers"></div>
+
+  <div class="rp-label" style="font-size:12px;color:var(--muted);margin-top:14px;">输出</div>
+  <textarea id="rpOut" class="rp-out" readonly spellcheck="false" placeholder="载入词库后自动生成"></textarea>
+  <div class="rp-stat" id="rpStat"></div>
+
+  <section class="tool-notes">
+    <h2>六层各管一件事</h2>
+    <p>画质层放 masterpiece、best quality 这类质量词；主体层决定画谁、什么发型发色；动作层控制姿态与表情；场景层选择环境与季节；光照层负责氛围，柔光与黄金时刻最稳；镜头层给出景深、焦段与构图。每层 20 多条词条按权重抽取，常用词条权重高、冷门词条权重低，组合出的画面既多样又不至于太偏门。</p>
+
+    <h2>锁定、重抽与种子复现</h2>
+    <p>点某层的「换一个」只重抽这一层，点「锁定」后这一层不再被「全部重抽」影响，适合先定好主体再刷光照。顶部的随机种子是整组结果的唯一来源：同一个种子加同一份词库必然得到同一组输出，手动改种子数字也能复现；「复制分享链接」会把当前种子写进 URL，对方打开看到的就是同一组提示词。单层手动微调不写入链接，链接复现的是该种子的完整抽取。</p>
+
+    <h2>标签流与自然语言两种输出</h2>
+    <p>标签流是逗号分隔的英文标签串，兼容 A1111、ComfyUI 等以标签为主的前端；自然语言模式把同一批词条换成长句片段再拼接，适合 SD3、Flux 这类对整句理解更好的模型。两种输出共用同一次抽取，切换只改变拼法，不会重新随机。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/prompt-weight">提示词权重计算器</a>、<a href="/tools/negative-prompt">负面提示词库</a> · 相关阅读：<a href="/faq">常见问题</a></p>
+
+<p class="tool-back"><a href="/#prompt">← 全部工具</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=2"></script>
+<script src="/tools/random-prompt.js?v=1"></script>
+</body>
+</html>

@@ -383,10 +383,18 @@ var PromptLib = (function () {
 
   // CLIP 预分词（openai/CLIP simple_tokenizer 的正则，JS 等价）
   var CLIP_RE = /'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+/giu;
-  // tiktoken（cl100k/o200k）预分词
+  // tiktoken 预分词：与 js-tiktoken / tiktoken 官方 pat_str 一致（分词表各有一套，勿混用）
+  // cl100k_base：词块为「可选前导非字母数字 + \p{L}+」（含空格并入与汉字 Lo），数字按 1-3 位分组
   var TIKTOKEN_RE = new RegExp(
-    "(?i:[sdmt]|ll|ve|re)|[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}]+|\\p{Lu}+\\p{Ll}*|\\p{Ll}+|\\p{N}+|[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s+(?!\\S)|\\s+",
-    "giu");
+    "('s|'S|'t|'T|'re|'rE|'Re|'RE|'ve|'vE|'Ve|'VE|'m|'M|'ll|'lL|'Ll|'LL|'d|'D)" +
+    "|[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+",
+    "gu");
+  // o200k_base：大小写分段更细；缩写用显式大小写枚举（JS 不支持 (?i:...)）；标点块允许尾随 \r\n 与 /
+  var TIKTOKEN_O200K_RE = new RegExp(
+    "[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}\\p{Lt}\\p{Lm}\\p{Lo}\\p{M}]*[\\p{Ll}\\p{Lm}\\p{Lo}\\p{M}]+('s|'S|'t|'T|'re|'rE|'Re|'RE|'ve|'vE|'Ve|'VE|'m|'M|'ll|'lL|'Ll|'LL|'d|'D)?" +
+    "|[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}\\p{Lt}\\p{Lm}\\p{Lo}\\p{M}]+[\\p{Ll}\\p{Lm}\\p{Lo}\\p{M}]*('s|'S|'t|'T|'re|'rE|'Re|'RE|'ve|'vE|'Ve|'VE|'m|'M|'ll|'lL|'Ll|'LL|'d|'D)?" +
+    "|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n/]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+",
+    "gu");
 
   function applyMerges(wordChars, mergeRank) {
     // mergeRank: map "a b" -> 序号（越小越先合并）
@@ -436,10 +444,10 @@ var PromptLib = (function () {
     return count;
   }
 
-  function tiktokenTokens(text, table) {
+  function tiktokenTokens(text, table, vocab) {
     var ranks = table.ranks;
     var b2u = bytesToUnicode();
-    var pieces = text.match(TIKTOKEN_RE) || [];
+    var pieces = text.match(vocab === "o200k" ? TIKTOKEN_O200K_RE : TIKTOKEN_RE) || [];
     var count = 0;
     for (var p = 0; p < pieces.length; p++) {
       if (!pieces[p]) continue;
@@ -451,7 +459,7 @@ var PromptLib = (function () {
     return count;
   }
 
-  /** 无词表时的 CLIP BPE 粗估（规则见 JSDoc，误差 ±15% 内） */
+  /** 无词表时的 CLIP BPE 粗估（规则见 JSDoc，常见提示词 ±25% 内；词表加载后即被精确值取代） */
   function approxClip(text) {
     var clean = text.replace(/\s+/g, " ").trim().toLowerCase();
     if (!clean) return 0;
@@ -464,24 +472,33 @@ var PromptLib = (function () {
       var cjk = (w.match(/[\u3000-\u9fff\uff00-\uffef]/g) || []).length;
       var rest = w.length - cjk;
       count += cjk * 2;                       // 非拉丁字形在 CLIP 里按字节展开
-      if (rest > 0) count += Math.max(1, Math.ceil(rest / 4));
+      if (rest > 0) count += Math.max(1, Math.ceil(rest / 6));
     }
     return Math.max(1, count);
   }
 
-  /** 无词表时的 GPT 系（cl100k/o200k）粗估 */
-  function approxOpenai(text) {
+  /** 无词表时的 GPT 系（cl100k/o200k）粗估：空格并入后词不单独计费，词 ≈5 字符/token、标点 ≈3；CJK 按分词表差异取 1.5/1.2 */
+  function approxOpenai(text, vocab) {
     var clean = text.replace(/\s+/g, " ").trim();
     if (!clean) return 0;
-    var count = 0, i2 = 0;
-    var re = /[\p{L}\p{N}]+|[^\s\p{L}\p{N}]+| +/gu;
-    var m;
-    while ((m = re.exec(clean)) !== null) {
-      var tok = m[0];
-      if (/^\p{Lu}+$/u.test(tok) && tok.length > 1 && i2 > 0) count += Math.ceil(tok.length / 4); // 大写词切分更碎
-      else if (/^ +$/.test(tok)) count += 1;
-      else count += Math.max(1, Math.ceil(tok.length / 4));
-      i2++;
+    var cjkRate = vocab === "o200k" ? 1.2 : 1.5;
+    var count = 0;
+    var words = clean.split(" ");
+    for (var wi = 0; wi < words.length; wi++) {
+      var parts = words[wi].match(/[\p{L}\p{N}]+|[^\s\p{L}\p{N}]+/gu) || [];
+      for (var pi = 0; pi < parts.length; pi++) {
+        var p = parts[pi];
+        if (/^[\p{L}\p{N}]+$/u.test(p)) {
+          var cjk = (p.match(/[\u3000-\u9fff\uff00-\uffef]/g) || []).length;
+          var latin = p.length - cjk;
+          var n = 0;
+          if (cjk) n += Math.max(1, Math.ceil(cjk * cjkRate));
+          if (latin) n += Math.max(1, Math.ceil(latin / 5));
+          count += n;
+        } else {
+          count += Math.max(1, Math.ceil(p.length / 3));
+        }
+      }
     }
     return Math.max(1, count);
   }
@@ -506,12 +523,12 @@ var PromptLib = (function () {
     function rawCount(t) {
       if (vocab === "clip") {
         if (table && table.type === "clip" && table.encoder && table.merges) return clipTokens(t, table);
-        if (table && table.type === "tiktoken" && table.ranks) return tiktokenTokens(t, table);
+        if (table && table.type === "tiktoken" && table.ranks) return tiktokenTokens(t, table, vocab);
         return approxClip(t);
       }
       if (vocab === "cl100k" || vocab === "o200k") {
-        if (table && table.ranks) return tiktokenTokens(t, table);
-        return approxOpenai(t);
+        if (table && table.ranks) return tiktokenTokens(t, table, vocab);
+        return approxOpenai(t, vocab);
       }
       // t5：SentencePiece 词表暂不内置，粗估（拉丁 ≈4 字符/token，CJK ≈1.5 字符/token）
       var cjkLen = (t.match(/[\u3000-\u9fff\uff00-\uffef]/g) || []).join("").length;
@@ -553,12 +570,56 @@ var PromptLib = (function () {
     return { total: n2, segments: 1, segmentCounts: [n2], limit: null, overflowSegments: [] };
   }
 
+  /**
+   * 载入 CLIP 词表（调用方 fetch 后转交；本方法只组装）。
+   * @param {Object} vocab vocab.json 解析结果（{token: id}）
+   * @param {string} mergesText merges.txt 原文（首行 # 版本注释自动跳过）
+   * @returns {{type:"clip", encoder:Object, merges:string[]}}
+   */
+  function loadClipTable(vocab, mergesText) {
+    var merges = String(mergesText == null ? "" : mergesText).split(/\r?\n/)
+      .filter(function (l) { return l && l.charAt(0) !== "#"; });
+    return { type: "clip", encoder: vocab, merges: merges };
+  }
+
+  /**
+   * 载入 tiktoken 词表（.tiktoken 文本：每行 "base64(字节) rank"）。
+   * 键按 bytesToUnicode 映射，与 tiktokenTokens 的查表方式一致。
+   * @param {string} raw
+   * @returns {{type:"tiktoken", ranks:Object}}
+   */
+  function loadTiktokenTable(raw) {
+    var ranks = {};
+    var b2u = bytesToUnicode();
+    String(raw == null ? "" : raw).split(/\r?\n/).forEach(function (line) {
+      if (!line) return;
+      var sp = line.lastIndexOf(" ");
+      if (sp <= 0) return;
+      var rank = parseInt(line.slice(sp + 1), 10);
+      if (isNaN(rank)) return;
+      var b64 = line.slice(0, sp);
+      var bytes;
+      try {
+        var bin = (typeof atob === "function") ? atob(b64) : null;
+        if (bin == null) return;
+        bytes = [];
+        for (var i2 = 0; i2 < bin.length; i2++) bytes.push(bin.charCodeAt(i2));
+      } catch (e) { return; }
+      var key = "";
+      for (var k = 0; k < bytes.length; k++) key += b2u[bytes[k]];
+      ranks[key] = rank;
+    });
+    return { type: "tiktoken", ranks: ranks };
+  }
+
   return {
     parseWeighted: parseWeighted,
     bandOf: bandOf,
     splitPositiveNegative: splitPositiveNegative,
     buildNegative: buildNegative,
-    countTokens: countTokens
+    countTokens: countTokens,
+    loadClipTable: loadClipTable,
+    loadTiktokenTable: loadTiktokenTable
   };
 })();
 

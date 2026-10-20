@@ -50,10 +50,16 @@ PAGES = [
     ("en", "en/tools/prompt-split.html", "/en/tools/prompt-split"),
     ("zh", "tools/negative-prompt.html", "/tools/negative-prompt"),
     ("en", "en/tools/negative-prompt.html", "/en/tools/negative-prompt"),
+    ("zh", "tools/random-prompt.html", "/tools/random-prompt"),
+    ("en", "en/tools/random-prompt.html", "/en/tools/random-prompt"),
+    ("zh", "tools/prompt-translate.html", "/tools/prompt-translate"),
+    ("en", "en/tools/prompt-translate.html", "/en/tools/prompt-translate"),
+    ("zh", "tools/token-counter.html", "/tools/token-counter"),
+    ("en", "en/tools/token-counter.html", "/en/tools/token-counter"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
-# 批3 已交付 prompt-weight/prompt-split/negative-prompt 中英；余下 3 个提示词工具批4 交付后清空
+# 批4 已交付全部 12 个工具页；余下 guides/faq/about/privacy 等批5 收口时清空
 PLANNED_URLS = {
     "/", "/en/",
     "/guides/depth-tiff.html", "/guides/color-picker.html", "/guides/pixel-inspector.html",
@@ -62,12 +68,9 @@ PLANNED_URLS = {
     "/en/faq.html", "/en/about.html", "/en/privacy.html",
     "/tools/histogram.html", "/tools/flip.html", "/tools/crop.html", "/tools/grid.html", "/tools/remove-bg.html",
     "/en/tools/histogram.html", "/en/tools/flip.html", "/en/tools/crop.html", "/en/tools/grid.html", "/en/tools/remove-bg.html",
-    "/tools/random-prompt.html", "/en/tools/random-prompt.html",
-    "/tools/prompt-translate.html", "/en/tools/prompt-translate.html",
-    "/tools/token-counter.html", "/en/tools/token-counter.html",
 }
 
-EXPECTED_SITEMAP = 32  # 2 个首页 + 12 个内容页 + 18 个工具页（histogram/flip/crop/grid/remove-bg/pixel-viewer + 批3 三个提示词工具 × 中英）
+EXPECTED_SITEMAP = 38  # 2 个首页 + 12 个内容页 + 24 个工具页（12 个工具 × 中英）
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
@@ -75,7 +78,10 @@ EXPECTED_ASSETS = [
     "js/i18n.js", "js/decoder.js", "js/viewer.js", "js/inspector.js", "js/picker.js", "js/main.js",
     "js/toolkit.js", "tools/histogram.js", "tools/flip.js", "tools/crop.js", "tools/grid.js", "tools/remove-bg.js",
     "js/promptlib.js", "tools/prompt-weight.js", "tools/prompt-split.js", "tools/negative-prompt.js",
-    "data/negative-prompts.json",
+    "tools/random-prompt.js", "tools/prompt-translate.js", "tools/token-counter.js",
+    "data/negative-prompts.json", "data/random-prompts.json", "data/prompt-terms.json",
+    "data/tok/clip-vocab.json", "data/tok/clip-merges.txt",
+    "data/tok/cl100k_base.tiktoken", "data/tok/o200k_base.tiktoken",
     "lib/utif.js", "lib/fflate.js",
     "lib/ort/ort.min.js", "lib/ort/ort-wasm-simd-threaded.mjs", "lib/ort/ort-wasm-simd-threaded.wasm",
     "models/modnet-uint8.onnx", "models/u2netp.onnx",

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random AI Art Prompt Generator · ImageLab</title>
+<meta name="description" content="Six-layer random prompt generator: quality, subject, action, scene, lighting, camera. Lock layers, reproduce from a seed, share the link. Runs offline.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/random-prompt">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/random-prompt">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/random-prompt">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/random-prompt">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/random-prompt">
+<meta property="og:title" content="Random AI Art Prompt Generator · ImageLab">
+<meta property="og:description" content="Six-layer random prompt drawing with locks, seed reproduction, share links, and tag-list or natural-language output.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Random AI Art Prompt Generator · ImageLab">
+<meta name="twitter:description" content="Six-layer random prompt drawing with locks, seed reproduction, share links, and tag-list or natural-language output.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  .rp-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 14px 0; }
+  .rp-head .rp-seedlab { font-size: 13px; color: var(--muted); }
+  .rp-head input[type="number"] { width: 120px; box-sizing: border-box; padding: 7px 10px;
+    font: 13px Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .rp-head input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .rp-radios { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+  .rp-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .rp-radios input { accent-color: var(--accent); }
+  .rp-rows { display: flex; flex-direction: column; gap: 8px; }
+  .rp-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .rp-row.locked { border-color: var(--accent); background: var(--panel2); }
+  .rp-lab { flex: 0 0 70px; font-size: 13px; font-weight: 700; color: var(--text); }
+  .rp-chip { display: inline-flex; align-items: baseline; gap: 8px; flex: 1 1 200px; min-width: 0; }
+  .rp-chip code { font: 13px/1.5 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--accent);
+    word-break: break-all; }
+  .rp-mean { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .rp-row .btn { padding: 4px 10px; font-size: 12px; }
+  .rp-out { width: 100%; box-sizing: border-box; min-height: 96px; margin-top: 12px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .rp-stat { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .rp-load { font-size: 13px; color: var(--muted); margin-top: 14px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Random AI Art Prompt Generator",
+  "url": "https://yangzixiong.com/en/tools/random-prompt",
+  "description": "Draw prompts from six layers — quality, subject, action, scene, lighting and camera — with locks, seed reproduction and share links, running entirely in the browser.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt" aria-current="page">Prompts</a>
+    <a href="/en/#guides">Guides</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/random-prompt" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Random Prompt Generator</h1>
+    <p class="tool-sub">One draw from each of six layers — quality, subject, action, scene, lighting and camera — combined into a prompt you can paste straight into Stable Diffusion. Reroll a single layer you dislike, lock the ones you like, and the same seed always yields the same set: copy the share link and your friends see exactly what you drew.</p>
+  </div>
+
+  <div class="rp-head">
+    <span class="rp-seedlab"><label for="rpSeed">Seed</label></span>
+    <input type="number" id="rpSeed" min="0" step="1" value="0">
+    <button class="btn" id="rpRoll" type="button">Reroll all</button>
+    <button class="btn ghost" id="rpShare" type="button">Copy share link</button>
+    <button class="btn ghost" id="rpCopy" type="button">Copy prompt</button>
+    <span class="rp-radios">
+      <label><input type="radio" name="rpMode" value="tags" checked> Tag list</label>
+      <label><input type="radio" name="rpMode" value="nl"> Natural language</label>
+    </span>
+  </div>
+
+  <div class="rp-rows" id="rpLayers"></div>
+
+  <div style="font-size:12px;color:var(--muted);margin-top:14px;">Output</div>
+  <textarea id="rpOut" class="rp-out" readonly spellcheck="false" placeholder="Results appear once the pool loads"></textarea>
+  <div class="rp-stat" id="rpStat"></div>
+
+  <section class="tool-notes">
+    <h2>Each layer handles one job</h2>
+    <p>The quality layer holds tags like masterpiece and best quality; the subject layer decides who is drawn and with which hair; the action layer controls pose and expression; the scene layer picks the environment; the camera layer adds depth of field, focal length and framing. Every layer holds twenty-plus weighted entries — common tags draw more often than obscure ones, so the combinations stay varied without wandering off into rarity for its own sake.</p>
+
+    <h2>Locks, rerolls and seed reproduction</h2>
+    <p>“Reroll” on a row redraws only that layer; once a layer is locked, “Reroll all” leaves it alone — handy for fixing the subject first and then cycling the lighting. The seed at the top is the only source of the whole set: the same seed with the same pool always produces the same output, and typing a seed by hand reproduces it too. “Copy share link” writes the current seed into the URL, so anyone opening the link sees the same prompt. Manual single-layer tweaks are not encoded in the link; the link reproduces that seed’s full draw.</p>
+
+    <h2>Tag list versus natural language</h2>
+    <p>Tag-list mode joins the picks with commas — the format A1111, ComfyUI and other tag-first frontends expect. Natural-language mode swaps in sentence fragments for the same entries and concatenates them, which suits SD3 and Flux models that read whole sentences better. Both modes use the same draw; switching only changes the phrasing, never the random result.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/prompt-weight">Prompt weight calculator</a>, <a href="/en/tools/negative-prompt">Negative prompt library</a> · Reading: <a href="/en/faq">FAQ</a></p>
+
+<p class="tool-back"><a href="/en/#prompt">← All tools</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=2"></script>
+<script src="/tools/random-prompt.js?v=1"></script>
+</body>
+</html>

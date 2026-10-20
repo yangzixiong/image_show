@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 绘图提示词翻译 · 中英对照 · ImageLab</title>
+<meta name="description" content="提示词翻译工具：中文标签译成英文提示词，也支持英译中，逗号分词逐条对照；1girl、8k 等固定写法整词保留，未收录的词单独列出，离线词表纯浏览器运行。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/prompt-translate">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/prompt-translate">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/prompt-translate">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/prompt-translate">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/prompt-translate">
+<meta property="og:title" content="AI 绘图提示词翻译 · 中英对照 · ImageLab">
+<meta property="og:description" content="中英提示词标签逐条对照翻译，固定写法整词保留，未收录词条单独列出。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI 绘图提示词翻译 · 中英对照 · ImageLab">
+<meta name="twitter:description" content="中英提示词标签逐条对照翻译，固定写法整词保留，未收录词条单独列出。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  .pt-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-top: 14px; }
+  .pt-pane { flex: 1 1 300px; min-width: 0; }
+  .pt-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .pt-area { width: 100%; box-sizing: border-box; min-height: 190px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .pt-area:focus { outline: none; border-color: var(--accent); }
+  .pt-radios { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin: 10px 0; }
+  .pt-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pt-radios input { accent-color: var(--accent); }
+  .pt-stat { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .pt-load { font-size: 13px; color: var(--muted); margin-top: 14px; }
+  .pt-miss-box { margin-top: 14px; padding: 10px 12px; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 8px; }
+  .pt-miss-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .pt-chip { display: inline-block; margin: 0 6px 6px 0; padding: 3px 8px; font-size: 12px;
+    border: 1px dashed var(--border); border-radius: 6px; background: var(--panel2); color: var(--muted); }
+  .pt-miss-hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI 绘图提示词翻译",
+  "url": "https://yangzixiong.com/tools/prompt-translate",
+  "description": "中英提示词标签双向对照翻译，固定写法整词保留，未收录词条单独列出，纯浏览器运行。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt" aria-current="page">提示词</a>
+    <a href="/#guides">教程</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/prompt-translate" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>提示词翻译 · 中英对照</h1>
+    <p class="tool-sub">把中文标签翻成模型认识的英文提示词，反向也行。按逗号、顿号、换行逐条切词对照，1girl、8k 这类固定写法整词保留不会被拆译；词表里没有的词原样输出并单独列出来，方便你决定要不要补充词条。</p>
+  </div>
+
+  <div class="pt-grid">
+    <section class="pt-pane" aria-label="翻译输入">
+      <div class="pt-label">输入</div>
+      <textarea id="ptInput" class="pt-area" spellcheck="false" placeholder="杰作, 最佳质量, 一个女孩, 银色长发, 微笑, 樱花, 柔光, 浅景深"></textarea>
+      <div class="pt-radios">
+        <label><input type="radio" name="ptDir" value="zh2en" checked> 中文 → English</label>
+        <label><input type="radio" name="ptDir" value="en2zh"> English → 中文</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="ptCopy" type="button">复制译文</button>
+        <span class="pt-stat" id="ptStat"></span>
+      </div>
+    </section>
+
+    <section class="pt-pane" aria-label="翻译结果">
+      <div class="pt-label">译文（逗号标签串）</div>
+      <textarea id="ptOut" class="pt-area" readonly spellcheck="false"></textarea>
+    </section>
+  </div>
+
+  <div class="pt-miss-box" id="ptMissBox" hidden>
+    <div id="ptMiss"></div>
+  </div>
+
+  <section class="tool-notes">
+    <h2>词表怎么对</h2>
+    <p>词条表随页面离线加载，每条包含中文主词、英文标签、同义词和固定写法标记。翻译时先查主词，再查同义词——「单人」「独自」都会落到 solo，「虚化」「背景虚化」都会落到 bokeh。英文侧匹配不区分大小写，mixed 输入（一半中文一半英文标签）也能各归各位。</p>
+
+    <h2>固定写法为什么不能拆</h2>
+    <p>1girl、2girls、8k、35mm 这类词条在社区里是约定俗成的原子标签：把 1girl 翻成 one girl 会多出两个无关 token，模型查不到对应概念；8k 写成 eight k 同样失效。词条表用固定写法标记把它们锁死成整词匹配，输入输出都保持原样，不会进入任何按词拆分的路径。</p>
+
+    <h2>未收录的词怎么处理</h2>
+    <p>没有对应词条的词会原样保留在译文里——宁可漏翻也不能错翻，一个错误标签可能毁掉整张图。它们同时列在下方「未收录」区：确认是常用词就补进 data/prompt-terms.json，下次更新即可命中；一次性的人名或自创词则保持原样就好，多数前端会直接忽略不认识的标签。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/random-prompt">随机提示词生成器</a>、<a href="/tools/negative-prompt">负面提示词库</a> · 相关阅读：<a href="/faq">常见问题</a></p>
+
+<p class="tool-back"><a href="/#prompt">← 全部工具</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=2"></script>
+<script src="/tools/prompt-translate.js?v=1"></script>
+</body>
+</html>

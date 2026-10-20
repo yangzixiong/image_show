@@ -79,12 +79,8 @@ if ids(htmls["zh"]) != ids(htmls["en"]):
     print("   仅英文有:", sorted(ids(htmls["en"]) - ids(htmls["zh"])))
 
 # 5) 本地资源都存在（英文页用根绝对路径，仍映射到仓库根）
-# 规划中、尚未交付的页脚链接放行：批3 已交付前 3 个提示词工具，余下 3 个批4 交付后清空
-PLANNED = {
-    "tools/random-prompt.html", "en/tools/random-prompt.html",
-    "tools/prompt-translate.html", "en/tools/prompt-translate.html",
-    "tools/token-counter.html", "en/tools/token-counter.html",
-}
+# 批4 后 12 个工具页全部交付，无规划中放行项
+PLANNED = set()
 missing = set()
 for lang, html in htmls.items():
     for ref in local_refs(html):

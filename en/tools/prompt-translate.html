@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Art Prompt Translator — 中英对照 · ImageLab</title>
+<meta name="description" content="Prompt translator: Chinese tags to English prompt tags and back, term by term. Fixed spellings like 1girl stay whole; unknown words listed separately.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/prompt-translate">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/prompt-translate">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/prompt-translate">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/prompt-translate">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/prompt-translate">
+<meta property="og:title" content="AI Art Prompt Translator — 中英对照 · ImageLab">
+<meta property="og:description" content="Two-way Chinese–English prompt tag translation with fixed spellings kept whole and uncovered terms listed separately.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Art Prompt Translator — 中英对照 · ImageLab">
+<meta name="twitter:description" content="Two-way Chinese–English prompt tag translation with fixed spellings kept whole and uncovered terms listed separately.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  .pt-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-top: 14px; }
+  .pt-pane { flex: 1 1 300px; min-width: 0; }
+  .pt-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .pt-area { width: 100%; box-sizing: border-box; min-height: 190px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .pt-area:focus { outline: none; border-color: var(--accent); }
+  .pt-radios { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin: 10px 0; }
+  .pt-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pt-radios input { accent-color: var(--accent); }
+  .pt-stat { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .pt-load { font-size: 13px; color: var(--muted); margin-top: 14px; }
+  .pt-miss-box { margin-top: 14px; padding: 10px 12px; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 8px; }
+  .pt-miss-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .pt-chip { display: inline-block; margin: 0 6px 6px 0; padding: 3px 8px; font-size: 12px;
+    border: 1px dashed var(--border); border-radius: 6px; background: var(--panel2); color: var(--muted); }
+  .pt-miss-hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI Art Prompt Translator",
+  "url": "https://yangzixiong.com/en/tools/prompt-translate",
+  "description": "Two-way Chinese–English prompt tag translation with fixed spellings kept whole and uncovered terms listed separately, running entirely in the browser.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt" aria-current="page">Prompts</a>
+    <a href="/en/#guides">Guides</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/prompt-translate" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Prompt Translator — 中英对照</h1>
+    <p class="tool-sub">Turn Chinese tags into the English tags models actually recognise, or work in reverse. Input is split on commas, enumeration marks and newlines and translated term by term; fixed spellings such as 1girl and 8k stay whole instead of being translated word by word. Anything missing from the table is passed through untouched and listed separately so you can decide whether to add it.</p>
+  </div>
+
+  <div class="pt-grid">
+    <section class="pt-pane" aria-label="Translation input">
+      <div class="pt-label">Input</div>
+      <textarea id="ptInput" class="pt-area" spellcheck="false" placeholder="杰作, 最佳质量, 一个女孩, 银色长发, 微笑, 樱花, 柔光, 浅景深"></textarea>
+      <div class="pt-radios">
+        <label><input type="radio" name="ptDir" value="zh2en" checked> 中文 → English</label>
+        <label><input type="radio" name="ptDir" value="en2zh"> English → 中文</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="ptCopy" type="button">Copy translation</button>
+        <span class="pt-stat" id="ptStat"></span>
+      </div>
+    </section>
+
+    <section class="pt-pane" aria-label="Translation result">
+      <div class="pt-label">Translation (comma tag list)</div>
+      <textarea id="ptOut" class="pt-area" readonly spellcheck="false"></textarea>
+    </section>
+  </div>
+
+  <div class="pt-miss-box" id="ptMissBox" hidden>
+    <div id="ptMiss"></div>
+  </div>
+
+  <section class="tool-notes">
+    <h2>How the table matches</h2>
+    <p>The term table ships with the page offline. Each entry carries a Chinese headword, the English tag, synonyms and a fixed-spelling flag. Lookup tries the headword first, then synonyms — 单人 and 独自 both land on solo, 虚化 and 背景虚化 both land on bokeh. English matching ignores case, so mixed input that is half Chinese and half tags still sorts itself out.</p>
+
+    <h2>Why fixed spellings must stay whole</h2>
+    <p>1girl, 2girls, 8k and 35mm are atomic tags the community agreed on: translating 1girl into “one girl” adds two tokens the model never learned, and 8k becomes “eight k” just as useless. The fixed-spelling flag locks these entries to whole-word matching on both sides, so they never enter a word-splitting path and always travel through the translator unchanged.</p>
+
+    <h2>What happens to uncovered words</h2>
+    <p>Terms without an entry are passed through verbatim — a missed translation is safe, a wrong tag can wreck the whole image. They also appear under “Not covered” below: if one turns out to be common, add it to data/prompt-terms.json and the next update will match it; one-off names and coined terms are fine left as they are, since most frontends simply ignore tags they do not know.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/random-prompt">Random prompt generator</a>, <a href="/en/tools/negative-prompt">Negative prompt library</a> · Reading: <a href="/en/faq">FAQ</a></p>
+
+<p class="tool-back"><a href="/en/#prompt">← All tools</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=2"></script>
+<script src="/tools/prompt-translate.js?v=1"></script>
+</body>
+</html>

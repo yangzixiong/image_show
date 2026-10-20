@@ -33,7 +33,7 @@
 - 顶栏 `中文 | EN` 是普通链接，不做 JS 重绘；`localStorage` 只用来记录"上次选了另一种语言"，从不自动跳转。
 - 两页共用同一套 CSS/JS，所以 **DOM 的 id 必须保持一致**，`deploy/check_i18n.py` 会校验这一点。
 
-改完 js/css 记得把各 HTML 里对应的 `?v=` 版本号加一（当前既有 js 为 `?v=3`、`style.css` 为 `?v=5`，新文件从 `?v=1` 起；这些资源缓存 7 天）。
+改完 js/css 记得把各 HTML 里对应的 `?v=` 版本号加一（当前 toolkit/i18n 为 `?v=3`、promptlib 为 `?v=2`、`style.css` 为 `?v=5`，页面脚本从 `?v=1` 起；这些资源缓存 7 天）。
 
 加第三种语言：复制 `en/index.html` 到 `/ja/index.html`，改 `lang`、`canonical`、`title`/`description`、hreflang，在 `js/i18n.js` 的 `DICT` 里补一份文案，再在 `sitemap.xml` 加一条 URL。
 
@@ -49,6 +49,9 @@
 | `/tools/prompt-weight` · `/en/tools/prompt-weight` | SD 提示词权重计算器：(word)/[word]/{word}/(word:1.3) 解析、A1111 与 ComfyUI 方言、色带与错误点击定位、CLIP token 粗估 |
 | `/tools/prompt-split` · `/en/tools/prompt-split` | 提示词正反词分离：JSON / Positive:/Negative prompt 标签 / ### 分隔线 / --no / 空行 五种格式自动识别，三栏分别复制 |
 | `/tools/negative-prompt` · `/en/tools/negative-prompt` | 负面提示词库：四组词条勾选拼接、跨组自动去重、自定义补充，正反一对整段复制 |
+| `/tools/random-prompt` · `/en/tools/random-prompt` | 随机提示词生成器：画质/主体/动作/场景/光照/镜头六层加权抽取，单层锁定与重抽、种子复现与分享链接、标签流/自然语言双输出 |
+| `/tools/prompt-translate` · `/en/tools/prompt-translate` | 提示词翻译：中英标签双向逐条对照，同义词归一，1girl/8k 等固定写法整词保留，未收录词单独列出 |
+| `/tools/token-counter` · `/en/tools/token-counter` | Token 计数器：CLIP 按 BREAK 分段计数并标出超限段（77/段）、T5-XXL 512 上限、o200k_base 与 cl100k_base 精确计数，词表离线内置按需加载 |
 
 新增工具页的约定：
 
@@ -136,9 +139,9 @@ index.html      中文页面骨架与广告位
 en/index.html   英文页面（同结构，lang="en"，资源用根绝对路径）
 404.html        自定义 404 页（中英双语）
 robots.txt      爬虫规则：放行广告抓取器，屏蔽 AI 训练/SEO 抓虫（君子协定层）
-sitemap.xml     站点地图（2 个首页 + 12 个内容页 + 18 个工具页共 32 条 URL，带 hreflang 互指）
+sitemap.xml     站点地图（2 个首页 + 12 个内容页 + 24 个工具页共 38 条 URL，带 hreflang 互指）
 guides/ faq.html about.html privacy.html  内容页（英文版在 en/ 下，成对互指）
-tools/          工具页：histogram.html 直方图、flip.html 翻转旋转、crop.html 裁剪、grid.html 网格分割、remove-bg.html 抠图、prompt-weight.html 权重计算器、prompt-split.html 正反词分离、negative-prompt.html 负面词库（英文版在 en/tools/ 下）
+tools/          工具页：histogram 直方图、flip 翻转旋转、crop 裁剪、grid 网格分割、remove-bg 抠图、prompt-weight 权重计算器、prompt-split 正反词分离、negative-prompt 负面词库、random-prompt 随机生成、prompt-translate 提示词翻译、token-counter Token 计数器（均为 .html，英文版在 en/tools/ 下）
 ads.txt         广告授权文件（AdSense 接入后填写发布商 ID）
 favicon.ico     站点图标
 site.webmanifest  PWA 清单（图标 192/512）
@@ -151,11 +154,11 @@ deploy/
   image_show.conf  nginx 完整配置：限速/恶意UA拦截/垃圾Referer拦截/静态缓存
   check_seo.py     SEO 自检：h1/canonical/og:image/JSON-LD/图标
   check_i18n.py    多语言自检：中英页面配对、id 一致、文案 key 无缺失
-  check_content.py 内容页自检：30 个内容页/工具页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
+  check_content.py 内容页自检：36 个内容页/工具页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
   make_og_image.py 生成分享图与 PWA 图标（需要 Pillow）
 img/            分享图 og-cover.png(1200×630) 与 PWA 图标
 css/style.css   深色工具风样式（含工具页布局类）
-data/           静态数据：negative-prompts.json 负面词条库（四组 56 条，label 中英）
+data/           静态数据：negative-prompts.json 负面词条库（四组 56 条）、random-prompts.json 随机池（六层 146 条带权重）、prompt-terms.json 中英词条（189 条含同义词与固定写法），label 均为中英两份；tok/ 为 Token 计数器的离线词表（打开该页才 fetch）
 js/i18n.js      多语言文案表与 t()（只存 JS 动态生成的文字）
 js/toolkit.js   工具页共用：选文件、拖放、下载、体积格式化、toast
 js/decoder.js   图片解码（原生 + UTIF/TIFF）、深度伪彩色
@@ -163,7 +166,7 @@ js/viewer.js    Canvas 渲染、缩放平移、像素网格
 js/inspector.js 悬停像素信息（浮动提示 + 放大镜）
 js/picker.js    取色与剪贴板复制
 js/main.js      入口：文件加载、列表切换、事件接线
-js/promptlib.js 提示词纯逻辑库：权重解析 / 正反拆分 / 负面拼接 / 分词计数（无 DOM、无 i18n）
+js/promptlib.js 提示词纯逻辑库：权重解析 / 正反拆分 / 负面拼接 / 分词计数（CLIP 粗估 + CLIP/cl100k/o200k 精确词表，与官方实现交叉验证一致）/ 词表载入（无 DOM、无 i18n）
 tools/histogram.js  直方图统计（采样上限 200 万）与三种绘制模式
 tools/flip.js       翻转旋转的变换矩阵与导出
 tools/crop.js       比例裁剪框（Pointer 拖拽）与按长边缩放导出
@@ -172,8 +175,12 @@ tools/remove-bg.js  ONNX 抠图管线（按需加载 ort 与模型、遮罩合�
 tools/prompt-weight.js   权重计算器页面：色带 chips、方言切换与原文定位
 tools/prompt-split.js    正反词分离页面：识别提示与三栏回写、分别复制
 tools/negative-prompt.js 负面词库页面：词条载入、勾选拼接与正反一对复制
+tools/random-prompt.js   随机生成页面：加权抽取、锁定/重抽、种子与分享链接
+tools/prompt-translate.js 提示词翻译页面：双向逐条对照、未收录区
+tools/token-counter.js   Token 计数器页面：模型切换、词表按需载入与分段展示
 lib/utif.js     TIFF 解码库（photopea/UTIF.js，MIT 协议）
 lib/fflate.js   zip 打包库（fflate 0.8.2 UMD 版，MIT 协议）
 lib/ort/        onnxruntime-web 1.22.0 wasm 后端（MIT 协议，按需加载）
 models/         ONNX 模型：modnet-uint8（人像，Apache-2.0）、u2netp（通用，Apache-2.0）
+data/tok/       离线词表：clip-vocab.json + clip-merges.txt（OpenAI CLIP BPE，MIT）、cl100k_base.tiktoken + o200k_base.tiktoken（OpenAI tiktoken 编码，MIT）；仅 token-counter 页加载
 ```
