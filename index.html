@@ -28,10 +28,10 @@
 <meta name="twitter:title" content="ImageLab · 图片查看与像素/深度分析">
 <meta name="twitter:description" content="浏览器内的图片像素与深度查看器：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放平移与像素网格。">
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css?v=4">
 
-<meta name="theme-color" content="#0f1216">
+<meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 
@@ -68,6 +68,13 @@
 
 <header class="topbar">
   <div class="brand">ImageLab<span class="brand-sub">图片 · RGB · 深度</span></div>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/tools/histogram">直方图</a>
+    <a href="/tools/flip">翻转旋转</a>
+    <a href="/guides/depth-tiff">16bit 深度图</a>
+    <a href="/guides/color-picker">图片取色</a>
+    <a href="/guides/pixel-inspector">像素查看</a>
+  </nav>
   <button id="btnOpen" class="btn">打开图片</button>
   <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
   <div class="img-name" id="imgName"></div>
@@ -121,14 +128,6 @@
     </section>
 
     <!-- 广告位：侧栏 300×600。接入广告时删除占位 span，放入广告代码 -->
-    <section class="panel">
-      <h3>更多工具</h3>
-      <div class="tool-links">
-        <a href="/tools/histogram">图片直方图查看器</a>
-        <a href="/tools/flip">图片翻转旋转镜像</a>
-      </div>
-    </section>
-
     <div class="ad-slot ad-side"><span>广告位 300 × 600</span></div>
   </aside>
 

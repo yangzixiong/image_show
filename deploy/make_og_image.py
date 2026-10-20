@@ -10,13 +10,13 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "img"
 OUT.mkdir(exist_ok=True)
 
-BG = (15, 18, 22)
-PANEL = (22, 27, 34)
-BORDER = (42, 50, 61)
-TEXT = (213, 219, 228)
-MUTED = (138, 148, 163)
-ACCENT = (79, 140, 255)
-ACCENT2 = (103, 213, 161)
+BG = (255, 255, 255)
+PANEL = (247, 248, 250)
+BORDER = (227, 230, 235)
+TEXT = (31, 36, 45)
+MUTED = (102, 112, 133)
+ACCENT = (47, 107, 219)
+ACCENT2 = (14, 159, 110)
 
 FONT_DIR = Path("C:/Windows/Fonts")
 
@@ -60,7 +60,7 @@ def make_og() -> Path:
             rounded(d, [x, y, x + cell, y + cell], 8, fill=color)
 
     # 主标题
-    d.text((88, 150), "ImageLab", font=font("seguibl.ttf", 104), fill=(255, 255, 255))
+    d.text((88, 150), "ImageLab", font=font("seguibl.ttf", 104), fill=TEXT)
     d.text((92, 285), "在线图片像素与深度查看器", font=font("msyhbd.ttc", 46), fill=TEXT)
     d.text((94, 362), "RGB / HEX 取色 · 16bit TIFF 深度图 · 像素网格",
            font=font("msyh.ttc", 28), fill=MUTED)

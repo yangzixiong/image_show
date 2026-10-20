@@ -28,10 +28,10 @@
 <meta name="twitter:title" content="ImageLab · Image pixel &amp; depth viewer">
 <meta name="twitter:description" content="An in-browser pixel and depth inspector: RGB/HEX colour picking, 16-bit TIFF depth maps with colormaps, zoom, pan and a pixel grid.">
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/css/style.css?v=3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=4">
 
-<meta name="theme-color" content="#0f1216">
+<meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 
@@ -68,6 +68,13 @@
 
 <header class="topbar">
   <div class="brand">ImageLab<span class="brand-sub">Pixels · RGB · Depth</span></div>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/tools/histogram">Histogram</a>
+    <a href="/en/tools/flip">Flip &amp; rotate</a>
+    <a href="/en/guides/depth-tiff">Depth maps</a>
+    <a href="/en/guides/color-picker">Colour picker</a>
+    <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+  </nav>
   <button id="btnOpen" class="btn">Open image</button>
   <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
   <div class="img-name" id="imgName"></div>
@@ -121,14 +128,6 @@
     </section>
 
     <!-- Ad slot: sidebar 300×600. Replace the placeholder span with real ad code -->
-    <section class="panel">
-      <h3>More tools</h3>
-      <div class="tool-links">
-        <a href="/en/tools/histogram">Image histogram viewer</a>
-        <a href="/en/tools/flip">Flip, rotate &amp; mirror</a>
-      </div>
-    </section>
-
     <div class="ad-slot ad-side"><span>Ad space 300 × 600</span></div>
   </aside>
 

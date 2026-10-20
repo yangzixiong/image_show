@@ -137,7 +137,7 @@ for lang, rel, site_path in PAGES:
     else:
         check(False, f"{label} JSON-LD 存在")
 
-    check(bool(re.search(r"css/style\.css\?v=3", html)), f"{label} 样式表引用为 ?v=3")
+    check(bool(re.search(r"css/style\.css\?v=4", html)), f"{label} 样式表引用为 ?v=3")
 
     broken = []
     for href in re.findall(r'href="([^"]+)"', html):
@@ -191,7 +191,7 @@ for asset in EXPECTED_ASSETS:
 stale = []
 for html_file in sorted(ROOT.rglob("*.html")):
     text = html_file.read_text(encoding="utf-8")
-    if "style.css" in text and "style.css?v=3" not in text:
+    if "style.css" in text and "style.css?v=4" not in text:
         stale.append(html_file.relative_to(ROOT).as_posix())
 check(not stale, "所有引用样式表的页面均使用 ?v=3")
 for s in stale:
