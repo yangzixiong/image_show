@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SD 提示词权重计算器 · 括号解析 · ImageLab</title>
+<meta name="description" content="SD 提示词权重计算器：解析 (word)、[word]、{word} 与 (word:1.3) 括号语法，色带标出每段实际权重，未闭合与配对错误点一下即定位，纯浏览器运行、免费无需注册。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/prompt-weight">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/prompt-weight">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/prompt-weight">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/prompt-weight">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/prompt-weight">
+<meta property="og:title" content="SD 提示词权重计算器 · 括号解析 · ImageLab">
+<meta property="og:description" content="解析 (word)、[word]、{word} 与显式权重，色带标出每段实际倍率，配对错误点击定位。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SD 提示词权重计算器 · 括号解析 · ImageLab">
+<meta name="twitter:description" content="解析 (word)、[word]、{word} 与显式权重，色带标出每段实际倍率，配对错误点击定位。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* 权重解析双栏（仅本页使用，不动全局 style.css） */
+  .pw-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .pw-pane { flex: 1 1 300px; min-width: 0; }
+  .pw-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .pw-label.mt { margin-top: 14px; }
+  .pw-area { width: 100%; box-sizing: border-box; min-height: 210px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .pw-area:focus { outline: none; border-color: var(--accent); }
+  .pw-radios { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin: 10px 0; }
+  .pw-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pw-radios input { accent-color: var(--accent); }
+  .pw-list { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; box-sizing: border-box;
+    min-height: 96px; max-height: 44vh; overflow-y: auto; padding: 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .pw-empty { color: var(--muted); font-size: 13px; }
+  .pw-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--panel2);
+    font: 12px/1.5 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text); cursor: pointer; }
+  .pw-chip:hover { border-color: var(--accent); }
+  .pw-chip .w { font-weight: 700; }
+  .pw-chip.b-low { background: #eef2fa; border-color: #ccd8ee; }
+  .pw-chip.b-low .w { color: #5f7db8; }
+  .pw-chip.b-blue .w { color: #2f6bdb; }
+  .pw-chip.b-white .w { color: var(--text); }
+  .pw-chip.b-orange { background: #fff3e5; border-color: #f2d5ad; }
+  .pw-chip.b-orange .w { color: #c76a00; }
+  .pw-chip.b-red { background: #fdecea; border-color: #f3c6c1; }
+  .pw-chip.b-red .w { color: #cf3a2c; }
+  .pw-alt { font-size: 10px; padding: 1px 5px; border-radius: 4px; background: var(--panel2);
+    border: 1px solid var(--border); color: var(--muted); }
+  .pw-sub, .pw-tokens { font-size: 13px; color: var(--muted); }
+  .pw-tokens { font-family: Consolas, "Cascadia Mono", Menlo, monospace; align-self: center; }
+  .pw-errs { list-style: none; margin: 0; padding: 0; }
+  .pw-errs li { font-size: 13px; color: #cf3a2c; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+  .pw-errs li:hover { background: #fdecea; }
+  .pw-ok { font-size: 13px; color: var(--muted); padding: 5px 8px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "SD 提示词权重计算器",
+  "url": "https://yangzixiong.com/tools/prompt-weight",
+  "description": "解析 (word)、[word]、{word} 与 (word:1.3) 括号语法，色带标出每段实际权重，未闭合与配对错误点击定位，纯浏览器运行。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt" aria-current="page">提示词</a>
+    <a href="/#guides">教程</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/prompt-weight" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>提示词权重计算器</h1>
+    <p class="tool-sub">粘贴 Stable Diffusion 提示词，立刻看到每一段的最终权重：括号按 A1111 或 ComfyUI 规则换算，色带区分加强与削弱，配对错误在列表里点一下就跳到原文位置。</p>
+  </div>
+
+  <div class="pw-grid">
+    <section class="pw-pane" aria-label="提示词输入">
+      <div class="pw-label">提示词</div>
+      <textarea id="pwInput" class="pw-area" spellcheck="false" placeholder="masterpiece, (best quality:1.2), ((detailed face)), [blurry]"></textarea>
+      <div class="pw-radios">
+        <label><input type="radio" name="pwDialect" value="a1111" checked> A1111 WebUI</label>
+        <label><input type="radio" name="pwDialect" value="comfyui"> ComfyUI</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="pwExample" type="button">载入示例</button>
+        <span class="pw-tokens" id="pwTokens"></span>
+      </div>
+      <div class="pw-sub" id="pwHint"></div>
+    </section>
+
+    <section class="pw-pane" aria-label="解析结果">
+      <div class="pw-label">权重色带（悬停或点击定位原文）</div>
+      <div class="pw-list" id="pwList"></div>
+      <div class="pw-label mt">问题</div>
+      <ul class="pw-errs" id="pwErrors"></ul>
+    </section>
+  </div>
+
+  <section class="tool-notes">
+    <h2>括号规则与显式权重</h2>
+    <p>(词) 默认 ×1.1 强化，[词] ÷1.1 弱化，{词} ×1.05 轻微强化；(词:1.3) 直接指定倍率，负数与小数都接受。嵌套逐层相乘，((词)) 约等于 ×1.21。切到 ComfyUI 方言后，(词) 不再暗含 ×1.1，[a|b] 与 {a|b|c} 会被标成「交替」——它们在 ComfyUI 里轮流取值，而不是加权。</p>
+
+    <h2>五类问题，点一下就定位</h2>
+    <p>未闭合的左括号、左右括号错配、多余的右括号、权重不是数字（例如 (word:abc)）、嵌套超过 8 层，都会列在右侧「问题」里。点任意一条，输入框会自动选中出错的那几个字符，改完列表即刻清空。多余的右括号不打断解析，仍按字面文本统计。</p>
+
+    <h2>色带怎么读，token 怎么算</h2>
+    <p>灰蓝为 ≤0.5 的强削弱，蓝色低于 1.0，白色恰为 1.0，橙色是 1.1–1.5 的常用强化区，超过 1.5 转红——过大权重容易出画面伪影。token 数按 CLIP 分词规则粗估，按 BREAK 分段、每段含 2 个首尾特殊 token，够用来判断一段是否逼近 77 的上限。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/prompt-split">提示词正反词分离</a>、<a href="/tools/negative-prompt">负面提示词库</a> · 相关阅读：<a href="/faq">常见问题</a></p>
+
+<p class="tool-back"><a href="/#prompt">← 全部工具</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=1"></script>
+<script src="/tools/prompt-weight.js?v=1"></script>
+</body>
+</html>

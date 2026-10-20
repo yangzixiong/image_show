@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stable Diffusion Prompt Splitter · ImageLab</title>
+<meta name="description" content="SD prompt splitter: detects JSON fields, Positive/Negative labels, ### separators, --no flags and blank lines, then splits the prompt into two copyable boxes.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/prompt-split">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/prompt-split">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/prompt-split">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/prompt-split">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/prompt-split">
+<meta property="og:title" content="Stable Diffusion Prompt Splitter · ImageLab">
+<meta property="og:description" content="Detects JSON, prompt labels, ### separators, --no flags and blank lines, then splits positive and negative prompts apart.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Stable Diffusion Prompt Splitter · ImageLab">
+<meta name="twitter:description" content="Detects JSON, prompt labels, ### separators, --no flags and blank lines, then splits positive and negative prompts apart.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* Split two panes (page-scoped, global style.css untouched) */
+  .ps-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .ps-pane { flex: 1 1 300px; min-width: 0; }
+  .ps-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .ps-label.mt { margin-top: 14px; }
+  .ps-area { width: 100%; box-sizing: border-box; min-height: 120px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .ps-area:focus { outline: none; border-color: var(--accent); }
+  .ps-area[readonly] { background: var(--panel2); }
+  .ps-detect { font-size: 13px; color: var(--text); margin-top: 10px;
+    padding: 6px 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; }
+  .ps-hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Stable Diffusion Prompt Splitter",
+  "url": "https://yangzixiong.com/en/tools/prompt-split",
+  "description": "Detect JSON fields, Positive/Negative prompt labels, ### separators and --no flags, then split any prompt into positive and negative boxes. Runs locally in your browser.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt" aria-current="page">Prompts</a>
+    <a href="/en/#guides">Guides</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/prompt-split" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Prompt Splitter</h1>
+    <p class="tool-sub">Paste a prompt copied from a site, Discord or JSON export: the tool figures out the separator format and splits it into positive and negative boxes. Anything it cannot classify is listed on its own — nothing is dropped silently.</p>
+  </div>
+
+  <div class="ps-grid">
+    <section class="ps-pane" aria-label="Raw prompt">
+      <div class="ps-label">Paste the raw prompt</div>
+      <textarea id="psInput" class="ps-area" rows="13" spellcheck="false" placeholder="masterpiece, best quality&#10;&#10;lowres, bad anatomy"></textarea>
+      <div class="ps-detect" id="psDetect"></div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn ghost" id="psClear" type="button">Clear</button>
+      </div>
+      <div class="ps-hint">Detection order: JSON fields → Positive / Negative prompt labels → ### separators → --no flag → blank line.</div>
+    </section>
+
+    <section class="ps-pane" aria-label="Split result">
+      <div class="ps-label">Positive</div>
+      <textarea id="psPositive" class="ps-area" rows="6" readonly></textarea>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn ghost" id="psCopyPos" type="button">Copy positive</button>
+      </div>
+
+      <div class="ps-label mt">Negative</div>
+      <textarea id="psNegative" class="ps-area" rows="6" readonly></textarea>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn ghost" id="psCopyNeg" type="button">Copy negative</button>
+      </div>
+
+      <div id="psUnknownWrap" hidden>
+        <div class="ps-label mt">Unclassified content</div>
+        <textarea id="psUnknown" class="ps-area" rows="3" readonly></textarea>
+        <div class="ps-hint">Lines the separator formats did not cover — move them into the boxes above by hand.</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="tool-notes">
+    <h2>Five separator formats, tried in order</h2>
+    <p>First it checks for JSON with prompt / negative_prompt fields, then Positive: / Negative prompt: label lines, then a full-line ### separator (NovelAI style), then the Midjourney --no flag (rest of the line), and finally a blank line. The first match wins — and the positive half does not need a label of its own when a Negative prompt: line closes the paste, which is exactly what A1111's copy button produces.</p>
+
+    <h2>When nothing is recognised</h2>
+    <p>The whole paste becomes the positive prompt, the negative box stays empty for you to fill, and the status line says so explicitly. If labels were found but some lines fell outside them, those lines land in Unclassified content — the tool never drops text silently; all three boxes stay visible.</p>
+
+    <h2>After the split</h2>
+    <p>Each box has its own copy button: paste straight into the matching field in A1111 or ComfyUI, or keep building the negative half in the negative prompt library. In reverse, a positive/negative pair separated by a blank line can be pasted back into this page to check that the split round-trips.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/prompt-weight">Prompt weight calculator</a>, <a href="/en/tools/negative-prompt">Negative prompt library</a> · Reading: <a href="/en/faq">FAQ</a></p>
+
+<p class="tool-back"><a href="/en/#prompt">← All tools</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=1"></script>
+<script src="/tools/prompt-split.js?v=1"></script>
+</body>
+</html>

@@ -44,10 +44,16 @@ PAGES = [
     ("en", "en/tools/remove-bg.html", "/en/tools/remove-bg"),
     ("zh", "tools/pixel-viewer.html", "/tools/pixel-viewer"),
     ("en", "en/tools/pixel-viewer.html", "/en/tools/pixel-viewer"),
+    ("zh", "tools/prompt-weight.html", "/tools/prompt-weight"),
+    ("en", "en/tools/prompt-weight.html", "/en/tools/prompt-weight"),
+    ("zh", "tools/prompt-split.html", "/tools/prompt-split"),
+    ("en", "en/tools/prompt-split.html", "/en/tools/prompt-split"),
+    ("zh", "tools/negative-prompt.html", "/tools/negative-prompt"),
+    ("en", "en/tools/negative-prompt.html", "/en/tools/negative-prompt"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
-# 批1 先登记：查看器（批2 迁移到 /tools/pixel-viewer）+ 6 个提示词工具（批3/批4 交付）
+# 批3 已交付 prompt-weight/prompt-split/negative-prompt 中英；余下 3 个提示词工具批4 交付后清空
 PLANNED_URLS = {
     "/", "/en/",
     "/guides/depth-tiff.html", "/guides/color-picker.html", "/guides/pixel-inspector.html",
@@ -56,21 +62,20 @@ PLANNED_URLS = {
     "/en/faq.html", "/en/about.html", "/en/privacy.html",
     "/tools/histogram.html", "/tools/flip.html", "/tools/crop.html", "/tools/grid.html", "/tools/remove-bg.html",
     "/en/tools/histogram.html", "/en/tools/flip.html", "/en/tools/crop.html", "/en/tools/grid.html", "/en/tools/remove-bg.html",
-    "/tools/prompt-weight.html", "/en/tools/prompt-weight.html",
-    "/tools/prompt-split.html", "/en/tools/prompt-split.html",
-    "/tools/negative-prompt.html", "/en/tools/negative-prompt.html",
     "/tools/random-prompt.html", "/en/tools/random-prompt.html",
     "/tools/prompt-translate.html", "/en/tools/prompt-translate.html",
     "/tools/token-counter.html", "/en/tools/token-counter.html",
 }
 
-EXPECTED_SITEMAP = 26  # 2 个首页 + 12 个内容页 + 12 个工具页（histogram/flip/crop/grid/remove-bg/pixel-viewer × 中英）
+EXPECTED_SITEMAP = 32  # 2 个首页 + 12 个内容页 + 18 个工具页（histogram/flip/crop/grid/remove-bg/pixel-viewer + 批3 三个提示词工具 × 中英）
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
     "css/style.css",
     "js/i18n.js", "js/decoder.js", "js/viewer.js", "js/inspector.js", "js/picker.js", "js/main.js",
     "js/toolkit.js", "tools/histogram.js", "tools/flip.js", "tools/crop.js", "tools/grid.js", "tools/remove-bg.js",
+    "js/promptlib.js", "tools/prompt-weight.js", "tools/prompt-split.js", "tools/negative-prompt.js",
+    "data/negative-prompts.json",
     "lib/utif.js", "lib/fflate.js",
     "lib/ort/ort.min.js", "lib/ort/ort-wasm-simd-threaded.mjs", "lib/ort/ort-wasm-simd-threaded.wasm",
     "models/modnet-uint8.onnx", "models/u2netp.onnx",

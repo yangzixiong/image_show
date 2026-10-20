@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "quality",
+      "label": { "zh": "通用质量", "en": "General quality" },
+      "items": [
+        { "id": "lowres", "text": "lowres", "label": { "zh": "低分辨率", "en": "Low resolution" } },
+        { "id": "low-quality", "text": "low quality", "label": { "zh": "低质量", "en": "Low quality" } },
+        { "id": "worst-quality", "text": "worst quality", "label": { "zh": "最差质量", "en": "Worst quality" } },
+        { "id": "jpeg-artifacts", "text": "jpeg artifacts", "label": { "zh": "JPEG 压缩伪影", "en": "JPEG artifacts" } },
+        { "id": "compression-artifacts", "text": "compression artifacts", "label": { "zh": "压缩伪影", "en": "Compression artifacts" } },
+        { "id": "blurry", "text": "blurry", "label": { "zh": "模糊", "en": "Blurry" } },
+        { "id": "out-of-focus", "text": "out of focus", "label": { "zh": "失焦", "en": "Out of focus" } },
+        { "id": "noisy", "text": "noisy", "label": { "zh": "噪点多", "en": "Noisy" } },
+        { "id": "grainy", "text": "grainy", "label": { "zh": "颗粒感重", "en": "Heavy grain" } },
+        { "id": "watermark", "text": "watermark", "label": { "zh": "水印", "en": "Watermark" } },
+        { "id": "signature", "text": "signature", "label": { "zh": "签名", "en": "Signature" } },
+        { "id": "text", "text": "text", "label": { "zh": "画面文字", "en": "Text in image" } },
+        { "id": "logo", "text": "logo", "label": { "zh": "标志", "en": "Logo" } },
+        { "id": "artist-name", "text": "artist name", "label": { "zh": "作者名文字", "en": "Artist name text" } },
+        { "id": "error", "text": "error", "label": { "zh": "画面错误", "en": "Render errors" } },
+        { "id": "cropped", "text": "cropped", "label": { "zh": "裁切不当", "en": "Badly cropped" } }
+      ]
+    },
+    {
+      "id": "anatomy",
+      "label": { "zh": "人像与解剖", "en": "Pose & anatomy" },
+      "items": [
+        { "id": "bad-anatomy", "text": "bad anatomy", "label": { "zh": "人体结构错误", "en": "Bad anatomy" } },
+        { "id": "bad-hands", "text": "bad hands", "label": { "zh": "手部错误", "en": "Bad hands" } },
+        { "id": "missing-fingers", "text": "missing fingers", "label": { "zh": "缺手指", "en": "Missing fingers" } },
+        { "id": "extra-fingers", "text": "extra fingers", "label": { "zh": "多手指", "en": "Extra fingers" } },
+        { "id": "fused-fingers", "text": "fused fingers", "label": { "zh": "手指粘连", "en": "Fused fingers" } },
+        { "id": "extra-limbs", "text": "extra limbs", "label": { "zh": "多出肢体", "en": "Extra limbs" } },
+        { "id": "deformed", "text": "deformed", "label": { "zh": "畸形", "en": "Deformed" } },
+        { "id": "disfigured", "text": "disfigured", "label": { "zh": "五官走形", "en": "Disfigured" } },
+        { "id": "ugly", "text": "ugly", "label": { "zh": "观感差", "en": "Ugly" } },
+        { "id": "duplicate", "text": "duplicate", "label": { "zh": "重复元素", "en": "Duplicate elements" } },
+        { "id": "poorly-drawn-face", "text": "poorly drawn face", "label": { "zh": "脸部画错", "en": "Poorly drawn face" } },
+        { "id": "poorly-drawn-hands", "text": "poorly drawn hands", "label": { "zh": "手部画错", "en": "Poorly drawn hands" } },
+        { "id": "bad-proportions", "text": "bad proportions", "label": { "zh": "身体比例失调", "en": "Bad proportions" } },
+        { "id": "long-neck", "text": "long neck", "label": { "zh": "脖子过长", "en": "Long neck" } },
+        { "id": "mutated", "text": "mutated", "label": { "zh": "肢体变异", "en": "Mutated" } }
+      ]
+    },
+    {
+      "id": "anti-anime",
+      "label": { "zh": "反推二次元（写实用）", "en": "Anti-anime (for realism)" },
+      "items": [
+        { "id": "anime", "text": "anime", "label": { "zh": "动画画风", "en": "Anime style" } },
+        { "id": "cartoon", "text": "cartoon", "label": { "zh": "卡通风格", "en": "Cartoon style" } },
+        { "id": "comic", "text": "comic", "label": { "zh": "漫画分镜感", "en": "Comic look" } },
+        { "id": "illustration", "text": "illustration", "label": { "zh": "插画感", "en": "Illustration" } },
+        { "id": "painting", "text": "painting", "label": { "zh": "油画笔触", "en": "Painting" } },
+        { "id": "drawing", "text": "drawing", "label": { "zh": "手绘感", "en": "Drawing" } },
+        { "id": "sketch", "text": "sketch", "label": { "zh": "草图感", "en": "Sketch" } },
+        { "id": "3d-render", "text": "3d render", "label": { "zh": "3D 渲染感", "en": "3D render" } },
+        { "id": "cgi", "text": "cgi", "label": { "zh": "CG 质感", "en": "CGI look" } },
+        { "id": "cel-shading", "text": "cel shading", "label": { "zh": "赛璐璐平涂", "en": "Cel shading" } },
+        { "id": "flat-color", "text": "flat color", "label": { "zh": "平涂上色", "en": "Flat color" } },
+        { "id": "line-art", "text": "line art", "label": { "zh": "线稿", "en": "Line art" } }
+      ]
+    },
+    {
+      "id": "hands",
+      "label": { "zh": "SDXL 手部专项", "en": "SDXL hands" },
+      "items": [
+        { "id": "sd-bad-hands", "text": "bad hands", "label": { "zh": "手部错误", "en": "Bad hands" } },
+        { "id": "extra-digit", "text": "extra digit", "label": { "zh": "多出指节", "en": "Extra digit" } },
+        { "id": "fewer-digits", "text": "fewer digits", "label": { "zh": "指节缺失", "en": "Fewer digits" } },
+        { "id": "extra-hands", "text": "extra hands", "label": { "zh": "多出手掌", "en": "Extra hands" } },
+        { "id": "fused-hands", "text": "fused hands", "label": { "zh": "手掌粘连", "en": "Fused hands" } },
+        { "id": "bad-finger", "text": "bad finger", "label": { "zh": "手指畸形", "en": "Bad finger" } },
+        { "id": "malformed-hands", "text": "malformed hands", "label": { "zh": "手型畸形", "en": "Malformed hands" } },
+        { "id": "sd-mutated-hands", "text": "mutated hands", "label": { "zh": "手部变异", "en": "Mutated hands" } },
+        { "id": "sd-poorly-drawn-hands", "text": "poorly drawn hands", "label": { "zh": "手部画错", "en": "Poorly drawn hands" } },
+        { "id": "too-many-fingers", "text": "too many fingers", "label": { "zh": "手指过多", "en": "Too many fingers" } },
+        { "id": "missing-limbs", "text": "missing limbs", "label": { "zh": "缺失肢体", "en": "Missing limbs" } },
+        { "id": "duplicate-hands", "text": "duplicate hands", "label": { "zh": "重复的手", "en": "Duplicate hands" } },
+        { "id": "crooked-fingers", "text": "crooked fingers", "label": { "zh": "手指弯折", "en": "Crooked fingers" } }
+      ]
+    }
+  ]
+}

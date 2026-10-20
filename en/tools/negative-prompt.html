@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SD Negative Prompt Builder &amp; Library · ImageLab</title>
+<meta name="description" content="Tick phrases from four negative prompt groups — quality, anatomy, anti-anime, SDXL hands — and get one deduplicated line. Custom text and pair copy included.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/negative-prompt">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/negative-prompt">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/negative-prompt">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/negative-prompt">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/negative-prompt">
+<meta property="og:title" content="SD Negative Prompt Builder &amp; Library · ImageLab">
+<meta property="og:description" content="Tick entries from four negative prompt groups and build one deduplicated line — custom text and pair copy included.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SD Negative Prompt Builder &amp; Library · ImageLab">
+<meta name="twitter:description" content="Tick entries from four negative prompt groups and build one deduplicated line — custom text and pair copy included.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* Library tick two panes (page-scoped, global style.css untouched) */
+  .np-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .np-pane { flex: 1 1 320px; min-width: 0; }
+  .np-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .np-label.mt { margin-top: 14px; }
+  .np-area { width: 100%; box-sizing: border-box; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .np-area:focus { outline: none; border-color: var(--accent); }
+  .np-area[readonly] { background: var(--panel2); }
+  .np-group { margin-bottom: 16px; }
+  .np-gt { display: block; font-size: 13px; color: var(--text); margin-bottom: 6px; }
+  .np-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 2px 10px; }
+  .np-item { display: flex; align-items: center; gap: 7px; padding: 3px 6px; border-radius: 6px;
+    font-size: 13px; color: var(--text); cursor: pointer; min-width: 0; }
+  .np-item:hover { background: var(--panel2); }
+  .np-item input { accent-color: var(--accent); flex: none; }
+  .np-item code { font: 12px/1.4 Consolas, "Cascadia Mono", Menlo, monospace; white-space: nowrap; }
+  .np-item .np-mean { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .np-stat { font-size: 13px; color: var(--muted); margin-top: 10px; font-family: Consolas, "Cascadia Mono", Menlo, monospace; }
+  .np-load { font-size: 13px; color: var(--muted); margin-top: 6px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "SD Negative Prompt Builder and Library",
+  "url": "https://yangzixiong.com/en/tools/negative-prompt",
+  "description": "Tick entries from four negative prompt groups to build one deduplicated line, with custom additions and a positive+negative pair copy. Runs in your browser.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt" aria-current="page">Prompts</a>
+    <a href="/en/#guides">Guides</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/negative-prompt" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Negative Prompt Builder</h1>
+    <p class="tool-sub">Four groups of common negative phrases: tick them and they join the preview on the right, with duplicates across groups removed automatically. Fill in the positive prompt too and copy the whole pair straight into A1111 or ComfyUI.</p>
+  </div>
+
+  <div class="np-grid">
+    <section class="np-pane" aria-label="Library">
+      <div class="np-label">Library (tick to add to the negative prompt)</div>
+      <div id="npGroups"></div>
+
+      <div class="np-label mt">Custom additions (comma-separated, appended at the end)</div>
+      <textarea id="npCustom" class="np-area" rows="3" spellcheck="false" placeholder="extra tree, blurry background"></textarea>
+      <div class="np-load" id="npLoad"></div>
+    </section>
+
+    <section class="np-pane" aria-label="Output">
+      <div class="np-label">Negative prompt (live preview)</div>
+      <textarea id="npOut" class="np-area" rows="7" readonly></textarea>
+      <div class="np-stat" id="npStat"></div>
+
+      <div class="np-label mt">Positive prompt (for copying the full pair)</div>
+      <textarea id="npPos" class="np-area" rows="2" spellcheck="false">masterpiece, best quality</textarea>
+
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn ghost" id="npCopyNeg" type="button">Copy negative only</button>
+        <button class="btn" id="npCopyPair" type="button">Copy full pair</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="tool-notes">
+    <h2>Which group to pick</h2>
+    <p>General quality is the all-rounder: tick lowres, compression artefacts, watermarks and text in one go and most failures are covered. Pose &amp; anatomy keeps bodies correct — always tick it for people. Anti-anime is for realistic output: putting anime, cartoon and line art in the negative is what stops results drifting into illustration style. SDXL hands targets six fingers and fused palms — reach for it first whenever hands come out wrong.</p>
+
+    <h2>Deduplication and order</h2>
+    <p>The output follows library order, and an entry that appears in two ticked groups is merged case-insensitively — tick bad hands in both groups and it still shows up once. Custom text is split on commas, deduplicated line by line and appended last; newlines count as separators too, so you can paste a whole word list straight in.</p>
+
+    <h2>Using the positive/negative pair</h2>
+    <p>The positive box starts at masterpiece, best quality — replace it with your main prompt and hit Copy full pair to get a blank-line-separated structure: top half into A1111's positive field, bottom half into the negative field. Paste that same structure back into the prompt splitter to verify the round trip in one click.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/prompt-weight">Prompt weight calculator</a>, <a href="/en/tools/prompt-split">Prompt splitter</a> · Reading: <a href="/en/faq">FAQ</a></p>
+
+<p class="tool-back"><a href="/en/#prompt">← All tools</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=1"></script>
+<script src="/tools/negative-prompt.js?v=1"></script>
+</body>
+</html>

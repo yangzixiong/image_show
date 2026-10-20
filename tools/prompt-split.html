@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提示词正反词分离工具 · ImageLab</title>
+<meta name="description" content="提示词正反词分离工具：自动识别 JSON 字段、Positive/Negative prompt 标签、### 分隔线与 Midjourney --no 参数，把正面词与负面词拆成两栏，一键分别复制。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/prompt-split">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/prompt-split">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/prompt-split">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/prompt-split">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/prompt-split">
+<meta property="og:title" content="提示词正反词分离工具 · ImageLab">
+<meta property="og:description" content="自动识别 JSON、标签行、### 分隔线、--no 参数与空行，正面词与负面词一键分开复制。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="提示词正反词分离工具 · ImageLab">
+<meta name="twitter:description" content="自动识别 JSON、标签行、### 分隔线、--no 参数与空行，正面词与负面词一键分开复制。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* 正反词双栏（仅本页使用，不动全局 style.css） */
+  .ps-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .ps-pane { flex: 1 1 300px; min-width: 0; }
+  .ps-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .ps-label.mt { margin-top: 14px; }
+  .ps-area { width: 100%; box-sizing: border-box; min-height: 120px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .ps-area:focus { outline: none; border-color: var(--accent); }
+  .ps-area[readonly] { background: var(--panel2); }
+  .ps-detect { font-size: 13px; color: var(--text); margin-top: 10px;
+    padding: 6px 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; }
+  .ps-hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "提示词正反词分离工具",
+  "url": "https://yangzixiong.com/tools/prompt-split",
+  "description": "自动识别 JSON 字段、Positive/Negative prompt 标签、### 分隔线与 --no 参数，把提示词拆成正面与负面两栏，浏览器本地运行。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt" aria-current="page">提示词</a>
+    <a href="/#guides">教程</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/prompt-split" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>提示词正反词分离</h1>
+    <p class="tool-sub">把从网页、Discord 或 JSON 里复制来的提示词粘进来，工具自动判断分隔格式，拆成正面词与负面词两栏；没认出来的内容单独列出，不会被静默丢掉。</p>
+  </div>
+
+  <div class="ps-grid">
+    <section class="ps-pane" aria-label="原始提示词">
+      <div class="ps-label">粘贴原始提示词</div>
+      <textarea id="psInput" class="ps-area" rows="13" spellcheck="false" placeholder="masterpiece, best quality&#10;&#10;lowres, bad anatomy"></textarea>
+      <div class="ps-detect" id="psDetect"></div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn ghost" id="psClear" type="button">清空</button>
+      </div>
+      <div class="ps-hint">识别顺序：JSON 字段 → Positive / Negative prompt 标签 → ### 分隔线 → --no 参数 → 空行。</div>
+    </section>
+
+    <section class="ps-pane" aria-label="拆分结果">
+      <div class="ps-label">正面词 Positive</div>
+      <textarea id="psPositive" class="ps-area" rows="6" readonly></textarea>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn ghost" id="psCopyPos" type="button">复制正面词</button>
+      </div>
+
+      <div class="ps-label mt">负面词 Negative</div>
+      <textarea id="psNegative" class="ps-area" rows="6" readonly></textarea>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn ghost" id="psCopyNeg" type="button">复制负面词</button>
+      </div>
+
+      <div id="psUnknownWrap" hidden>
+        <div class="ps-label mt">未识别内容</div>
+        <textarea id="psUnknown" class="ps-area" rows="3" readonly></textarea>
+        <div class="ps-hint">分隔格式没覆盖到的部分，手动挪进上面两栏。</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="tool-notes">
+    <h2>五种分隔格式，按顺序识别</h2>
+    <p>先看是不是 JSON（带 prompt / negative_prompt 字段），再找 Positive: / Negative prompt: 标签行，接着是整行的 ### 分隔线（NovelAI 风格），然后是 Midjourney 的 --no 参数（取到行尾），最后才是空行分隔。先命中的先用；标签行允许正面词不带标签、由 Negative prompt: 收尾——这正是 A1111 复制按钮的输出格式。</p>
+
+    <h2>没识别出来怎么办</h2>
+    <p>认不出任何分隔时，整段会被当作正面词，负面词留空等你手动填，下方会明确显示「未识别」。用了标签但某些行落在标签之外，这些行进「未识别内容」框——工具从不静默丢内容，三栏一目了然。</p>
+
+    <h2>拆开之后</h2>
+    <p>两栏各自有复制按钮，粘进 A1111 或 ComfyUI 对应的框即可；负面词还可以去「负面词库」继续勾选拼接。反过来，用空行分隔的正反一对粘回本工具，还能验证刚才的拆分是否可逆。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/prompt-weight">提示词权重计算器</a>、<a href="/tools/negative-prompt">负面提示词库</a> · 相关阅读：<a href="/faq">常见问题</a></p>
+
+<p class="tool-back"><a href="/#prompt">← 全部工具</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=1"></script>
+<script src="/tools/prompt-split.js?v=1"></script>
+</body>
+</html>

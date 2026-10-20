@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>负面提示词库 · 一键拼接 · ImageLab</title>
+<meta name="description" content="负面提示词库：通用质量、人像解剖、反推二次元、SDXL 手部四组词条勾选拼接，自动去重，支持自定义补充与正反一对复制，浏览器本地即开即用。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/negative-prompt">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/negative-prompt">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/negative-prompt">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/negative-prompt">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/negative-prompt">
+<meta property="og:title" content="负面提示词库 · 一键拼接 · ImageLab">
+<meta property="og:description" content="四组负面词条勾选拼接、自动去重，自定义补充与正反一对复制，粘贴即用。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="负面提示词库 · 一键拼接 · ImageLab">
+<meta name="twitter:description" content="四组负面词条勾选拼接、自动去重，自定义补充与正反一对复制，粘贴即用。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* 词库勾选双栏（仅本页使用，不动全局 style.css） */
+  .np-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .np-pane { flex: 1 1 320px; min-width: 0; }
+  .np-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .np-label.mt { margin-top: 14px; }
+  .np-area { width: 100%; box-sizing: border-box; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .np-area:focus { outline: none; border-color: var(--accent); }
+  .np-area[readonly] { background: var(--panel2); }
+  .np-group { margin-bottom: 16px; }
+  .np-gt { display: block; font-size: 13px; color: var(--text); margin-bottom: 6px; }
+  .np-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 2px 10px; }
+  .np-item { display: flex; align-items: center; gap: 7px; padding: 3px 6px; border-radius: 6px;
+    font-size: 13px; color: var(--text); cursor: pointer; min-width: 0; }
+  .np-item:hover { background: var(--panel2); }
+  .np-item input { accent-color: var(--accent); flex: none; }
+  .np-item code { font: 12px/1.4 Consolas, "Cascadia Mono", Menlo, monospace; white-space: nowrap; }
+  .np-item .np-mean { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .np-stat { font-size: 13px; color: var(--muted); margin-top: 10px; font-family: Consolas, "Cascadia Mono", Menlo, monospace; }
+  .np-load { font-size: 13px; color: var(--muted); margin-top: 6px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "负面提示词库",
+  "url": "https://yangzixiong.com/tools/negative-prompt",
+  "description": "四组负面提示词词条勾选拼接，自动去重，支持自定义补充与正反一对复制，纯浏览器本地运行。",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt" aria-current="page">提示词</a>
+    <a href="/#guides">教程</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/negative-prompt" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>负面提示词库</h1>
+    <p class="tool-sub">四组常用负面词，勾选即拼进右侧预览，跨组重复词条自动去重；把正面词一起填上，可以整对复制粘贴到 A1111 或 ComfyUI。</p>
+  </div>
+
+  <div class="np-grid">
+    <section class="np-pane" aria-label="词库">
+      <div class="np-label">词库（勾选加入负面词）</div>
+      <div id="npGroups"></div>
+
+      <div class="np-label mt">自定义补充（逗号分隔，追加在末尾）</div>
+      <textarea id="npCustom" class="np-area" rows="3" spellcheck="false" placeholder="extra tree, blurry background"></textarea>
+      <div class="np-load" id="npLoad"></div>
+    </section>
+
+    <section class="np-pane" aria-label="输出">
+      <div class="np-label">负面提示词（实时预览）</div>
+      <textarea id="npOut" class="np-area" rows="7" readonly></textarea>
+      <div class="np-stat" id="npStat"></div>
+
+      <div class="np-label mt">正面提示词（用于复制完整一对）</div>
+      <textarea id="npPos" class="np-area" rows="2" spellcheck="false">masterpiece, best quality</textarea>
+
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn ghost" id="npCopyNeg" type="button">只复制负面</button>
+        <button class="btn" id="npCopyPair" type="button">复制完整一对</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="tool-notes">
+    <h2>四组词怎么选</h2>
+    <p>「通用质量」是万金油：lowres、压缩伪影、水印文字一组勾上就能挡住大部分翻车。「人像与解剖」保结构，画人必勾。「反推二次元」是写实向专用——把 anime、cartoon、line art 放进负面，出图才不容易带插画感。「SDXL 手部专项」专治六指与粘连，SDXL 画手翻车时优先用它。</p>
+
+    <h2>去重与顺序</h2>
+    <p>输出按词库顺序拼接，同一词条出现在多组时按小写比对自动去重——比如 bad hands 同时勾了两组也只出现一次。自定义框按逗号切开、逐条查重后追加在末尾；单独的换行也当分隔符处理，直接粘一段词表进来即可。</p>
+
+    <h2>正反一对怎么用</h2>
+    <p>上方「正面提示词」默认是 masterpiece, best quality，改成你的主提示词，点「复制完整一对」得到空行分隔的正反结构：上半粘 A1111 的正面框、下半粘负面框。这个结构再粘回「提示词正反词分离」还能一键验回两栏。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/prompt-weight">提示词权重计算器</a>、<a href="/tools/prompt-split">提示词正反词分离</a> · 相关阅读：<a href="/faq">常见问题</a></p>
+
+<p class="tool-back"><a href="/#prompt">← 全部工具</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=1"></script>
+<script src="/tools/negative-prompt.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stable Diffusion Prompt Weight Calculator · ImageLab</title>
+<meta name="description" content="Parse SD weight syntax: (word), [word], {word}, (word:1.3). A colour band shows each segment's final weight and bracket errors jump to their spot.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/prompt-weight">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/prompt-weight">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/prompt-weight">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/prompt-weight">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/prompt-weight">
+<meta property="og:title" content="Stable Diffusion Prompt Weight Calculator · ImageLab">
+<meta property="og:description" content="Parse (word), [word], {word} and (word:1.3); a colour band shows each final weight, errors jump to their position.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Stable Diffusion Prompt Weight Calculator · ImageLab">
+<meta name="twitter:description" content="Parse (word), [word], {word} and (word:1.3); a colour band shows each final weight, errors jump to their position.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  /* Weight parser two panes (page-scoped, global style.css untouched) */
+  .pw-grid { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .pw-pane { flex: 1 1 300px; min-width: 0; }
+  .pw-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .pw-label.mt { margin-top: 14px; }
+  .pw-area { width: 100%; box-sizing: border-box; min-height: 210px; padding: 10px 12px;
+    font: 13px/1.65 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+  .pw-area:focus { outline: none; border-color: var(--accent); }
+  .pw-radios { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin: 10px 0; }
+  .pw-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pw-radios input { accent-color: var(--accent); }
+  .pw-list { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; box-sizing: border-box;
+    min-height: 96px; max-height: 44vh; overflow-y: auto; padding: 10px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .pw-empty { color: var(--muted); font-size: 13px; }
+  .pw-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--panel2);
+    font: 12px/1.5 Consolas, "Cascadia Mono", Menlo, monospace; color: var(--text); cursor: pointer; }
+  .pw-chip:hover { border-color: var(--accent); }
+  .pw-chip .w { font-weight: 700; }
+  .pw-chip.b-low { background: #eef2fa; border-color: #ccd8ee; }
+  .pw-chip.b-low .w { color: #5f7db8; }
+  .pw-chip.b-blue .w { color: #2f6bdb; }
+  .pw-chip.b-white .w { color: var(--text); }
+  .pw-chip.b-orange { background: #fff3e5; border-color: #f2d5ad; }
+  .pw-chip.b-orange .w { color: #c76a00; }
+  .pw-chip.b-red { background: #fdecea; border-color: #f3c6c1; }
+  .pw-chip.b-red .w { color: #cf3a2c; }
+  .pw-alt { font-size: 10px; padding: 1px 5px; border-radius: 4px; background: var(--panel2);
+    border: 1px solid var(--border); color: var(--muted); }
+  .pw-sub, .pw-tokens { font-size: 13px; color: var(--muted); }
+  .pw-tokens { font-family: Consolas, "Cascadia Mono", Menlo, monospace; align-self: center; }
+  .pw-errs { list-style: none; margin: 0; padding: 0; }
+  .pw-errs li { font-size: 13px; color: #cf3a2c; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+  .pw-errs li:hover { background: #fdecea; }
+  .pw-ok { font-size: 13px; color: var(--muted); padding: 5px 8px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Stable Diffusion Prompt Weight Calculator",
+  "url": "https://yangzixiong.com/en/tools/prompt-weight",
+  "description": "Parse (word), [word], {word} and (word:1.3) prompt syntax; a colour band shows each segment's final weight and bracket errors jump to their position in the source.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt" aria-current="page">Prompts</a>
+    <a href="/en/#guides">Guides</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/prompt-weight" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Prompt Weight Calculator</h1>
+    <p class="tool-sub">Paste a Stable Diffusion prompt and see the final weight of every segment instantly: brackets are converted by A1111 or ComfyUI rules, the colour band separates boosts from breaks, and any pairing error jumps to its position in the source when clicked.</p>
+  </div>
+
+  <div class="pw-grid">
+    <section class="pw-pane" aria-label="Prompt input">
+      <div class="pw-label">Prompt</div>
+      <textarea id="pwInput" class="pw-area" spellcheck="false" placeholder="masterpiece, (best quality:1.2), ((detailed face)), [blurry]"></textarea>
+      <div class="pw-radios">
+        <label><input type="radio" name="pwDialect" value="a1111" checked> A1111 WebUI</label>
+        <label><input type="radio" name="pwDialect" value="comfyui"> ComfyUI</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="pwExample" type="button">Load example</button>
+        <span class="pw-tokens" id="pwTokens"></span>
+      </div>
+      <div class="pw-sub" id="pwHint"></div>
+    </section>
+
+    <section class="pw-pane" aria-label="Parsed result">
+      <div class="pw-label">Weight band (hover or click to locate in source)</div>
+      <div class="pw-list" id="pwList"></div>
+      <div class="pw-label mt">Problems</div>
+      <ul class="pw-errs" id="pwErrors"></ul>
+    </section>
+  </div>
+
+  <section class="tool-notes">
+    <h2>Bracket rules and explicit weights</h2>
+    <p>(word) boosts by ×1.1 by default, [word] divides by 1.1, {word} nudges up by ×1.05, and (word:1.3) sets an exact multiplier — negatives and decimals are allowed. Nesting multiplies layer by layer, so ((word)) is about ×1.21. Switch to the ComfyUI dialect and (word) no longer carries ×1.1; [a|b] and {a|b|c} are flagged as alternation — in ComfyUI they cycle through variants instead of weighting one term.</p>
+
+    <h2>Five kinds of problems, one click to locate</h2>
+    <p>An unclosed bracket, mismatched pair types, a stray closing bracket, a weight that is not a number (such as (word:abc)), or nesting deeper than 8 layers — all appear under Problems on the right. Click any line and the textarea selects exactly those characters; the list clears the moment you fix them. A stray closing bracket never stops the parse — it stays in the text and still gets counted.</p>
+
+    <h2>Reading the band, estimating tokens</h2>
+    <p>Grey-blue marks strong breaks at ≤0.5, blue anything below 1.0, white exactly 1.0, orange the common 1.1–1.5 boost zone, and red anything above 1.5, where artefacts often start to appear. The token figure is a CLIP-rule estimate: it splits on BREAK, counts two special tokens per segment, and is enough to tell whether a segment approaches the 77-token ceiling.</p>
+  </section>
+
+  <p class="related">More tools: <a href="/en/tools/prompt-split">Prompt splitter</a>, <a href="/en/tools/negative-prompt">Negative prompt library</a> · Reading: <a href="/en/faq">FAQ</a></p>
+
+<p class="tool-back"><a href="/en/#prompt">← All tools</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/js/promptlib.js?v=1"></script>
+<script src="/tools/prompt-weight.js?v=1"></script>
+</body>
+</html>
