@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分镜计时器 · 逐镜秒表工具 · ImageLab</title>
+<meta name="description" content="在线分镜计时器：给每条镜头设时长和画面说明，播放后自动走秒，镜头切换响提示，总时长对标 15 / 30 / 60 秒，分镜表可复制或导出 CSV，适合 AI 视频与短片分镜。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/storyboard-timer">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/storyboard-timer">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/storyboard-timer">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/storyboard-timer">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/storyboard-timer">
+<meta property="og:title" content="分镜计时器 · 逐镜秒表工具 · ImageLab">
+<meta property="og:description" content="给每镜设时长和画面说明，播放即走秒，镜头切换响提示，可导出 CSV。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="分镜计时器 · 逐镜秒表工具 · ImageLab">
+<meta name="twitter:description" content="给每镜设时长和画面说明，播放即走秒，镜头切换响提示，可导出 CSV。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "分镜计时器",
+  "url": "https://yangzixiong.com/tools/storyboard-timer",
+  "description": "在线分镜计时器：给每条镜头设时长和画面说明，播放后自动走秒，镜头切换响提示，分镜表可复制或导出 CSV。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt">提示词</a>
+    <a href="/#video" aria-current="page">视频</a>
+    <a href="/#guides">教程</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/tools/storyboard-timer" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>分镜计时器</h1>
+    <p class="tool-sub">给每条镜头写一句画面说明和一个时长，点播放就按秒往下走，到镜头边界响一声提示。总时长对着 15 / 30 / 60 秒核，分镜表能复制，也能导出 CSV。</p>
+  </div>
+
+  <div class="tool-grid">
+    <section class="timer-panel" aria-label="分镜表与计时">
+      <div class="timer-hero">
+        <div class="timer-clock" id="clock">00:00.0</div>
+        <div class="timer-state" id="timerState">按「播放」开始走时间</div>
+        <div class="timer-state" id="summary"></div>
+        <div class="timer-actions">
+          <button class="btn" id="btnPlay" type="button">播放</button>
+          <button class="btn ghost" id="btnReset" type="button">重置</button>
+        </div>
+      </div>
+
+      <div class="shot-list" id="shotList"></div>
+    </section>
+
+    <aside class="tool-side">
+      <h2>分镜设置</h2>
+      <label class="field-label" for="target">目标时长</label>
+      <select id="target" class="select">
+        <option value="15">15 秒</option>
+        <option value="30" selected>30 秒</option>
+        <option value="60">60 秒</option>
+        <option value="0">不限</option>
+      </select>
+
+      <div class="btn-row">
+        <button class="btn ghost" id="btnAdd" type="button">添加镜头</button>
+        <button class="btn ghost" id="btnEven" type="button">平均分配</button>
+      </div>
+
+      <div class="ctl-row">
+        <span>切换提示音</span>
+        <input type="checkbox" id="notify" checked>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn ghost" id="btnCopy" type="button">复制分镜表</button>
+        <button class="btn ghost" id="btnCsv" type="button">导出 CSV</button>
+      </div>
+
+      <p class="ctl-hint">空格键 = 播放 / 暂停。时长可以写小数，例如 2.5。</p>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>为什么分镜要配秒表</h2>
+    <p>写脚本时人人都觉得「这一镜大概三秒」，剪出来才发现是五秒。生成式视频尤其如此：模型给的默认时长往往比想象的长，按秒核对一遍，脚本和成片才对得上。选好目标时长，把每镜的秒数填进去，超了会标红。</p>
+
+    <h2>怎么用</h2>
+    <p>先点「添加镜头」补齐条数，再逐行改时长、写画面说明；「平均分配」会把目标时长均分给现有镜头，当草稿很方便。点播放，时钟按真实时间走，当前镜头高亮、走过的置灰；到边界会响一声（可以关掉）。</p>
+
+    <h2>导出去哪</h2>
+    <p>「复制分镜表」给的是纯文本，贴进微信、Notion 或脚本文件都不丢格式；「导出 CSV」带 BOM，Excel 直接打开中文不乱码，列是镜号、秒数、画面描述。</p>
+  </section>
+
+  <p class="related">相关工具：<a href="/tools/video-frame">视频帧提取</a>、<a href="/tools/random-prompt">随机提示词生成</a>、<a href="/tools/grid">九宫格分割</a></p>
+
+<p class="tool-back"><a href="/#video">← 全部视频工具</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，文件不会上传</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/tools/storyboard-timer.js?v=1"></script>
+</body>
+</html>

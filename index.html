@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ImageLab · AI 绘图与图片处理工具箱</title>
-<meta name="description" content="十二个浏览器工具，为 AI 绘图与图片处理准备：像素与深度查看、直方图、裁剪抠图、九宫格分割，以及 Stable Diffusion 提示词的权重解析、正反词分离、翻译与 Token 计数。全部本地运行，图片和提示词都不上传。">
+<meta name="description" content="十四个浏览器工具，为 AI 绘图与图片处理准备：像素与深度查看、直方图、裁剪抠图、九宫格分割，以及 Stable Diffusion 提示词的权重解析、正反词分离、翻译与 Token 计数。全部本地运行，图片和提示词都不上传。">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://yangzixiong.com/">
 
@@ -19,17 +19,17 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:url" content="https://yangzixiong.com/">
 <meta property="og:title" content="ImageLab · AI 绘图与图片处理工具箱">
-<meta property="og:description" content="像素与深度查看、裁剪抠图、九宫格分割，加 Stable Diffusion 提示词工具——十二个浏览器工具全部本地运行，图片和提示词都不上传。">
+<meta property="og:description" content="像素与深度查看、裁剪抠图、九宫格分割，加 Stable Diffusion 提示词工具——十四个浏览器工具全部本地运行，图片和提示词都不上传。">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ImageLab —— AI 绘图与图片处理工具箱">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ImageLab · AI 绘图与图片处理工具箱">
-<meta name="twitter:description" content="像素与深度查看、裁剪抠图、九宫格分割，加 Stable Diffusion 提示词工具——十二个浏览器工具全部本地运行，图片和提示词都不上传。">
+<meta name="twitter:description" content="像素与深度查看、裁剪抠图、九宫格分割，加 Stable Diffusion 提示词工具——十四个浏览器工具全部本地运行，图片和提示词都不上传。">
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/css/style.css?v=5">
+<link rel="stylesheet" href="/css/style.css?v=6">
 
 <meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
@@ -42,13 +42,13 @@
   "@type": "CollectionPage",
   "name": "ImageLab · AI 绘图与图片处理工具箱",
   "url": "https://yangzixiong.com/",
-  "description": "十二个浏览器工具：像素与深度查看、图片编辑导出、Stable Diffusion 提示词处理。全部本地运行，图片和提示词都不上传。",
+  "description": "十四个浏览器工具：像素与深度查看、图片编辑导出、Stable Diffusion 提示词处理。全部本地运行，图片和提示词都不上传。",
   "inLanguage": "zh-CN",
   "isAccessibleForFree": true,
   "mainEntity": {
     "@type": "ItemList",
     "name": "ImageLab 工具清单",
-    "numberOfItems": 12,
+    "numberOfItems": 14,
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "像素与深度查看器", "url": "https://yangzixiong.com/tools/pixel-viewer" },
       { "@type": "ListItem", "position": 2, "name": "图片直方图查看器", "url": "https://yangzixiong.com/tools/histogram" },
@@ -61,7 +61,9 @@
       { "@type": "ListItem", "position": 9, "name": "负面提示词库", "url": "https://yangzixiong.com/tools/negative-prompt" },
       { "@type": "ListItem", "position": 10, "name": "随机提示词生成器", "url": "https://yangzixiong.com/tools/random-prompt" },
       { "@type": "ListItem", "position": 11, "name": "提示词翻译", "url": "https://yangzixiong.com/tools/prompt-translate" },
-      { "@type": "ListItem", "position": 12, "name": "提示词 Token 计数器", "url": "https://yangzixiong.com/tools/token-counter" }
+      { "@type": "ListItem", "position": 12, "name": "提示词 Token 计数器", "url": "https://yangzixiong.com/tools/token-counter" },
+      { "@type": "ListItem", "position": 13, "name": "视频帧提取", "url": "https://yangzixiong.com/tools/video-frame" },
+      { "@type": "ListItem", "position": 14, "name": "分镜计时器", "url": "https://yangzixiong.com/tools/storyboard-timer" }
     ]
   }
 }
@@ -75,6 +77,7 @@
     <a href="/#inspect">查看</a>
     <a href="/#edit">编辑</a>
     <a href="/#prompt">提示词</a>
+    <a href="/#video">视频</a>
     <a href="/#guides">教程</a>
   </nav>
   <div class="topbar-right">
@@ -89,7 +92,7 @@
 <main class="doc-main home-main">
   <section class="hero">
     <h1>AI 绘图与图片处理工具箱</h1>
-    <p class="lede">从查看 16bit 深度图，到给 Stable Diffusion 调提示词权重——十二个工具全部在浏览器里跑。拖进图片或粘贴文本就能用，文件不会离开你的电脑。</p>
+    <p class="lede">从查看 16bit 深度图、给 Stable Diffusion 调提示词权重，到从视频里抓帧排分镜——十四个工具全部在浏览器里跑。拖进图片或粘贴文本就能用，文件不会离开你的电脑。</p>
     <div class="hero-cta">
       <a class="btn" href="/tools/pixel-viewer">打开查看器</a>
     </div>
@@ -178,6 +181,23 @@
     </div>
   </section>
 
+  <section id="video" class="home-section">
+    <h2>视频</h2>
+    <p>视频同样不进服务器：从一段片子里按固定间隔或指定时间点抓帧，宣传图、封面、参考图随时取；排分镜时把每一镜的秒数填进去，点播放就按真实时间走，切镜响一声提示。剪辑软件还没打开，节奏先定下来。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/tools/video-frame">
+        <span class="tool-card-name">视频帧提取</span>
+        <span class="tool-card-desc">按间隔或时间点抓帧，可打包 zip</span>
+        <span class="tag">视频不上传</span>
+      </a>
+      <a class="tool-card" href="/tools/storyboard-timer">
+        <span class="tool-card-name">分镜计时器</span>
+        <span class="tool-card-desc">逐镜秒表，切镜响提示，可导 CSV</span>
+        <span class="tag">本地</span>
+      </a>
+    </div>
+  </section>
+
   <section id="guides" class="home-section">
     <h2>教程</h2>
     <p>三篇实操指南，讲清工具背后的判断标准：深度图为什么打开是全黑的、取色为什么会和设计稿对不上、像素检查到底在查什么。</p>
@@ -239,6 +259,13 @@
         <a href="/tools/random-prompt">随机生成</a>
         <a href="/tools/prompt-translate">提示词翻译</a>
         <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
       </nav>
     </section>
     <section class="footer-group">

@@ -457,3 +457,225 @@ body.tool .toast { position: fixed; top: auto; bottom: 28px; z-index: 40; }
   color: var(--muted);
   font-size: 14px;
 }
+
+/* ==================== 视频工具（视频帧提取 / 分镜计时器） ==================== */
+.video-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.video-box video {
+  display: block;
+  width: 100%;
+  max-height: 48vh;
+  border-radius: 6px;
+  background: #000;
+}
+
+.video-meta {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--stage-muted);
+}
+
+.warn {
+  padding: 8px 10px;
+  border: 1px solid rgba(217, 45, 32, 0.3);
+  border-radius: 6px;
+  background: rgba(217, 45, 32, 0.08);
+  color: #ffb4ad;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.warn[hidden] {
+  display: none;
+}
+
+.thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(94px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.thumb-grid figure {
+  margin: 0;
+}
+
+.thumb-grid img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel2);
+}
+
+.thumb-grid figcaption {
+  margin-top: 3px;
+  color: var(--stage-muted);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+  text-align: center;
+}
+
+.progress {
+  height: 6px;
+  margin: 8px 0 4px;
+  border-radius: 3px;
+  background: var(--panel2);
+  overflow: hidden;
+}
+
+.progress > i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.12s linear;
+}
+
+.ctl-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.ctl-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ctl-hint {
+  margin: 4px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.field-label {
+  display: block;
+  margin: 10px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- 分镜计时器 ---------- */
+.timer-hero {
+  padding: 22px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+}
+
+.timer-clock {
+  color: var(--text);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.timer-state {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.timer-state strong {
+  color: var(--accent);
+}
+
+.shot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.shot-row {
+  display: grid;
+  grid-template-columns: 28px 76px 1fr 30px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.shot-row.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(47, 107, 219, 0.14);
+}
+
+.shot-row.done {
+  opacity: 0.55;
+}
+
+.shot-idx {
+  color: var(--muted);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  text-align: center;
+}
+
+.shot-del {
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.shot-del:hover {
+  background: rgba(217, 45, 32, 0.08);
+  color: #d92d20;
+}
+
+.over-budget {
+  color: #d92d20;
+}
+
+@media (max-width: 860px) {
+  .video-box video {
+    max-height: 34vh;
+  }
+
+  .shot-row {
+    grid-template-columns: 24px 68px 1fr 28px;
+  }
+}
+
+
+.timer-panel {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.timer-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}

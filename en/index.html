@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ImageLab — AI Art &amp; Image Tools in Your Browser</title>
-<meta name="description" content="Twelve browser tools for AI art: pixel and depth viewer, histogram, crop, background removal, grid split, plus prompt weights, translator and token counter.">
+<meta name="description" content="Fourteen browser tools for AI art: pixel and depth viewer, histogram, crop, background removal, grid split, plus prompt weights, translator and token counter.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://yangzixiong.com/en/">
 
@@ -19,17 +19,17 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://yangzixiong.com/en/">
 <meta property="og:title" content="ImageLab — AI Art &amp; Image Tools in Your Browser">
-<meta property="og:description" content="Pixel and depth viewing, crop and background removal, grid splitting plus Stable Diffusion prompt tools — twelve browser tools that run locally, with no upload.">
+<meta property="og:description" content="Pixel and depth viewing, crop and background removal, grid splitting plus Stable Diffusion prompt tools — fourteen browser tools that run locally, with no upload.">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ImageLab — AI art & image tools in your browser">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ImageLab — AI Art &amp; Image Tools in Your Browser">
-<meta name="twitter:description" content="Pixel and depth viewing, crop and background removal, grid splitting plus Stable Diffusion prompt tools — twelve browser tools that run locally, with no upload.">
+<meta name="twitter:description" content="Pixel and depth viewing, crop and background removal, grid splitting plus Stable Diffusion prompt tools — fourteen browser tools that run locally, with no upload.">
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/css/style.css?v=5">
+<link rel="stylesheet" href="/css/style.css?v=6">
 
 <meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
@@ -42,13 +42,13 @@
   "@type": "CollectionPage",
   "name": "ImageLab — AI Art & Image Tools in Your Browser",
   "url": "https://yangzixiong.com/en/",
-  "description": "Twelve browser tools: pixel and depth viewing, image editing and export, Stable Diffusion prompt processing. Everything runs locally — images and prompts are never uploaded.",
+  "description": "Fourteen browser tools: pixel and depth viewing, image editing and export, Stable Diffusion prompt processing. Everything runs locally — images and prompts are never uploaded.",
   "inLanguage": "en",
   "isAccessibleForFree": true,
   "mainEntity": {
     "@type": "ItemList",
     "name": "ImageLab tools",
-    "numberOfItems": 12,
+    "numberOfItems": 14,
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Pixel & Depth Viewer", "url": "https://yangzixiong.com/en/tools/pixel-viewer" },
       { "@type": "ListItem", "position": 2, "name": "Image Histogram Viewer", "url": "https://yangzixiong.com/en/tools/histogram" },
@@ -61,7 +61,9 @@
       { "@type": "ListItem", "position": 9, "name": "Negative Prompt Builder", "url": "https://yangzixiong.com/en/tools/negative-prompt" },
       { "@type": "ListItem", "position": 10, "name": "Random Prompt Generator", "url": "https://yangzixiong.com/en/tools/random-prompt" },
       { "@type": "ListItem", "position": 11, "name": "Prompt Translator", "url": "https://yangzixiong.com/en/tools/prompt-translate" },
-      { "@type": "ListItem", "position": 12, "name": "Prompt Token Counter", "url": "https://yangzixiong.com/en/tools/token-counter" }
+      { "@type": "ListItem", "position": 12, "name": "Prompt Token Counter", "url": "https://yangzixiong.com/en/tools/token-counter" },
+      { "@type": "ListItem", "position": 13, "name": "Video Frame Extractor", "url": "https://yangzixiong.com/en/tools/video-frame" },
+      { "@type": "ListItem", "position": 14, "name": "Storyboard Timer", "url": "https://yangzixiong.com/en/tools/storyboard-timer" }
     ]
   }
 }
@@ -75,6 +77,7 @@
     <a href="/en/#inspect">Inspect</a>
     <a href="/en/#edit">Edit</a>
     <a href="/en/#prompt">Prompts</a>
+    <a href="/en/#video">Video</a>
     <a href="/en/#guides">Guides</a>
   </nav>
   <div class="topbar-right">
@@ -89,7 +92,7 @@
 <main class="doc-main home-main">
   <section class="hero">
     <h1>AI art &amp; image tools, all in your browser</h1>
-    <p class="lede">From viewing 16-bit depth maps to tuning Stable Diffusion prompt weights — twelve tools that all run in your browser. Drop in an image or paste some text; your files never leave your machine.</p>
+    <p class="lede">From viewing 16-bit depth maps and tuning Stable Diffusion prompt weights to grabbing frames out of a video — fourteen tools that all run in your browser. Drop in an image or paste some text; your files never leave your machine.</p>
     <div class="hero-cta">
       <a class="btn" href="/en/tools/pixel-viewer">Open the viewer</a>
     </div>
@@ -178,6 +181,23 @@
     </div>
   </section>
 
+  <section id="video" class="home-section">
+    <h2>Video</h2>
+    <p>Video never leaves your machine either: pull frames out of a clip at a fixed interval or at exact timestamps for covers, thumbnails and reference stills; then time a storyboard shot by shot, play it back in real time and hear a cue on every cut. Decide the pacing before the editor is even open.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/tools/video-frame">
+        <span class="tool-card-name">Video Frame Extractor</span>
+        <span class="tool-card-desc">Grab frames by interval or timestamp, export a zip</span>
+        <span class="tag">No upload</span>
+      </a>
+      <a class="tool-card" href="/en/tools/storyboard-timer">
+        <span class="tool-card-name">Storyboard Timer</span>
+        <span class="tool-card-desc">Per-shot stopwatch, cue on cut, CSV export</span>
+        <span class="tag">Runs locally</span>
+      </a>
+    </div>
+  </section>
+
   <section id="guides" class="home-section">
     <h2>Guides</h2>
     <p>Three hands-on tutorials explain the standards behind the tools: why a depth map opens as solid black, why picked colours disagree with your design file, and what a pixel inspector is really checking.</p>
@@ -239,6 +259,13 @@
         <a href="/en/tools/random-prompt">Random generator</a>
         <a href="/en/tools/prompt-translate">Prompt translator</a>
         <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
       </nav>
     </section>
     <section class="footer-group">

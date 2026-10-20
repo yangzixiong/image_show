@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Frame Extractor · Online Video Screenshot · ImageLab</title>
+<meta name="description" content="Extract still frames from a video at fixed intervals or exact timestamps. Export PNG, JPEG or WebP, single or as a zip. The video never leaves your browser.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/tools/video-frame">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/video-frame">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/video-frame">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/video-frame">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/tools/video-frame">
+<meta property="og:title" content="Video Frame Extractor · Online Video Screenshot · ImageLab">
+<meta property="og:description" content="Grab stills from a video by interval or timestamp, export PNG, JPEG, WebP or a zip. Nothing is uploaded.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Video Frame Extractor · Online Video Screenshot · ImageLab">
+<meta name="twitter:description" content="Grab stills from a video by interval or timestamp, export PNG, JPEG, WebP or a zip. Nothing is uploaded.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Video Frame Extractor",
+  "url": "https://yangzixiong.com/en/tools/video-frame",
+  "description": "Extract still frames from a video at fixed intervals or exact timestamps. Export PNG, JPEG or WebP, single or as a zip.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any modern browser",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body class="doc tool">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <a href="/en/#inspect">Inspect</a>
+    <a href="/en/#edit">Edit</a>
+    <a href="/en/#prompt">Prompts</a>
+    <a href="/en/#video" aria-current="page">Video</a>
+    <a href="/en/#guides">Guides</a>
+  </nav>
+  <div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/tools/video-frame" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="tool-main">
+  <div class="tool-head">
+    <h1>Video Frame Extractor</h1>
+    <p class="tool-sub">Pull stills out of a clip at a fixed interval or at exact timestamps. Grab one frame to check the look, then export PNG, JPEG or WebP — or the whole batch as a single zip. Decoding happens in your browser, the video is never uploaded.</p>
+  </div>
+
+  <label class="dropzone" id="dropzone" for="fileInput">
+    <strong>Click to choose a video</strong>, or drop a file here
+    <span class="dz-hint">You can also press Ctrl+V to paste · MP4 / WebM / MOV / M4V</span>
+  </label>
+  <input type="file" id="fileInput" accept="video/*,.mp4,.m4v,.webm,.mov" hidden>
+
+  <div class="tool-grid">
+    <section class="tool-canvas-box" aria-label="Video preview and extracted frames">
+      <div class="video-box">
+        <video id="video" controls playsinline preload="metadata"></video>
+        <div class="video-meta" id="videoMeta">No video loaded</div>
+        <div class="warn" id="warn" hidden></div>
+      </div>
+      <div class="thumb-grid" id="thumbs"></div>
+    </section>
+
+    <aside class="tool-side">
+      <h2>Extraction</h2>
+      <label class="field-label" for="mode">Mode</label>
+      <select id="mode" class="select">
+        <option value="interval">Fixed interval</option>
+        <option value="list">Timestamp list</option>
+        <option value="single">Current frame only</option>
+      </select>
+
+      <div id="intervalWrap">
+        <label class="field-label" for="interval">Interval (seconds)</label>
+        <input class="ctl-input" id="interval" type="number" min="0.05" step="0.1" value="1">
+      </div>
+
+      <div id="listWrap" hidden>
+        <label class="field-label" for="timeList">Timestamps (seconds, comma or newline)</label>
+        <textarea class="ctl-input" id="timeList" rows="3" placeholder="0.5, 1.2, 3, 7.5"></textarea>
+      </div>
+
+      <div id="singleWrap" hidden>
+        <p class="ctl-hint">Scrub or play to the frame you want, then hit “Grab current frame”.</p>
+      </div>
+
+      <label class="field-label" for="maxFrames">Max frames</label>
+      <input class="ctl-input" id="maxFrames" type="number" min="1" max="200" value="20">
+
+      <label class="field-label" for="outWidth">Output width</label>
+      <select id="outWidth" class="select">
+        <option value="0">Original pixels</option>
+        <option value="1920">1920</option>
+        <option value="1280">1280</option>
+        <option value="854">854</option>
+      </select>
+
+      <label class="field-label" for="format">Format</label>
+      <select id="format" class="select">
+        <option value="png">PNG</option>
+        <option value="jpeg">JPEG</option>
+        <option value="webp">WebP</option>
+      </select>
+
+      <div class="ctl-row">
+        <span>Quality <b id="qualityVal">92%</b></span>
+        <input type="range" id="quality" min="0.4" max="1" step="0.02" value="0.92">
+      </div>
+
+      <div class="progress" id="progressWrap" hidden><i id="progressBar"></i></div>
+
+      <div class="btn-row">
+        <button class="btn ghost" id="btnSingle" type="button">Grab current frame</button>
+        <button class="btn ghost" id="btnClear" type="button">Clear</button>
+      </div>
+      <button class="btn" id="btnExtract" type="button">Extract frames</button>
+      <button class="btn ghost" id="btnZip" type="button" disabled>Download all (zip)</button>
+
+      <div class="stat-list">
+        <div id="statStatus">No video loaded</div>
+        <div id="statFrames">Frames: 0</div>
+        <div id="statSize">Total: 0 B</div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="tool-notes">
+    <h2>Why nothing is uploaded</h2>
+    <p>The file never leaves your machine. The browser hands it to a local blob URL, <code>&lt;video&gt;</code> decodes it, and a canvas copies the pixels out. Turn off Wi-Fi and the page still works — there is no request to make.</p>
+
+    <h2>How to enter timestamps</h2>
+    <p>Timestamps are plain seconds and may be fractional: 0.5, 1.2, 7.5, separated by commas or newlines. Interval mode starts at 0 and steps forward until it hits “Max frames”, so start small, check the look, then raise the cap.</p>
+
+    <h2>Quality and file size</h2>
+    <p>A lossless PNG of one 1080p frame is often over 2 MB. JPEG and WebP come out an order of magnitude smaller — the quality slider only applies to those two. Dropping the output width to 1280 or 854 is plenty for reference sheets and thumbnails. If a file refuses to decode it is usually HEVC, AV1 or ProRes; remux to H.264 MP4 or WebM first.</p>
+  </section>
+
+  <p class="related">Related: <a href="/en/tools/grid">Grid splitter</a>, <a href="/en/tools/histogram">Image histogram</a>, <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a></p>
+
+<p class="tool-back"><a href="/en/#video">← All video tools</a></p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, files are never uploaded</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/i18n.js?v=3"></script>
+<script src="/js/toolkit.js?v=3"></script>
+<script src="/lib/fflate.js"></script>
+<script src="/tools/video-frame.js?v=1"></script>
+</body>
+</html>

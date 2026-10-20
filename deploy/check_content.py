@@ -56,13 +56,17 @@ PAGES = [
     ("en", "en/tools/prompt-translate.html", "/en/tools/prompt-translate"),
     ("zh", "tools/token-counter.html", "/tools/token-counter"),
     ("en", "en/tools/token-counter.html", "/en/tools/token-counter"),
+    ("zh", "tools/video-frame.html", "/tools/video-frame"),
+    ("en", "en/tools/video-frame.html", "/en/tools/video-frame"),
+    ("zh", "tools/storyboard-timer.html", "/tools/storyboard-timer"),
+    ("en", "en/tools/storyboard-timer.html", "/en/tools/storyboard-timer"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
 # 批5 收口：全部 36 页已交付，清空
 PLANNED_URLS = set()
 
-EXPECTED_SITEMAP = 38  # 2 个首页 + 12 个内容页 + 24 个工具页（12 个工具 × 中英）
+EXPECTED_SITEMAP = 42  # 2 个首页 + 12 个内容页 + 28 个工具页（14 个工具 × 中英）
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
@@ -71,6 +75,7 @@ EXPECTED_ASSETS = [
     "js/toolkit.js", "tools/histogram.js", "tools/flip.js", "tools/crop.js", "tools/grid.js", "tools/remove-bg.js",
     "js/promptlib.js", "tools/prompt-weight.js", "tools/prompt-split.js", "tools/negative-prompt.js",
     "tools/random-prompt.js", "tools/prompt-translate.js", "tools/token-counter.js",
+    "tools/video-frame.js", "tools/storyboard-timer.js",
     "data/negative-prompts.json", "data/random-prompts.json", "data/prompt-terms.json",
     "data/tok/clip-vocab.json", "data/tok/clip-merges.txt",
     "data/tok/cl100k_base.tiktoken", "data/tok/o200k_base.tiktoken",
@@ -157,7 +162,7 @@ for lang, rel, site_path in PAGES:
     else:
         check(False, f"{label} JSON-LD 存在")
 
-    check(bool(re.search(r"css/style\.css\?v=5", html)), f"{label} 样式表引用为 ?v=5")
+    check(bool(re.search(r"css/style\.css\?v=6", html)), f"{label} 样式表引用为 ?v=6")
 
     broken = []
     for href in re.findall(r'href="([^"]+)"', html):
@@ -207,13 +212,13 @@ except Exception as e:
 for asset in EXPECTED_ASSETS:
     check((ROOT / asset).exists(), f"资源存在: {asset}")
 
-# ---- 全站 ?v=5（所有引用 style.css 的页面）----
+# ---- 全站 ?v=6（所有引用 style.css 的页面）----
 stale = []
 for html_file in sorted(ROOT.rglob("*.html")):
     text = html_file.read_text(encoding="utf-8")
-    if "style.css" in text and "style.css?v=5" not in text:
+    if "style.css" in text and "style.css?v=6" not in text:
         stale.append(html_file.relative_to(ROOT).as_posix())
-check(not stale, "所有引用样式表的页面均使用 ?v=5")
+check(not stale, "所有引用样式表的页面均使用 ?v=6")
 for s in stale:
     print("      未升级:", s)
 
