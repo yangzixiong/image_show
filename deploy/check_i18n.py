@@ -81,7 +81,6 @@ if ids(htmls["zh"]) != ids(htmls["en"]):
 # 5) 本地资源都存在（英文页用根绝对路径，仍映射到仓库根）
 # 规划中、尚未交付的页脚链接放行：批1 登记（查看器批2、提示词工具批3/批4 交付），批5 清空
 PLANNED = {
-    "tools/pixel-viewer.html", "en/tools/pixel-viewer.html",
     "tools/prompt-weight.html", "en/tools/prompt-weight.html",
     "tools/prompt-split.html", "en/tools/prompt-split.html",
     "tools/negative-prompt.html", "en/tools/negative-prompt.html",

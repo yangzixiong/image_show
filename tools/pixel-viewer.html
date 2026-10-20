@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16bit TIFF 深度图与像素查看器</title>
+<meta name="description" content="在浏览器里查看图片像素与深度：悬停即显示坐标、RGB、HEX 和深度值（mm），支持 16bit TIFF 深度图伪彩色映射、单击取色复制、滚轮缩放与像素网格。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/tools/pixel-viewer">
+
+<!-- 多语言：告诉搜索引擎这是一个中英双版本的页面 -->
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/tools/pixel-viewer">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/tools/pixel-viewer">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/tools/pixel-viewer">
+
+<!-- 社交分享：og:image 必须是绝对 URL；图片由 deploy/make_og_image.py 生成（1200×630） -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/tools/pixel-viewer">
+<meta property="og:title" content="16bit TIFF 深度图与像素查看器">
+<meta property="og:description" content="浏览器内的图片像素与深度查看器：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放平移与像素网格。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ImageLab —— 在线图片像素与深度查看器">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="16bit TIFF 深度图与像素查看器">
+<meta name="twitter:description" content="浏览器内的图片像素与深度查看器：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放平移与像素网格。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=5">
+
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<!-- 结构化数据：声明为免费在线工具，帮助搜索引擎生成富摘要 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "ImageLab",
+  "alternateName": "ImageLab 图片像素与深度查看器",
+  "url": "https://yangzixiong.com/tools/pixel-viewer",
+  "description": "浏览器内的图片像素与深度查看器：悬停显示坐标、RGB、HEX 与深度值，支持 16bit TIFF 深度图伪彩色映射、单击取色复制、缩放平移与像素网格。",
+  "applicationCategory": "MultimediaApplication",
+  "applicationSubCategory": "Image viewer",
+  "operatingSystem": "Any modern browser",
+  "browserRequirements": "需要支持 Canvas 2D 的现代浏览器（Chrome / Edge / Firefox / Safari）",
+  "inLanguage": "zh-CN",
+  "isAccessibleForFree": true,
+  "screenshot": "https://yangzixiong.com/img/og-cover.png",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+  "featureList": [
+    "16bit TIFF 深度图伪彩色映射",
+    "悬停显示像素坐标、RGB、HEX 与深度值（mm）",
+    "单击取色并复制到剪贴板",
+    "滚轮缩放、拖拽平移与像素网格"
+  ]
+}
+</script>
+</head>
+<body class="no-img">
+
+<!-- 页面主标题：视觉上由顶栏承担，这里给搜索引擎和读屏软件一个明确主题 -->
+<h1 class="sr-only">ImageLab —— 在线图片像素与深度查看器，支持 16bit TIFF 深度图伪彩色、RGB/HEX 取色与像素网格</h1>
+
+<header class="topbar">
+  <div class="brand">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></div>
+  <nav class="doc-nav" aria-label="站内导航">
+    <a href="/#inspect" aria-current="page">查看</a>
+    <a href="/#edit">编辑</a>
+    <a href="/#prompt">提示词</a>
+    <a href="/#guides">教程</a>
+      <a href="/">← 全部工具</a>
+  </nav>
+  <button id="btnOpen" class="btn">打开图片</button>
+  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
+  <div class="img-name" id="imgName"></div>
+  <div class="topbar-right">
+    <!-- 访客上次选了英文时才会显示，不自动跳转 -->
+    <a class="lang-hint" id="langHint" href="/en/" hidden></a>
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<!-- 广告位：顶部横幅 728×90。接入广告时删除占位 span，放入广告代码（如 AdSense ins 标签） -->
+<div class="ad-slot ad-top"><span>广告位 728 × 90</span></div>
+
+<main class="layout">
+  <aside class="sidebar">
+    <section class="panel">
+      <h3>图片列表</h3>
+      <div class="thumb-list" id="thumbList"><div class="hint-muted">暂无图片，拖入或点击「打开图片」</div></div>
+    </section>
+
+    <section class="panel">
+      <h3>像素信息</h3>
+      <div class="inspect">
+        <canvas id="magCanvas" width="176" height="176"></canvas>
+        <div class="coords mono" id="posText">X: -  Y: -</div>
+        <div class="swatch-row"><span class="swatch" id="swatchBox"></span><span class="mono hex-big" id="hexText">-</span></div>
+        <div class="mono" id="rgbText">R: -  G: -  B: -</div>
+        <div class="mono depth-text" id="depthText" hidden>深度: -</div>
+      </div>
+    </section>
+
+    <section class="panel" id="depthPanel" hidden>
+      <h3>深度设置</h3>
+      <label class="label-row">伪彩色映射
+        <select id="cmapSelect" class="select">
+          <option value="jet">Jet</option>
+          <option value="viridis">Viridis</option>
+          <option value="gray">灰度</option>
+        </select>
+      </label>
+      <div class="mono depth-range" id="depthRange"></div>
+    </section>
+
+    <section class="panel">
+      <h3>取色历史<span class="h3-tip">单击图片取色并复制</span></h3>
+      <div class="pick-history" id="pickHistory"><div class="hint-muted" id="pickHint">暂无取色记录</div></div>
+    </section>
+
+    <!-- 广告位：侧栏 300×600。接入广告时删除占位 span，放入广告代码 -->
+    <div class="ad-slot ad-side"><span>广告位 300 × 600</span></div>
+  </aside>
+
+  <section class="stage" id="stage">
+    <canvas id="viewCanvas"></canvas>
+    <div class="drop-hint" id="dropHint">
+      <div class="drop-box">
+        <div class="drop-title">拖入图片到此处</div>
+        <div class="drop-sub">或点击「打开图片」 · 支持 Ctrl+V 粘贴</div>
+        <div class="drop-sub">JPG / PNG / WebP / GIF / BMP / TIFF（含 16bit 深度图）</div>
+      </div>
+    </div>
+    <div class="px-tip" id="pxTip"><span class="tip-swatch" id="tipSwatch"></span><span class="mono" id="tipText"></span></div>
+    <div class="statusbar mono" id="statusbar">
+      <span id="stZoom">-</span>
+      <span id="stSize"></span>
+      <span id="stPos"></span>
+      <span class="st-tip">滚轮缩放 · 拖拽平移 · 双击适配 · 单击取色</span>
+    </div>
+    <div class="toast" id="toast"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+<!-- ?v=3 是缓存版本号：改动 js/css 后把它加一，老访客就能立刻拿到新文件（_headers 里这些资源缓存 7 天） -->
+<script src="/js/i18n.js?v=3"></script>
+<script src="/lib/utif.js"></script>
+<script src="/js/decoder.js?v=3"></script>
+<script src="/js/viewer.js?v=3"></script>
+<script src="/js/inspector.js?v=3"></script>
+<script src="/js/picker.js?v=3"></script>
+<script src="/js/main.js?v=3"></script>
+</body>
+</html>

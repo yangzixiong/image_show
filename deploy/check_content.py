@@ -42,6 +42,8 @@ PAGES = [
     ("en", "en/tools/grid.html", "/en/tools/grid"),
     ("zh", "tools/remove-bg.html", "/tools/remove-bg"),
     ("en", "en/tools/remove-bg.html", "/en/tools/remove-bg"),
+    ("zh", "tools/pixel-viewer.html", "/tools/pixel-viewer"),
+    ("en", "en/tools/pixel-viewer.html", "/en/tools/pixel-viewer"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
@@ -54,7 +56,6 @@ PLANNED_URLS = {
     "/en/faq.html", "/en/about.html", "/en/privacy.html",
     "/tools/histogram.html", "/tools/flip.html", "/tools/crop.html", "/tools/grid.html", "/tools/remove-bg.html",
     "/en/tools/histogram.html", "/en/tools/flip.html", "/en/tools/crop.html", "/en/tools/grid.html", "/en/tools/remove-bg.html",
-    "/tools/pixel-viewer.html", "/en/tools/pixel-viewer.html",
     "/tools/prompt-weight.html", "/en/tools/prompt-weight.html",
     "/tools/prompt-split.html", "/en/tools/prompt-split.html",
     "/tools/negative-prompt.html", "/en/tools/negative-prompt.html",
@@ -63,7 +64,7 @@ PLANNED_URLS = {
     "/tools/token-counter.html", "/en/tools/token-counter.html",
 }
 
-EXPECTED_SITEMAP = 24  # 2 个首页 + 12 个内容页 + 10 个工具页（histogram/flip/crop/grid/remove-bg × 中英）
+EXPECTED_SITEMAP = 26  # 2 个首页 + 12 个内容页 + 12 个工具页（histogram/flip/crop/grid/remove-bg/pixel-viewer × 中英）
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [

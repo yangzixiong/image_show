@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ImageLab · Image pixel &amp; depth viewer (16-bit TIFF, RGB/HEX)</title>
-<meta name="description" content="Inspect image pixels and depth in your browser: hover for coordinates, RGB, HEX and depth in mm. 16-bit TIFF depth maps with colormaps, click-to-pick colours, wheel zoom and a pixel grid. Everything runs locally — your images are never uploaded.">
+<title>ImageLab — AI Art &amp; Image Tools in Your Browser</title>
+<meta name="description" content="Twelve browser tools for AI art: pixel and depth viewer, histogram, crop, background removal, grid split, plus prompt weights, translator and token counter.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://yangzixiong.com/en/">
 
@@ -18,15 +18,15 @@
 <meta property="og:site_name" content="ImageLab">
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://yangzixiong.com/en/">
-<meta property="og:title" content="ImageLab · Image pixel &amp; depth viewer">
-<meta property="og:description" content="An in-browser pixel and depth inspector: RGB/HEX colour picking, 16-bit TIFF depth maps with colormaps, zoom, pan and a pixel grid.">
+<meta property="og:title" content="ImageLab — AI Art &amp; Image Tools in Your Browser">
+<meta property="og:description" content="Pixel and depth viewing, crop and background removal, grid splitting plus Stable Diffusion prompt tools — twelve browser tools that run locally, with no upload.">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="ImageLab — online image pixel and depth viewer">
+<meta property="og:image:alt" content="ImageLab — AI art & image tools in your browser">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ImageLab · Image pixel &amp; depth viewer">
-<meta name="twitter:description" content="An in-browser pixel and depth inspector: RGB/HEX colour picking, 16-bit TIFF depth maps with colormaps, zoom, pan and a pixel grid.">
+<meta name="twitter:title" content="ImageLab — AI Art &amp; Image Tools in Your Browser">
+<meta name="twitter:description" content="Pixel and depth viewing, crop and background removal, grid splitting plus Stable Diffusion prompt tools — twelve browser tools that run locally, with no upload.">
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/css/style.css?v=5">
@@ -35,51 +35,49 @@
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 
-<!-- Structured data: declares a free online tool so search engines can build a rich result -->
+<!-- Structured data: CollectionPage + ItemList listing every tool -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "ImageLab",
-  "alternateName": "ImageLab image pixel and depth viewer",
+  "@type": "CollectionPage",
+  "name": "ImageLab — AI Art & Image Tools in Your Browser",
   "url": "https://yangzixiong.com/en/",
-  "description": "An in-browser image pixel and depth viewer: hover to see coordinates, RGB, HEX and depth values, with 16-bit TIFF depth map colormaps, click-to-copy colour picking, zoom, pan and a pixel grid.",
-  "applicationCategory": "MultimediaApplication",
-  "applicationSubCategory": "Image viewer",
-  "operatingSystem": "Any modern browser",
-  "browserRequirements": "Requires a modern browser with Canvas 2D support (Chrome / Edge / Firefox / Safari)",
+  "description": "Twelve browser tools: pixel and depth viewing, image editing and export, Stable Diffusion prompt processing. Everything runs locally — images and prompts are never uploaded.",
   "inLanguage": "en",
   "isAccessibleForFree": true,
-  "screenshot": "https://yangzixiong.com/img/og-cover.png",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
-  "featureList": [
-    "16-bit TIFF depth map colormapping",
-    "Hover to read pixel coordinates, RGB, HEX and depth in mm",
-    "Click to pick a colour and copy it",
-    "Wheel zoom, drag to pan and a pixel grid"
-  ]
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "ImageLab tools",
+    "numberOfItems": 12,
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Pixel & Depth Viewer", "url": "https://yangzixiong.com/en/tools/pixel-viewer" },
+      { "@type": "ListItem", "position": 2, "name": "Image Histogram Viewer", "url": "https://yangzixiong.com/en/tools/histogram" },
+      { "@type": "ListItem", "position": 3, "name": "Image Cropper", "url": "https://yangzixiong.com/en/tools/crop" },
+      { "@type": "ListItem", "position": 4, "name": "Flip & Rotate", "url": "https://yangzixiong.com/en/tools/flip" },
+      { "@type": "ListItem", "position": 5, "name": "Grid Splitter", "url": "https://yangzixiong.com/en/tools/grid" },
+      { "@type": "ListItem", "position": 6, "name": "Background Remover", "url": "https://yangzixiong.com/en/tools/remove-bg" },
+      { "@type": "ListItem", "position": 7, "name": "Prompt Weight Calculator", "url": "https://yangzixiong.com/en/tools/prompt-weight" },
+      { "@type": "ListItem", "position": 8, "name": "Prompt Splitter", "url": "https://yangzixiong.com/en/tools/prompt-split" },
+      { "@type": "ListItem", "position": 9, "name": "Negative Prompt Builder", "url": "https://yangzixiong.com/en/tools/negative-prompt" },
+      { "@type": "ListItem", "position": 10, "name": "Random Prompt Generator", "url": "https://yangzixiong.com/en/tools/random-prompt" },
+      { "@type": "ListItem", "position": 11, "name": "Prompt Translator", "url": "https://yangzixiong.com/en/tools/prompt-translate" },
+      { "@type": "ListItem", "position": 12, "name": "Prompt Token Counter", "url": "https://yangzixiong.com/en/tools/token-counter" }
+    ]
+  }
 }
 </script>
 </head>
-<body class="no-img">
+<body class="doc">
 
-<!-- Page heading: the top bar carries it visually; this gives search engines and screen readers a clear topic -->
-<h1 class="sr-only">ImageLab — online image pixel and depth viewer with RGB/HEX colour picking, 16-bit TIFF depth maps and a pixel grid</h1>
-
-<header class="topbar">
-  <div class="brand">ImageLab<span class="brand-sub">AI art · image tools</span></div>
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
   <nav class="doc-nav" aria-label="Site navigation">
-    <a href="/en/#inspect" aria-current="page">Inspect</a>
+    <a href="/en/#inspect">Inspect</a>
     <a href="/en/#edit">Edit</a>
     <a href="/en/#prompt">Prompts</a>
     <a href="/en/#guides">Guides</a>
   </nav>
-  <button id="btnOpen" class="btn">Open image</button>
-  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
-  <div class="img-name" id="imgName"></div>
   <div class="topbar-right">
-    <!-- Shown only when the visitor previously chose Chinese; never auto-redirects -->
-    <a class="lang-hint" id="langHint" href="/" hidden></a>
     <nav class="lang-switch" aria-label="Language">
       <a href="/" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
       <span class="lang-sep">|</span>
@@ -88,66 +86,130 @@
   </div>
 </header>
 
-<!-- Ad slot: top banner 728×90. Replace the placeholder span with real ad code when you enable ads. -->
-<div class="ad-slot ad-top"><span>Ad space 728 × 90</span></div>
-
-<main class="layout">
-  <aside class="sidebar">
-    <section class="panel">
-      <h3>Images</h3>
-      <div class="thumb-list" id="thumbList"><div class="hint-muted">No images yet — drop one here or click “Open image”</div></div>
-    </section>
-
-    <section class="panel">
-      <h3>Pixel info</h3>
-      <div class="inspect">
-        <canvas id="magCanvas" width="176" height="176"></canvas>
-        <div class="coords mono" id="posText">X: -  Y: -</div>
-        <div class="swatch-row"><span class="swatch" id="swatchBox"></span><span class="mono hex-big" id="hexText">-</span></div>
-        <div class="mono" id="rgbText">R: -  G: -  B: -</div>
-        <div class="mono depth-text" id="depthText" hidden>Depth: -</div>
-      </div>
-    </section>
-
-    <section class="panel" id="depthPanel" hidden>
-      <h3>Depth settings</h3>
-      <label class="label-row">Colormap
-        <select id="cmapSelect" class="select">
-          <option value="jet">Jet</option>
-          <option value="viridis">Viridis</option>
-          <option value="gray">Grayscale</option>
-        </select>
-      </label>
-      <div class="mono depth-range" id="depthRange"></div>
-    </section>
-
-    <section class="panel">
-      <h3>Picked colours<span class="h3-tip">Click the image to pick and copy</span></h3>
-      <div class="pick-history" id="pickHistory"><div class="hint-muted" id="pickHint">No colours picked yet</div></div>
-    </section>
-
-    <!-- Ad slot: sidebar 300×600. Replace the placeholder span with real ad code -->
-    <div class="ad-slot ad-side"><span>Ad space 300 × 600</span></div>
-  </aside>
-
-  <section class="stage" id="stage">
-    <canvas id="viewCanvas"></canvas>
-    <div class="drop-hint" id="dropHint">
-      <div class="drop-box">
-        <div class="drop-title">Drop an image here</div>
-        <div class="drop-sub">or click “Open image” · Ctrl+V to paste</div>
-        <div class="drop-sub">JPG / PNG / WebP / GIF / BMP / TIFF (incl. 16-bit depth maps)</div>
-      </div>
+<main class="doc-main home-main">
+  <section class="hero">
+    <h1>AI art &amp; image tools, all in your browser</h1>
+    <p class="lede">From viewing 16-bit depth maps to tuning Stable Diffusion prompt weights — twelve tools that all run in your browser. Drop in an image or paste some text; your files never leave your machine.</p>
+    <div class="hero-cta">
+      <a class="btn" href="/en/tools/pixel-viewer">Open the viewer</a>
     </div>
-    <div class="px-tip" id="pxTip"><span class="tip-swatch" id="tipSwatch"></span><span class="mono" id="tipText"></span></div>
-    <div class="statusbar mono" id="statusbar">
-      <span id="stZoom">-</span>
-      <span id="stSize"></span>
-      <span id="stPos"></span>
-      <span class="st-tip">Wheel to zoom · Drag to pan · Double-click to fit · Click to pick</span>
-    </div>
-    <div class="toast" id="toast"></div>
+    <!-- Ad slot: top banner 728×90. Replace the placeholder span with real ad code when you enable ads. -->
+    <div class="ad-slot ad-top"><span>Ad space 728 × 90</span></div>
   </section>
+
+  <section id="inspect" class="home-section">
+    <h2>Inspect &amp; analyse</h2>
+    <p>Take the image apart: hover to read pixel coordinates, RGB and HEX values, read light and colour spread in the histogram, convert 16-bit depth maps into real millimetres. These tools all answer one question — what exactly is in this picture.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/tools/pixel-viewer">
+        <span class="tool-card-name">Pixel &amp; Depth Viewer</span>
+        <span class="tool-card-desc">Hover for coordinates, RGB and depth</span>
+        <span class="tag">16-bit TIFF</span>
+      </a>
+      <a class="tool-card" href="/en/tools/histogram">
+        <span class="tool-card-name">Image Histogram Viewer</span>
+        <span class="tool-card-desc">RGB and luminance at a glance</span>
+        <span class="tag">Runs locally</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="edit" class="home-section">
+    <h2>Edit &amp; export</h2>
+    <p>Change it, then download it straight away: crop to fixed ratios, flip and rotate, split into a grid zipped for download, or cut subjects out with a neural model. Every conversion happens on the page — no server, no copy left behind.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/tools/crop">
+        <span class="tool-card-name">Image Cropper</span>
+        <span class="tool-card-desc">Ratio crop with long-edge scaling</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/flip">
+        <span class="tool-card-name">Flip &amp; Rotate</span>
+        <span class="tool-card-desc">Flip, rotate, mirror and export</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/grid">
+        <span class="tool-card-name">Grid Splitter</span>
+        <span class="tool-card-desc">Grid blocks zipped for download</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/remove-bg">
+        <span class="tool-card-name">Background Remover</span>
+        <span class="tool-card-desc">Neural cutout, transparent PNG</span>
+        <span class="tag">Model download on first use</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="prompt" class="home-section">
+    <h2>AI prompts</h2>
+    <p>The text you send to the model gets the same treatment: parse weight syntax like (word:1.3) and flag errors, split positive and negative prompts, tick phrases to build a negative, generate random prompts, translate tag vocabularies and count tokens. The word lists live in the page itself, so your commercial prompts never touch someone else's server.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/tools/prompt-weight">
+        <span class="tool-card-name">Prompt Weight Calculator</span>
+        <span class="tool-card-desc">Parse (word:1.3) and flag errors</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/prompt-split">
+        <span class="tool-card-name">Prompt Splitter</span>
+        <span class="tool-card-desc">Separate positive and negative prompts</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/negative-prompt">
+        <span class="tool-card-name">Negative Prompt Builder</span>
+        <span class="tool-card-desc">Tick phrases, build the negative</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/random-prompt">
+        <span class="tool-card-name">Random Prompt Generator</span>
+        <span class="tool-card-desc">Six layers, lockable and shareable</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/prompt-translate">
+        <span class="tool-card-name">Prompt Translator</span>
+        <span class="tool-card-desc">Chinese–English tag translation</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/tools/token-counter">
+        <span class="tool-card-name">Prompt Token Counter</span>
+        <span class="tool-card-desc">Tokens for CLIP and OpenAI models</span>
+        <span class="tag">Runs locally</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="guides" class="home-section">
+    <h2>Guides</h2>
+    <p>Three hands-on tutorials explain the standards behind the tools: why a depth map opens as solid black, why picked colours disagree with your design file, and what a pixel inspector is really checking.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/guides/depth-tiff">
+        <span class="tool-card-name">16-bit TIFF Depth Maps</span>
+        <span class="tool-card-desc">Units, colormaps and common traps</span>
+        <span class="tag">16-bit TIFF</span>
+      </a>
+      <a class="tool-card" href="/en/guides/color-picker">
+        <span class="tool-card-name">Colour Picker Guide</span>
+        <span class="tool-card-desc">Why picks drift and how to fix it</span>
+        <span class="tag">Runs locally</span>
+      </a>
+      <a class="tool-card" href="/en/guides/pixel-inspector">
+        <span class="tool-card-name">Pixel Inspector Guide</span>
+        <span class="tool-card-desc">What the magnifier really shows</span>
+        <span class="tag">Runs locally</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="why-local">
+    <h2>Why everything runs locally</h2>
+    <ul>
+      <li>Images never leave the browser — the page has no upload endpoint, and editing keeps working offline.</li>
+      <li>Prompts never hit a server — dictionaries and tokenizer tables load with the page, so nobody reads what you wrote.</li>
+      <li>No accounts, no quotas, no watermarks — open a tool, use it, download a clean file.</li>
+    </ul>
+  </section>
+
+  <p class="home-closing">ImageLab — browser tools for AI art and image work. Nothing is uploaded.</p>
 </main>
 
 <footer class="site-footer">
@@ -200,13 +262,5 @@
   <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
 </footer>
 
-<!-- ?v=3 is a cache-busting version: bump it whenever js/css changes (these assets are cached for 7 days) -->
-<script src="/js/i18n.js?v=3"></script>
-<script src="/lib/utif.js"></script>
-<script src="/js/decoder.js?v=3"></script>
-<script src="/js/viewer.js?v=3"></script>
-<script src="/js/inspector.js?v=3"></script>
-<script src="/js/picker.js?v=3"></script>
-<script src="/js/main.js?v=3"></script>
 </body>
 </html>

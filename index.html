@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ImageLab · 图片查看与像素/深度分析</title>
-<meta name="description" content="在浏览器里查看图片像素与深度：悬停即显示坐标、RGB、HEX 和深度值（mm），支持 16bit TIFF 深度图伪彩色映射、单击取色复制、滚轮缩放与像素网格。">
+<title>ImageLab · AI 绘图与图片处理工具箱</title>
+<meta name="description" content="十二个浏览器工具，为 AI 绘图与图片处理准备：像素与深度查看、直方图、裁剪抠图、九宫格分割，以及 Stable Diffusion 提示词的权重解析、正反词分离、翻译与 Token 计数。全部本地运行，图片和提示词都不上传。">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://yangzixiong.com/">
 
@@ -18,68 +18,66 @@
 <meta property="og:site_name" content="ImageLab">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:url" content="https://yangzixiong.com/">
-<meta property="og:title" content="ImageLab · 图片查看与像素/深度分析">
-<meta property="og:description" content="浏览器内的图片像素与深度查看器：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放平移与像素网格。">
+<meta property="og:title" content="ImageLab · AI 绘图与图片处理工具箱">
+<meta property="og:description" content="像素与深度查看、裁剪抠图、九宫格分割，加 Stable Diffusion 提示词工具——十二个浏览器工具全部本地运行，图片和提示词都不上传。">
 <meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="ImageLab —— 在线图片像素与深度查看器">
+<meta property="og:image:alt" content="ImageLab —— AI 绘图与图片处理工具箱">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ImageLab · 图片查看与像素/深度分析">
-<meta name="twitter:description" content="浏览器内的图片像素与深度查看器：RGB/HEX 取色、16bit TIFF 深度图伪彩色、缩放平移与像素网格。">
+<meta name="twitter:title" content="ImageLab · AI 绘图与图片处理工具箱">
+<meta name="twitter:description" content="像素与深度查看、裁剪抠图、九宫格分割，加 Stable Diffusion 提示词工具——十二个浏览器工具全部本地运行，图片和提示词都不上传。">
 <meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232f6bdb'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="/css/style.css?v=5">
 
 <meta name="theme-color" content="#ffffff">
-<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 
-<!-- 结构化数据：声明为免费在线工具，帮助搜索引擎生成富摘要 -->
+<!-- 结构化数据：CollectionPage + ItemList，列出全部工具 -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "ImageLab",
-  "alternateName": "ImageLab 图片像素与深度查看器",
+  "@type": "CollectionPage",
+  "name": "ImageLab · AI 绘图与图片处理工具箱",
   "url": "https://yangzixiong.com/",
-  "description": "浏览器内的图片像素与深度查看器：悬停显示坐标、RGB、HEX 与深度值，支持 16bit TIFF 深度图伪彩色映射、单击取色复制、缩放平移与像素网格。",
-  "applicationCategory": "MultimediaApplication",
-  "applicationSubCategory": "Image viewer",
-  "operatingSystem": "Any modern browser",
-  "browserRequirements": "需要支持 Canvas 2D 的现代浏览器（Chrome / Edge / Firefox / Safari）",
+  "description": "十二个浏览器工具：像素与深度查看、图片编辑导出、Stable Diffusion 提示词处理。全部本地运行，图片和提示词都不上传。",
   "inLanguage": "zh-CN",
   "isAccessibleForFree": true,
-  "screenshot": "https://yangzixiong.com/img/og-cover.png",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
-  "featureList": [
-    "16bit TIFF 深度图伪彩色映射",
-    "悬停显示像素坐标、RGB、HEX 与深度值（mm）",
-    "单击取色并复制到剪贴板",
-    "滚轮缩放、拖拽平移与像素网格"
-  ]
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "ImageLab 工具清单",
+    "numberOfItems": 12,
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "像素与深度查看器", "url": "https://yangzixiong.com/tools/pixel-viewer" },
+      { "@type": "ListItem", "position": 2, "name": "图片直方图查看器", "url": "https://yangzixiong.com/tools/histogram" },
+      { "@type": "ListItem", "position": 3, "name": "图片裁剪", "url": "https://yangzixiong.com/tools/crop" },
+      { "@type": "ListItem", "position": 4, "name": "翻转旋转镜像", "url": "https://yangzixiong.com/tools/flip" },
+      { "@type": "ListItem", "position": 5, "name": "九宫格分割", "url": "https://yangzixiong.com/tools/grid" },
+      { "@type": "ListItem", "position": 6, "name": "一键抠图", "url": "https://yangzixiong.com/tools/remove-bg" },
+      { "@type": "ListItem", "position": 7, "name": "提示词权重计算器", "url": "https://yangzixiong.com/tools/prompt-weight" },
+      { "@type": "ListItem", "position": 8, "name": "正反词分离工具", "url": "https://yangzixiong.com/tools/prompt-split" },
+      { "@type": "ListItem", "position": 9, "name": "负面提示词库", "url": "https://yangzixiong.com/tools/negative-prompt" },
+      { "@type": "ListItem", "position": 10, "name": "随机提示词生成器", "url": "https://yangzixiong.com/tools/random-prompt" },
+      { "@type": "ListItem", "position": 11, "name": "提示词翻译", "url": "https://yangzixiong.com/tools/prompt-translate" },
+      { "@type": "ListItem", "position": 12, "name": "提示词 Token 计数器", "url": "https://yangzixiong.com/tools/token-counter" }
+    ]
+  }
 }
 </script>
 </head>
-<body class="no-img">
+<body class="doc">
 
-<!-- 页面主标题：视觉上由顶栏承担，这里给搜索引擎和读屏软件一个明确主题 -->
-<h1 class="sr-only">ImageLab —— 在线图片像素与深度查看器，支持 16bit TIFF 深度图伪彩色、RGB/HEX 取色与像素网格</h1>
-
-<header class="topbar">
-  <div class="brand">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></div>
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
   <nav class="doc-nav" aria-label="站内导航">
-    <a href="/#inspect" aria-current="page">查看</a>
+    <a href="/#inspect">查看</a>
     <a href="/#edit">编辑</a>
     <a href="/#prompt">提示词</a>
     <a href="/#guides">教程</a>
   </nav>
-  <button id="btnOpen" class="btn">打开图片</button>
-  <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
-  <div class="img-name" id="imgName"></div>
   <div class="topbar-right">
-    <!-- 访客上次选了英文时才会显示，不自动跳转 -->
-    <a class="lang-hint" id="langHint" href="/en/" hidden></a>
     <nav class="lang-switch" aria-label="语言">
       <span class="lang-on" aria-current="true">中文</span>
       <span class="lang-sep">|</span>
@@ -88,66 +86,130 @@
   </div>
 </header>
 
-<!-- 广告位：顶部横幅 728×90。接入广告时删除占位 span，放入广告代码（如 AdSense ins 标签） -->
-<div class="ad-slot ad-top"><span>广告位 728 × 90</span></div>
-
-<main class="layout">
-  <aside class="sidebar">
-    <section class="panel">
-      <h3>图片列表</h3>
-      <div class="thumb-list" id="thumbList"><div class="hint-muted">暂无图片，拖入或点击「打开图片」</div></div>
-    </section>
-
-    <section class="panel">
-      <h3>像素信息</h3>
-      <div class="inspect">
-        <canvas id="magCanvas" width="176" height="176"></canvas>
-        <div class="coords mono" id="posText">X: -  Y: -</div>
-        <div class="swatch-row"><span class="swatch" id="swatchBox"></span><span class="mono hex-big" id="hexText">-</span></div>
-        <div class="mono" id="rgbText">R: -  G: -  B: -</div>
-        <div class="mono depth-text" id="depthText" hidden>深度: -</div>
-      </div>
-    </section>
-
-    <section class="panel" id="depthPanel" hidden>
-      <h3>深度设置</h3>
-      <label class="label-row">伪彩色映射
-        <select id="cmapSelect" class="select">
-          <option value="jet">Jet</option>
-          <option value="viridis">Viridis</option>
-          <option value="gray">灰度</option>
-        </select>
-      </label>
-      <div class="mono depth-range" id="depthRange"></div>
-    </section>
-
-    <section class="panel">
-      <h3>取色历史<span class="h3-tip">单击图片取色并复制</span></h3>
-      <div class="pick-history" id="pickHistory"><div class="hint-muted" id="pickHint">暂无取色记录</div></div>
-    </section>
-
-    <!-- 广告位：侧栏 300×600。接入广告时删除占位 span，放入广告代码 -->
-    <div class="ad-slot ad-side"><span>广告位 300 × 600</span></div>
-  </aside>
-
-  <section class="stage" id="stage">
-    <canvas id="viewCanvas"></canvas>
-    <div class="drop-hint" id="dropHint">
-      <div class="drop-box">
-        <div class="drop-title">拖入图片到此处</div>
-        <div class="drop-sub">或点击「打开图片」 · 支持 Ctrl+V 粘贴</div>
-        <div class="drop-sub">JPG / PNG / WebP / GIF / BMP / TIFF（含 16bit 深度图）</div>
-      </div>
+<main class="doc-main home-main">
+  <section class="hero">
+    <h1>AI 绘图与图片处理工具箱</h1>
+    <p class="lede">从查看 16bit 深度图，到给 Stable Diffusion 调提示词权重——十二个工具全部在浏览器里跑。拖进图片或粘贴文本就能用，文件不会离开你的电脑。</p>
+    <div class="hero-cta">
+      <a class="btn" href="/tools/pixel-viewer">打开查看器</a>
     </div>
-    <div class="px-tip" id="pxTip"><span class="tip-swatch" id="tipSwatch"></span><span class="mono" id="tipText"></span></div>
-    <div class="statusbar mono" id="statusbar">
-      <span id="stZoom">-</span>
-      <span id="stSize"></span>
-      <span id="stPos"></span>
-      <span class="st-tip">滚轮缩放 · 拖拽平移 · 双击适配 · 单击取色</span>
-    </div>
-    <div class="toast" id="toast"></div>
+    <!-- 广告位：顶部横幅 728×90。接入广告时删除占位 span，放入广告代码（如 AdSense ins 标签） -->
+    <div class="ad-slot ad-top"><span>广告位 728 × 90</span></div>
   </section>
+
+  <section id="inspect" class="home-section">
+    <h2>查看与分析</h2>
+    <p>把图片拆开看：悬停读出像素坐标、RGB 与 HEX，直方图呈现明暗和色彩的分布，16bit 深度图换算成真实毫米数。这组工具回答的是同一个问题——这张图里到底是什么。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/tools/pixel-viewer">
+        <span class="tool-card-name">像素与深度查看器</span>
+        <span class="tool-card-desc">悬停读坐标、RGB 与深度值</span>
+        <span class="tag">16bit TIFF</span>
+      </a>
+      <a class="tool-card" href="/tools/histogram">
+        <span class="tool-card-name">图片直方图查看器</span>
+        <span class="tool-card-desc">RGB 与亮度分布一目了然</span>
+        <span class="tag">本地</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="edit" class="home-section">
+    <h2>编辑与导出</h2>
+    <p>改完直接下载：按比例裁剪、翻转旋转镜像、九宫格切块打包成 zip，以及神经网络一键抠图。所有转换在本页完成，不经过任何服务器，也不留任何副本。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/tools/crop">
+        <span class="tool-card-name">图片裁剪</span>
+        <span class="tool-card-desc">按比例裁剪并按长边缩放导出</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/flip">
+        <span class="tool-card-name">翻转旋转镜像</span>
+        <span class="tool-card-desc">翻转、旋转、镜像一步导出</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/grid">
+        <span class="tool-card-name">九宫格分割</span>
+        <span class="tool-card-desc">九宫格切块打包成 zip 下载</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/remove-bg">
+        <span class="tool-card-name">一键抠图</span>
+        <span class="tool-card-desc">神经网络抠图，输出透明 PNG</span>
+        <span class="tag">首次需下载模型</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="prompt" class="home-section">
+    <h2>AI 提示词</h2>
+    <p>写给模型的文字在这里打磨：解析 (word:1.3) 这类权重写法并标出语法错误，拆分正反词，勾选拼接负面词库，随机出题、中英互译、统计 Token。词库和分词规则都在页面里，你的商业提示词不会被贴到别人的服务器上。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/tools/prompt-weight">
+        <span class="tool-card-name">提示词权重计算器</span>
+        <span class="tool-card-desc">解析 (word:1.3) 权重并标出错误</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/prompt-split">
+        <span class="tool-card-name">正反词分离工具</span>
+        <span class="tool-card-desc">一键分离正面与负面提示词</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/negative-prompt">
+        <span class="tool-card-name">负面提示词库</span>
+        <span class="tool-card-desc">勾选词条，实时拼接负面词</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/random-prompt">
+        <span class="tool-card-name">随机提示词生成器</span>
+        <span class="tool-card-desc">六层随机出词，可锁定可分享</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/prompt-translate">
+        <span class="tool-card-name">提示词翻译</span>
+        <span class="tool-card-desc">中英文提示词标签互译</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/tools/token-counter">
+        <span class="tool-card-name">提示词 Token 计数器</span>
+        <span class="tool-card-desc">CLIP 与 OpenAI 模型 Token 统计</span>
+        <span class="tag">本地</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="guides" class="home-section">
+    <h2>教程</h2>
+    <p>三篇实操指南，讲清工具背后的判断标准：深度图为什么打开是全黑的、取色为什么会和设计稿对不上、像素检查到底在查什么。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/guides/depth-tiff">
+        <span class="tool-card-name">16bit TIFF 深度图</span>
+        <span class="tool-card-desc">看懂深度图与毫米单位约定</span>
+        <span class="tag">16bit TIFF</span>
+      </a>
+      <a class="tool-card" href="/guides/color-picker">
+        <span class="tool-card-name">图片取色指南</span>
+        <span class="tool-card-desc">取色为什么偏、怎么取准</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/guides/pixel-inspector">
+        <span class="tool-card-name">像素查看指南</span>
+        <span class="tool-card-desc">放大镜与像素网格在查什么</span>
+        <span class="tag">本地</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="why-local">
+    <h2>为什么都在本地跑</h2>
+    <ul>
+      <li>图片不出浏览器——页面没有上传接口，断网也能继续编辑。</li>
+      <li>提示词不上服务器——词库、分词表都随页面加载，谁也看不到你写了什么。</li>
+      <li>没有账号、没有额度、没有水印——打开就用，用完就走。</li>
+    </ul>
+  </section>
+
+  <p class="home-closing">ImageLab —— 为 AI 绘图与图片处理准备的浏览器工具，图片和提示词都不上传。</p>
 </main>
 
 <footer class="site-footer">
@@ -200,13 +262,5 @@
   <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
 </footer>
 
-<!-- ?v=3 是缓存版本号：改动 js/css 后把它加一，老访客就能立刻拿到新文件（_headers 里这些资源缓存 7 天） -->
-<script src="js/i18n.js?v=3"></script>
-<script src="lib/utif.js"></script>
-<script src="js/decoder.js?v=3"></script>
-<script src="js/viewer.js?v=3"></script>
-<script src="js/inspector.js?v=3"></script>
-<script src="js/picker.js?v=3"></script>
-<script src="js/main.js?v=3"></script>
 </body>
 </html>
