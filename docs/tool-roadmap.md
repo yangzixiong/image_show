@@ -73,7 +73,7 @@ function tt(key, vars) { var lang = document.documentElement.lang === "en" ? "en
 | 问题 | 现状 | 修法 |
 |---|---|---|
 | favicon 颜色两套 | `index.html:31`、`crop.html:29` 等仍是 `%232f6bdb` | 统一 `%234f8cff` |
-| `theme-color` 两套 | `index.html:34` 是 `#ffffff`，其他页 `#0f1216` | 统一 `#0f1216` |
+| `theme-color` 两套 | `index.html:34` 是 `#ffffff`，其他页 `#0f1216` | 统一 `#ffffff`（站点是浅色主题，`--bg: #ffffff`） |
 | 旧 `t()` 写法 | `histogram.js`（12 处）、`flip.js`（6 处） | 迁到本地 DICT（可延后，不影响新工具） |
 | 两份文档未提交 | `docs/positioning-spec.md`、`docs/opencode-task-positioning.md` 还是 untracked | 先 commit |
 
