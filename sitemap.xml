@@ -223,6 +223,26 @@
     <priority>0.4</priority>
   </url>
 
+  <!-- 联系 -->
+  <url>
+    <loc>https://yangzixiong.com/contact</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/contact"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/contact</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/contact"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
   <!-- 隐私说明 -->
   <url>
     <loc>https://yangzixiong.com/privacy</loc>

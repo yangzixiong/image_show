@@ -30,6 +30,8 @@ PAGES = [
     ("en", "en/faq.html", "/en/faq"),
     ("zh", "about.html", "/about"),
     ("en", "en/about.html", "/en/about"),
+    ("zh", "contact.html", "/contact"),
+    ("en", "en/contact.html", "/en/contact"),
     ("zh", "privacy.html", "/privacy"),
     ("en", "en/privacy.html", "/en/privacy"),
     ("zh", "tools/histogram.html", "/tools/histogram"),
@@ -66,7 +68,7 @@ PAGES = [
 # 批5 收口：全部 36 页已交付，清空
 PLANNED_URLS = set()
 
-EXPECTED_SITEMAP = 42  # 2 个首页 + 12 个内容页 + 28 个工具页（14 个工具 × 中英）
+EXPECTED_SITEMAP = 44  # 2 个首页 + 14 个内容页（含 /contact 中英）+ 28 个工具页
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
