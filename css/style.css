@@ -774,3 +774,8 @@ input[type="checkbox"] {
 body.no-img { overflow-y: auto; overflow-x: hidden; }
 .layout { min-height: 620px; }
 
+
+/* 查看器页脚瘦身：应用页只留一行标语，站内导航由顶栏下拉承担（方案 A） */
+body.no-img .footer-groups { display: none; }
+body.no-img .site-footer { padding: 10px 16px; }
+body.no-img .site-footer p { margin: 0; }
