@@ -67,14 +67,53 @@
 <h1 class="sr-only">ImageLab —— 在线图片像素与深度查看器，支持 16bit TIFF 深度图伪彩色、RGB/HEX 取色与像素网格</h1>
 
 <header class="topbar">
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
   <div class="brand">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></div>
   <nav class="doc-nav" aria-label="站内导航">
-    <a href="/#inspect" aria-current="page">查看</a>
-    <a href="/#edit">编辑</a>
-    <a href="/#prompt">提示词</a>
-    <a href="/#video">视频</a>
-    <a href="/#guides">教程</a>
-      <a href="/">← 全部工具</a>
+    <div class="nav-item">
+      <a href="/#inspect" aria-current="page">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+      </div>
+    </div>
+    <a href="/">← 全部工具</a>
   </nav>
   <button id="btnOpen" class="btn">打开图片</button>
   <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
@@ -92,6 +131,10 @@
 
 <!-- 广告位：顶部横幅 728×90。接入广告时删除占位 span，放入广告代码（如 AdSense ins 标签） -->
 <div class="ad-slot ad-top"><span>广告位 728 × 90</span></div>
+
+<div class="viewer-crumb"><nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <a href="/#inspect">查看</a> / <span aria-current="page">像素与深度查看器</span>
+  </nav></div>
 
 <main class="layout">
   <aside class="sidebar">

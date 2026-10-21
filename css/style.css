@@ -679,3 +679,96 @@ input[type="checkbox"] {
   height: 16px;
   accent-color: var(--accent);
 }
+
+
+/* ==================== 导航：吸顶 + 分类下拉 + 移动端菜单 ==================== */
+.topbar { position: sticky; top: 0; z-index: 20; }
+.doc-nav { overflow: visible; }
+
+.nav-item { position: relative; }
+.nav-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -10px;
+  min-width: 190px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(15, 18, 22, .14);
+  z-index: 23;
+}
+.nav-item:hover .nav-panel,
+.nav-item:focus-within .nav-panel { display: flex; }
+.nav-panel a {
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.nav-panel a:hover { background: var(--panel2); color: var(--accent); }
+
+.nav-toggle { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 34px;
+  height: 32px;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.nav-burger span { display: block; height: 2px; border-radius: 1px; background: var(--text); }
+
+.home-section { scroll-margin-top: 58px; }
+
+@media (max-width: 720px) {
+  .nav-burger { display: flex; order: 3; margin-left: auto; }
+  .topbar-right { order: 4; margin-left: 0; }
+  .nav-toggle:checked ~ .doc-nav {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: 6px 14px 12px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 12px 24px rgba(15, 18, 22, .12);
+    max-height: calc(100vh - 54px);
+    overflow-y: auto;
+    z-index: 22;
+  }
+  .nav-item > a {
+    display: block;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .nav-panel {
+    display: flex;
+    position: static;
+    min-width: 0;
+    margin: 0;
+    padding: 2px 0 8px 12px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: none;
+  }
+  .nav-panel a { padding: 7px 8px; font-size: 13px; white-space: normal; }
+}
+
+.viewer-crumb { width: 100%; max-width: 1180px; margin: 0 auto; padding: 16px 20px 0; }
+.viewer-crumb .breadcrumb { margin-bottom: 4px; }

@@ -56,14 +56,53 @@
 
 <header class="topbar doc-topbar">
   <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
   <nav class="doc-nav" aria-label="Site navigation">
-    <a href="/en/#inspect">Inspect</a>
-    <a href="/en/#edit" aria-current="page">Edit</a>
-    <a href="/en/#prompt">Prompts</a>
-    <a href="/en/#video">Video</a>
-    <a href="/en/#guides">Guides</a>
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit" aria-current="page">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+      </div>
+    </div>
   </nav>
-  <div class="topbar-right">
+<div class="topbar-right">
     <nav class="lang-switch" aria-label="Language">
       <a href="/tools/grid" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
       <span class="lang-sep">|</span>
@@ -73,6 +112,9 @@
 </header>
 
 <main class="tool-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <a href="/en/#edit">Edit</a> / <span aria-current="page">Split an Image into a Grid</span>
+  </nav>
   <div class="tool-head">
     <h1>Split an Image into a Grid</h1>
     <p class="tool-sub">Cut one image into a 3x3, 4x4 or any rows × columns grid. Every tile is a lossless PNG at full pixel resolution, bundled into a single zip — ready for multi-image posts and layouts.</p>
