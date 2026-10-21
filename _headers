@@ -9,6 +9,18 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
 
+  # HSTS：全站强制 HTTPS 一年（http→https 已由面板 Always Use HTTPS 处理）。
+  # 暂不带 preload——名单提交不可逆，稳定运行后再考虑。
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+  # CSP 说明（与本站实现一一对应）：
+  #   'unsafe-inline'      —— 43 页各有内联 JSON-LD 与内联 lang-boot（无外部注入点，风险可控）
+  #   'wasm-unsafe-eval'   —— onnxruntime-web 编译 WebAssembly 需要
+  #   worker-src blob:     —— onnxruntime 线程 worker 由 blob 创建
+  #   media-src blob:      —— video-frame 用 createObjectURL 加载视频
+  #   connect-src cloudflareinsights.com —— 预留 Cloudflare Web Analytics beacon
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self' blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'
+
 # 静态资源：浏览器缓存 7 天（与 nginx 的 expires 7d 一致）
 # 注意：这些文件名不带内容哈希，改动 css/js 后老访客最多 7 天内仍用旧缓存。
 # 如果需要「改完立刻生效」，把 max-age 调小（如 3600）或给文件名加版本号。
@@ -28,15 +40,16 @@
   Cache-Control: public, max-age=604800
 
 /*.webmanifest
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=604800
 
 /*.woff2
   Cache-Control: public, max-age=604800
 
-# ONNX 模型与 WASM 推理引擎：大文件且内容不变，缓存 30 天
+# ONNX 模型：大文件、内容不变，缓存一年且不可变（引用同一 URL 即同一模型）
 /*.onnx
-  Cache-Control: public, max-age=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
+# WASM 推理引擎：随 ort 版本升级可能换文件内容，保持 30 天
 /*.wasm
   Cache-Control: public, max-age=2592000
 

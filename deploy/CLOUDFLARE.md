@@ -188,6 +188,40 @@ Cloudflare 自动构建约 1 分钟生效。非 `main` 分支的 push 会生成�
 
 ---
 
+## 安全头与 HTML 缓存（2026-10-21）
+
+**安全头在 `_headers`（随代码版本化）**：
+
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains`（暂不带 preload，名单提交不可逆）
+- `Content-Security-Policy`：本站专用组合，要点与实现一一对应——
+  `'unsafe-inline'`（43 页内联 JSON-LD 与内联 lang-boot）、`'wasm-unsafe-eval'`（onnxruntime 编译 wasm）、
+  `worker-src blob:`（onnxruntime 线程 worker）、`media-src blob:`（video-frame 的 objectURL 视频）、
+  `connect-src` 预留 `cloudflareinsights.com`（Web Analytics beacon，启用前 CSP 已放行）。
+  **改页面内联 JSON-LD / 新增外部资源时记得同步这条头。**
+
+**HTML 缓存走面板 Cache Rules**（纯 `_headers` 写不了：本站全是无扩展名漂亮 URL，
+`/*.html` 匹配不到；`/tools/*` 又会与 `/*.js` 规则冲突）：
+
+1. Cloudflare → Rules → **Cache Rules** → Create rule
+2. 条件：`(not http.request.uri.path matches r"\.[a-z0-9]+$")`
+   （匹配所有无扩展名路径 = HTML 页面；css/js/onnx 等带扩展名的资源不受影响）
+3. Cache eligibility → **Eligible for cache**；Edge TTL → **1 day**；
+   Browser TTL → **Override**，`max-age=60`
+
+验收（配置后跑一次）：
+
+```powershell
+curl.exe -sI https://yangzixiong.com/ | Select-String 'strict-transport|content-security|cache-control|cf-cache-status'
+curl.exe -sI https://yangzixiong.com/models/u2netp.onnx | Select-String 'cache-control'   # 应含 immutable
+curl.exe -sI https://yangzixiong.com/site.webmanifest | Select-String 'cache-control'      # 应含 max-age=604800
+```
+
+同一 URL 请求两次，第二次 `CF-Cache-Status: HIT` 即 HTML 缓存生效。
+首次上线 CSP 后务必打开 remove-bg（抠图）、video-frame（载入视频）、histogram 各跑一遍，
+浏览器控制台出现 `Refused to ... by Content-Security-Policy` 说明头配置需要调整。
+
+---
+
 ## 需要知道的几个约束
 
 - **Git 集成之后不能改成 Direct Upload**（Cloudflare 的硬限制）。仍想用命令行直传时，可以在项目设置里关掉自动部署，再用 `npx wrangler pages deploy .` 推，但项目类型不变。
