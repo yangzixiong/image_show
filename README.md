@@ -30,7 +30,7 @@
 
 - **静态文字**直接写在各自的 HTML 里（`index.html` / `en/index.html`）——爬虫不执行 JS 也能读到全文。
 - **JS 生成的文字**（toast、深度值、侧栏提示等）统一放在 `js/i18n.js` 的文案表里，代码里用 `t("key", {name: value})` 取。
-- 顶栏 `中文 | EN` 是普通链接，不做 JS 重绘；`localStorage` 只用来记录"上次选了另一种语言"，从不自动跳转。
+- 顶栏 `中文 | EN` 是普通链接，不做 JS 重绘；`localStorage`（`imagelab.lang`）只记录用户**显式点过**的语言。首访时 `js/lang-boot.js` 按 `navigator.languages` 自动切换语言（head 内执行、无闪烁；爬虫与无头浏览器跳过，点过开关后永不再跳）。
 - 两页共用同一套 CSS/JS，所以 **DOM 的 id 必须保持一致**，`deploy/check_i18n.py` 会校验这一点。
 
 改完 js/css 记得把各 HTML 里对应的 `?v=` 版本号加一（当前 toolkit/i18n 为 `?v=3`、promptlib 为 `?v=2`、`style.css` 为 `?v=5`，页面脚本从 `?v=1` 起；这些资源缓存 7 天）。

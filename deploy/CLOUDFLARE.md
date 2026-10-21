@@ -159,7 +159,7 @@ WAF、限速、Bot Fight Mode、Block AI bots 都是**区域（zone）级**功�
 要点：
 
 - 两个页面各自写死自己的静态文字（爬虫不执行 JS 也读得到），JS 拼出来的字符串统一在 `js/i18n.js` 的 `DICT` 里，由 `<html lang>` 决定用哪一份。
-- 顶栏 `中文 | EN` 是普通链接，**不做自动跳转**（按浏览器语言 302 会干扰抓取，也让分享出去的链接对别人显示错语言）。`localStorage` 只记录上次的选择，用来在顶栏显示一个不打扰的提示。
+- 顶栏 `中文 | EN` 是普通链接；首访时由 `js/lang-boot.js` 按浏览器语言自动切换（`location.replace`，保留 `?query`/`#hash`；爬虫 UA 与 `navigator.webdriver` 一律跳过，搜索引擎仍各自索引中英版本）。`localStorage`（`imagelab.lang`）只记录用户显式点过的语言，点过之后永不再自动跳，并用来在顶栏显示一个不打扰的提示。
 - 两页共用同一套 JS，所以 **DOM 的 id 必须完全一致**——改了一边记得改另一边，否则共用脚本会报 `null` 错误。
 - 改完 `js/` 或 `css/` 要把两个 HTML 里的 `?v=1` 加一。这些资源在 `_headers` 里缓存 7 天，不加版本号老访客会继续用旧文件。
 - 上线后跑一次 `python deploy/check_i18n.py`，它会校验：lang 属性、canonical、hreflang 三条、两页 id 一致、本地资源存在、中英文案 key 一一对应、JS 用到的 key 都有定义、sitemap 收录两个 URL。
