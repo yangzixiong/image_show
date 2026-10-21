@@ -230,6 +230,28 @@ curl.exe -sI https://yangzixiong.com/site.webmanifest | Select-String 'cache-con
 - **`.assetsignore`** 用于把 `README.md`、`deploy/`、`docs/`、`wrangler.jsonc` 等排除在发布内容之外；2026-10-20 线上实测生效（上述路径请求均 404）。
 - **别忘了 `ads.txt`**：接入 AdSense 后要填发布商 ID 并推一次，否则广告收益归属校验会失败。
 
+### Service Worker（`/sw.js`）与发版纪律
+
+站点注册了 Service Worker（全部 56 个页面在 `<head>` 里注册）。它的存在会把浏览器的 HTTP 缓存**再叠一层**——Service Worker 的 Cache Storage 条目没有过期时间，所以「HTTP 缓存 7 天」在 SW 面前什么都不是。
+
+当前分层策略（`sw.js` 顶部有完整注释）：
+
+| 请求类型 | 策略 | 原因 |
+|---|---|---|
+| 导航（HTML） | 网络优先 → 缓存兜底 | 发版即生效，断网也能打开看过的页面 |
+| `/data/*.json`（词库、负面词） | 网络优先（3 秒超时）→ 缓存兜底 | 运营更新必须能送到用户手里 |
+| 带 `?v=` 的 `/js/`、`/css/` | 缓存优先 | 版本号变了缓存键就变 |
+| 不带 `?v=` 的静态资源（`/lib/*.js`、`/img/*`） | 缓存优先，靠缓存名版本号失效 | 这些文件没有 `?v=`，只能靠 `sw.js` 里的 `VERSION` 统一失效 |
+| `/models/`、`/lib/ort/`、`/data/tok/` | **永不缓存** | 合计约 29 MB，进缓存会爆配额 |
+
+**发版纪律（重要）**：
+
+1. 改过任何 `/js/`、`/css/` 文件 → 把引用它的 HTML 里的 `?v=` 加一（`deploy/check_content.py` 会检查全站版本号是否一致）。
+2. 改过**不带 `?v=`** 的静态资源（`/lib/utif.js`、`/lib/fflate.js`、`/img/*`、`favicon.ico`、`site.webmanifest`）→ 把 `sw.js` 顶部的 `VERSION` 加一（如 `v2` → `v3`）。否则老访客会永久用旧文件——因为 Cache Storage 条目不会自己过期。
+3. 改过 `sw.js` 本身 → 同样把 `VERSION` 加一，保证 activate 时清掉旧缓存。
+4. HTML 内容变更不需要动 `VERSION`（HTML 是网络优先），但改了 HTML 里的脚本引用版本号时记得同步 `VERSION`，避免新旧 JS 混用。
+
+
 ---
 
 ## Workers 静态资源 vs Pages
