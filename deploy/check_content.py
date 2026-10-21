@@ -225,6 +225,27 @@ check(not stale, "所有引用样式表的页面均使用 ?v=6")
 for s in stale:
     print("      未升级:", s)
 
+# ---- lang-boot 内联副本与源文件一致（写入工具 deploy/inline_langboot.py）----
+langboot_code = (ROOT / "js" / "lang-boot.js").read_text(encoding="utf-8").strip()
+LB1, LB2 = "/* lang-boot:begin */", "/* lang-boot:end */"
+bad_boot = []
+for html_file in sorted(ROOT.rglob("*.html")):
+    rel = html_file.relative_to(ROOT).as_posix()
+    if rel.startswith(("docs/", "deploy/")) or rel == "404.html":
+        continue
+    text = html_file.read_text(encoding="utf-8")
+    if 'src="/js/lang-boot.js' in text:
+        bad_boot.append(rel + " (仍是外链 script)")
+        continue
+    m = re.search(re.escape(LB1) + r"(.*?)" + re.escape(LB2), text, re.S)
+    if not m:
+        bad_boot.append(rel + " (缺少 lang-boot 标记块)")
+    elif m.group(1).strip() != langboot_code:
+        bad_boot.append(rel + " (副本与 js/lang-boot.js 不一致)")
+check(not bad_boot, "所有页面 lang-boot 内联副本与 js/lang-boot.js 一致")
+for b in bad_boot:
+    print("      ", b)
+
 print()
 print("全部通过" if ok else "存在未通过项")
 sys.exit(0 if ok else 1)

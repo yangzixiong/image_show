@@ -34,7 +34,20 @@ var Decoder = (function () {
   }
 
   function isTIFF(file) {
-    return /\.tiff?$/i.test(file.name);
+    return /\.tiff?$/i.test(file.name) || file.type === "image/tiff";
+  }
+
+  // 按需加载 /lib/utif.js（107KB，只有拖入 TIFF 时才下载）；promise 缓存，重复调用只加载一次
+  var utifPromise = null;
+  function ensureUtif() {
+    if (typeof UTIF !== "undefined") return Promise.resolve(UTIF);
+    if (!utifPromise) {
+      utifPromise = import("/lib/utif.js").then(function () {
+        if (typeof UTIF === "undefined") throw new Error("UTIF 加载失败");
+        return UTIF;
+      }, function (err) { utifPromise = null; throw err; });
+    }
+    return utifPromise;
   }
 
   function decode(file) {
@@ -64,7 +77,7 @@ var Decoder = (function () {
   }
 
   async function decodeTIFF(file) {
-    if (typeof UTIF === "undefined") throw new Error("TIFF 解码库未加载");
+    var UTIF = await ensureUtif();
     var buf = await file.arrayBuffer();
     var ifds = UTIF.decode(buf);
     if (!ifds.length) throw new Error("空的 TIFF 文件");

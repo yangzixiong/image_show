@@ -66,6 +66,19 @@ var Toolkit = (function () {
     return name.replace(/\.[^.]+$/, "");
   }
 
+  // 按需加载 /lib/fflate.js（32KB，只有点「导出 ZIP」时才下载）；promise 缓存，只加载一次
+  var fflatePromise = null;
+  function ensureFflate() {
+    if (typeof fflate !== "undefined") return Promise.resolve(fflate);
+    if (!fflatePromise) {
+      fflatePromise = import("/lib/fflate.js").then(function () {
+        if (typeof fflate === "undefined") throw new Error("fflate 加载失败");
+        return fflate;
+      }, function (err) { fflatePromise = null; throw err; });
+    }
+    return fflatePromise;
+  }
+
   var toastTimer = null;
   function toast(msg) {
     var el = document.getElementById("toast");
@@ -83,6 +96,7 @@ var Toolkit = (function () {
     download: download,
     fmtBytes: fmtBytes,
     baseName: baseName,
+    ensureFflate: ensureFflate,
     toast: toast
   };
 })();

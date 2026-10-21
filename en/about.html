@@ -3,7 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/js/lang-boot.js?v=1"></script>
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
 <title>About ImageLab: Why and How It Exists · ImageLab</title>
 <meta name="description" content="Why ImageLab exists, how it works, who made it and how to reach them: Canvas 2D, UTIF.js, no backend, no image collection and no sign-up.">
 <meta name="robots" content="index,follow">
@@ -116,13 +157,13 @@
     <p>Two problems keep coming up when you slice sprites, match colours or read depth data: most online tools want you to upload the image to someone else's server, and the rest simply do not open 16-bit TIFF. The first is unrealistic for unreleased assets; the second locks out exactly the files whose numbers you need. ImageLab aims to be just a page: open it, drop an image, read values — the file stays on your device the whole time.</p>
 
     <h2>How it is built</h2>
-    <p>No backend and no build step. The page is a handful of local files: rendering is plain <code>Canvas 2D</code>, and TIFF decoding is handled by the bundled <code>UTIF.js</code>:</p>
-    <pre><code>&lt;script src="/lib/utif.js"&gt;&lt;/script&gt;
-&lt;script src="/js/decoder.js?v=3"&gt;&lt;/script&gt;</code></pre>
+    <p>No backend and no build step. The page is a handful of local files: rendering is plain <code>Canvas 2D</code>, and TIFF decoding loads <code>UTIF.js</code> on demand:</p>
+    <pre><code>&lt;script src="/js/decoder.js?v=4"&gt;&lt;/script&gt;
+// only a dropped TIFF file triggers import("/lib/utif.js") inside decoder</code></pre>
     <p>The full path of one lookup:</p>
     <ol>
       <li>choose, drop or paste an image — the browser reads the file locally;</li>
-      <li>everyday formats go through native decoding, TIFF goes through the bundled UTIF.js;</li>
+      <li>everyday formats go through native decoding, TIFF through the on-demand UTIF.js;</li>
       <li>the decoded pixels land on a canvas where zoom, pan and the pixel grid all happen;</li>
       <li>hover to read coordinates, colours or depth, click to copy — no network request at any point.</li>
     </ol>

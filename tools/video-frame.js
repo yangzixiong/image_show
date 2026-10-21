@@ -316,11 +316,12 @@
     if (!state.frames.length) { Toolkit.toast(tt("empty")); return; }
     var frames = state.frames.slice();
 
-    Promise.all(frames.map(function (f) { return f.blob.arrayBuffer(); })).then(function (bufs) {
+    Promise.all(frames.map(function (f) { return f.blob.arrayBuffer(); })).then(async function (bufs) {
       var files = {};
       frames.forEach(function (f, i) { files[f.name] = new Uint8Array(bufs[i]); });
 
-      var zipped = fflate.zipSync(files, { level: 0 });
+      var ff = await Toolkit.ensureFflate();
+      var zipped = ff.zipSync(files, { level: 0 });
       var blob = new Blob([zipped], { type: "application/zip" });
       Toolkit.download(blob, Toolkit.baseName(state.file.name) + "_frames.zip");
       Toolkit.toast(tt("zipped", { n: frames.length, size: Toolkit.fmtBytes(blob.size) }));

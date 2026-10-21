@@ -278,11 +278,12 @@
     var base = Toolkit.baseName(state.img.name);
     Promise.all([toBlob(els.cut), toBlob(els.mask)]).then(function (blobs) {
       return Promise.all(blobs.map(function (b) { return b.arrayBuffer(); }));
-    }).then(function (bufs) {
+    }).then(async function (bufs) {
       var files = {};
       files[base + "-cut.png"] = new Uint8Array(bufs[0]);
       files[base + "-mask.png"] = new Uint8Array(bufs[1]);
-      var zipped = fflate.zipSync(files, { level: 0 });
+      var ff = await Toolkit.ensureFflate();
+      var zipped = ff.zipSync(files, { level: 0 });
       var blob = new Blob([zipped], { type: "application/zip" });
       var name = base + "-cutout.zip";
       Toolkit.download(blob, name);

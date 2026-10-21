@@ -3,7 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/js/lang-boot.js?v=1"></script>
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
 <title>关于 ImageLab：动机与实现 · ImageLab</title>
 <meta name="description" content="为什么做这个工具、用什么技术实现、谁做的、如何联系，以及本站对图片与注册的承诺：Canvas 2D 渲染、UTIF.js 解码 TIFF、无后端、不收集图片、打开即用。">
 <meta name="robots" content="index,follow">
@@ -116,13 +157,13 @@
     <p>做切图、对色或读深度数据时，能随手上手的在线工具有两个通病：要么要你把图片上传到别人的服务器，要么干脆不认 16bit TIFF。前者对还没发布的素材不现实，后者把最需要读数值的文件挡在门外。ImageLab 想要的只是一个页面：打开、拖图、读数，图片从头到尾留在自己的设备上。</p>
 
     <h2>怎么实现</h2>
-    <p>没有后端，也没有构建步骤。页面本身是几个本地文件，渲染用 <code>Canvas 2D</code>，TIFF 解码用内置的 <code>UTIF.js</code>：</p>
-    <pre><code>&lt;script src="lib/utif.js"&gt;&lt;/script&gt;
-&lt;script src="js/decoder.js?v=3"&gt;&lt;/script&gt;</code></pre>
+    <p>没有后端，也没有构建步骤。页面本身是几个本地文件，渲染用 <code>Canvas 2D</code>，TIFF 解码按需加载 <code>UTIF.js</code>：</p>
+    <pre><code>&lt;script src="js/decoder.js?v=4"&gt;&lt;/script&gt;
+// 拖入 TIFF 文件时，decoder 内部才会 import("/lib/utif.js")</code></pre>
     <p>一次查看的完整流程：</p>
     <ol>
       <li>选择、拖入或 Ctrl+V 粘贴图片，浏览器在本地读取文件；</li>
-      <li>普通格式交给浏览器原生解码，TIFF 交给内置的 UTIF.js；</li>
+      <li>普通格式交给浏览器原生解码，TIFF 交给按需加载的 UTIF.js；</li>
       <li>解码结果画到 Canvas 画布上，缩放、平移、像素网格都在画布内完成；</li>
       <li>悬停读出坐标、颜色或深度值，单击复制——全程没有任何网络请求。</li>
     </ol>

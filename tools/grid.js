@@ -157,8 +157,9 @@
       }
     }
 
-    chain.then(function () {
-      var zipped = fflate.zipSync(files, { level: 0 });
+    chain.then(async function () {
+      var ff = await Toolkit.ensureFflate();
+      var zipped = ff.zipSync(files, { level: 0 });
       var blob = new Blob([zipped], { type: "application/zip" });
       var name = base + "_grid_" + rows + "x" + cols + ".zip";
       Toolkit.download(blob, name);
