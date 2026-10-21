@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Storyboard and Manga Panels with the 9-Grid · ImageLab</title>
+<meta name="description" content="Build storyboards and manga pages on a nine-grid: equal-split geometry, choosing rows and columns, whole-image vs per-panel routes, gutters and export.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/grid-comic">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/grid-comic">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/grid-comic">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/grid-comic">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/grid-comic">
+<meta property="og:title" content="Storyboard and Manga Panels with the 9-Grid · ImageLab"
+<meta property="og:description" content="Equal-split geometry, choosing rows and columns, whole-image vs per-panel routes, gutters and reading order for manga pages, and the ZIP export workflow."
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Storyboard and Manga Panels with the 9-Grid · ImageLab"
+<meta name="twitter:description" content="Equal-split geometry, choosing rows and columns, whole-image vs per-panel routes, gutters and reading order for manga pages, and the ZIP export workflow."
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Nine-Grid Splitting for Storyboards and Manga",
+  "description": "Equal-split geometry, choosing rows and columns, whole-image vs per-panel routes, gutters and reading order for manga pages, and the ZIP export workflow.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/grid-comic",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/grid-comic",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "Nine-Grid Splitting for Storyboards and Manga",
+  "inLanguage": "en",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Will the tiles overlap?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No — boundaries use floor(i × W / n) so each right edge equals the next left edge; remainders spread across tiles."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many panels can I cut?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Rows and columns are selectable, typically 2-6 each; the real limit is the resolution each panel needs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I add gutters?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tiles are edge-tight — add 4-8px borders in the layout stage; the tool adds none itself."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I export only some panels?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No — export packs all tiles into one ZIP; delete what you skip after unzipping."
+      }
+    }
+  ]
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/grid-comic" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Nine-grid storyboards</span>
+  </nav>
+
+  <article class="prose">
+    <h1>Nine-Grid Splitting for Storyboards and Manga</h1>
+    <p class="lede">Storyboards and manga pages all reduce to one task: cutting a big image into tidy panels. Crooked cuts, overlaps and lost pixels — here is the geometry, the route choice, and the workflow.</p>
+    <h2>Equal-split geometry: no overlap, no lost pixels</h2>
+    <p>To cut a width W into n columns, each boundary is <strong>floor(i × W / n)</strong>: left edge closed, right edge open, so neighbouring tiles meet exactly. When W does not divide evenly, the remainder spreads one pixel at a time across the tiles — one or two tiles end up a pixel wider, but <strong>reassembled they fit perfectly, with no overlap and not a single column lost</strong>. Rows work the same way.</p>
+    <p>This sounds mundane, but it is the entry ticket for a splitter: truncating <code>W / n</code> and accumulating drifts 1-2 px per step, and by the eighth panel the offset is visible. The <a href="/en/tools/grid">grid splitter</a> here uses exactly the formula above, and its preview shows "≈w × h per tile · n tiles" so you can check panel dimensions before cutting.</p>
+
+    <h2>Two routes: cut an image, or build from panels</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Route</th><th>Wins</th><th>Costs</th></tr></thead>
+      <tbody>
+        <tr><td>Generate whole, then cut</td><td>Lighting and characters match across panels by construction</td><td>Weak layout control; per-panel resolution is divided from the whole</td></tr>
+        <tr><td>Generate per panel, then assemble</td><td>Every panel gets its own composition and prompt; full sharpness</td><td>Cross-panel consistency must be forced with fixed keywords, seeds and character refs</td></tr>
+      </tbody>
+    </table></div>
+    <p>Rule of thumb: for storyboard drafts and pacing, go <strong>whole-image</strong> — narrative order matters more than per-panel polish; for a final manga page, go <strong>per-panel</strong> — composition quality matters most. Either way you finish at the same action: cutting tidy panels.</p>
+
+    <h2>Storyboard workflow</h2>
+    <ol>
+      <li>Write the shot list: one line per panel — shot type, action, emotion — and order it on paper first;</li>
+      <li>Generate along your route: one multi-panel image, or one image per panel;</li>
+      <li>Feed the sheet into the <a href="/en/tools/grid">grid splitter</a>, pick 3×3 (or 2×2 / 4×3 to match the script), and confirm in the preview that tile edges fall on the panel lines;</li>
+      <li>Export the ZIP in one click — files are named "original_grid_RxC", ready for layout or editing;</li>
+      <li>When pacing matters, run the <a href="/en/tools/storyboard-timer">storyboard timer</a> first to fix durations, then decide panel detail levels.</li>
+    </ol>
+    <p>The whole-image route hides a bonus: a failed panel only requires regenerating the sheet or an inpaint, while the per-panel route forces you to re-align every panel's style baseline.</p>
+
+    <h2>Panel design for a manga page</h2>
+    <p>3×3 is the default nine-grid, but real pages vary: <strong>2×2</strong> for four-panel shorts, <strong>3×4 / 4×4</strong> for dense action sequences, <strong>uneven splits</strong> (one large panel over small ones) for the advanced look. This tool does equal splits — do the uneven layout in your layout app, using equal tiles as raw material and moving the grid lines after.</p>
+    <p>Two layout facts to decide before cutting: <strong>gutters</strong> — exported tiles are edge-tight, so the 4-8px white gaps between panels belong to the layout stage, not the splitter; and <strong>reading order</strong> — traditional Chinese comics read right-to-left, top-to-bottom, Western pages left-to-right. Files come out in row-major names, so sort by your target market's eye path rather than the file manager's default.</p>
+
+    <h2>Consistency tricks on the generation side</h2>
+    <p>The per-panel route's pain is nine faces for one character. Three usable levers: copy identical <strong>character and style keywords</strong> into every panel prompt; lock the <strong>seed</strong> so every panel starts from a similar skeleton; and change only action and shot type between panels while keeping word order fixed. The whole-image route flips the problem — describing the <strong>grid layout itself</strong> in the prompt ("a 3x3 comic panel grid") raises the hit rate, but layout obedience is limited, so check the preview to see whether the lines actually landed where you wanted.</p>
+
+    <h2>Export and post notes</h2>
+    <ul>
+      <li><strong>Bulk export</strong>: the tool packs every tile into one ZIP — selective export does not exist; just delete unneeded tiles after unzipping;</li>
+      <li><strong>Lossless only</strong>: tiles are PNG by default — do not run them through JPEG again, artefacts appear along the cuts;</li>
+      <li><strong>Check dimensions first</strong>: "≈w × h per tile" in the preview is your layout budget — do the arithmetic before exporting;</li>
+      <li><strong>Keep the original</strong>: cutting is lossless, but layouts demand re-cuts (new row/column counts), and only the original saves a regeneration.</li>
+    </ul>
+
+    <h2>FAQ</h2>
+    <h3>Will the tiles overlap?</h3>
+    <p>No. Boundaries use floor(i × W / n), so each tile's right edge equals the next tile's left edge; remainders spread across tiles when W does not divide evenly.</p>
+    <h3>How many panels can I cut?</h3>
+    <p>Rows and columns are selectable, typically 2-6 each. Beyond that panels get too small for layout; the real limit is the resolution each panel needs.</p>
+    <h3>How do I add gutters?</h3>
+    <p>The splitter produces edge-tight tiles — add 4-8px white borders in the layout stage, or pad the canvas on export. The tool itself adds no gutters.</p>
+    <h3>Can I export only some panels?</h3>
+    <p>No — export packs all tiles into one ZIP; delete the ones you skip after unzipping, which is simpler than selective-export UI.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+</body>
+</html>

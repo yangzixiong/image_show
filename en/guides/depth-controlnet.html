@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Depth Maps in ControlNet: A Practical Guide · ImageLab</title>
+<meta name="description" content="How to feed depth maps to ControlNet: what the depth channel locks, millimetre units and zero-invalid values, pre-processor checks, triage, and verification.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/depth-controlnet">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/depth-controlnet">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/depth-controlnet">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/depth-controlnet">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/depth-controlnet">
+<meta property="og:title" content="Depth Maps in ControlNet: A Practical Guide · ImageLab"
+<meta property="og:description" content="What the depth channel locks, three material sources, millimetre and zero-invalid handling, pre-processor checks, a symptom table, and a viewer-plus-histogram verification flow."
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Depth Maps in ControlNet: A Practical Guide · ImageLab"
+<meta name="twitter:description" content="What the depth channel locks, three material sources, millimetre and zero-invalid handling, pre-processor checks, a symptom table, and a viewer-plus-histogram verification flow."
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "16-bit Depth Maps in ControlNet",
+  "description": "What the depth channel locks, three material sources, millimetre and zero-invalid handling, pre-processor checks, a symptom table, and a viewer-plus-histogram verification flow.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/depth-controlnet",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/depth-controlnet",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "16-bit Depth Maps in ControlNet",
+  "inLanguage": "en",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Must the depth map match the base image size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The composition must match; exact pixels are not mandatory. Misaligned crops break structure far worse than resolution differences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is half of it transparent on open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Value 0 counts as invalid depth and renders transparent — holes or uncovered render. Over the subject, patch or replace; crop the edges."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can a depth map double as a black-and-white photo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No — it encodes distance, not brightness; direct colouring gives a strange nearer-is-whiter image."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is 16-bit better than 8-bit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "16-bit gradients suit final output, 8-bit suits drafts; the real requirement is normalising the valid range to fill 0-255."
+      }
+    }
+  ]
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/depth-controlnet" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Depth and ControlNet</span>
+  </nav>
+
+  <article class="prose">
+    <h1>16-bit Depth Maps in ControlNet</h1>
+    <p class="lede">Depth is ControlNet's keep-structure-change-skin channel: it only tells the model what is near and what is far. This guide covers sources, units and what to verify before generating.</p>
+    <h2>What the depth channel shows the model</h2>
+    <p>The depth model receives one greyscale image: <strong>brighter is nearer, darker is farther</strong> (a few implementations invert this — see the triage table). It injects the spatial skeleton — depth relations, occlusion edges, volume outlines — into sampling, while colour, material and lighting stay with the prompt. That is why depth preserves composition while changing style, where a lineart ControlNet would copy every stroke.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Channel</th><th>Locks</th><th>Typical use</th></tr></thead>
+      <tbody>
+        <tr><td>Depth</td><td>Near-far structure and occlusion</td><td>Restyle or re-material while keeping staging</td></tr>
+        <tr><td>Canny / lineart</td><td>Every contour line</td><td>Faithful redraws, colouring, exact layout copies</td></tr>
+        <tr><td>Normal</td><td>Surface orientation and curvature</td><td>Relighting reliefs and curved surfaces</td></tr>
+      </tbody>
+    </table></div>
+    <p>Rule of thumb: if the composition lives in <strong>object placement</strong>, choose depth; if it lives in <strong>drawn lines</strong>, choose lineart; for both, stack two ControlNets at moderate weights — the guidance budget principles in <a href="/en/guides/prompt-weight">Prompt Weighting (a:b): Syntax and Tuning</a> apply here too, since over-driven guidance always produces artefacts.</p>
+
+    <h2>Three sources of material</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Source</th><th>Format and precision</th><th>Watch out for</th></tr></thead>
+      <tbody>
+        <tr><td>Phone / camera capture</td><td>JPG preview or 16-bit TIFF depth</td><td>Edge holes — inspect the zero-value share</td></tr>
+        <tr><td>Renderer Z-depth export</td><td>16-bit integer or 32-bit float TIFF</td><td>Cleanest data; align the mm/metre convention</td></tr>
+        <tr><td>Model-generated</td><td>Plain 8-bit greyscale</td><td>Lowest precision, zero cost — fine for drafts</td></tr>
+      </tbody>
+    </table></div>
+    <p>The first two open in the browser at full precision — 16-bit integer TIFF values display as millimetres, 32-bit float TIFF parses as metres with automatic conversion, and <strong>0 counts as invalid depth</strong> (sensor hole or uncovered render), shown as transparent. Full details live in <a href="/en/guides/depth-tiff">the 16-bit TIFF depth map guide</a>.</p>
+
+    <h2>Two checks before generating</h2>
+    <p><strong>One: range and invalid values.</strong> Open the <a href="/en/tools/pixel-viewer">pixel viewer</a> and sample a few points: values should sit in a plausible distance window (say 0.5-8 m), and translucent zeros must not cover the subject. Then open the <a href="/en/tools/histogram">image histogram</a> in depth mode — the x-axis is millimetres, the main peak is where the subject sits, and zeros are counted separately. <strong>Zeros stacked on the subject mean no depth information there</strong>: ControlNet will treat that as a structural hole, so patch it or change the source.</p>
+    <p><strong>Two: normalisation and resolution.</strong> Most front-ends end up feeding an 8-bit greyscale map, so 16-bit and float sources must first be normalised so the valid range fills 0-255 — normally the pre-processor's job or an external app's. <strong>These tools stop at inspection</strong>: they confirm units, range, invalid regions and polarity, then you hand the file to the generator. Pixel-identical resolution is not required, but the crop must match the base image or the structure lands in the wrong place.</p>
+
+    <h2>Symptom triage</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Symptom</th><th>Check first</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>Structure ignored entirely</td><td>Is it really a depth map (not colour rendered as muddy grey)?</td><td>Read values in the pixel viewer, or export an 8-bit greyscale version</td></tr>
+        <tr><td>Near and far swapped</td><td>Polarity of the source itself</td><td>Invert in the pre-processor or before export</td></tr>
+        <tr><td>Soft edges, drifting structure</td><td>Low pre-processor resolution or many holes</td><td>Raise it; see whether zeros invade the subject</td></tr>
+        <tr><td>Square black patches</td><td>Zero interpreted as nearest/farthest</td><td>Patch holes, crop the invalid area, or change source</td></tr>
+        <tr><td>Style will not move</td><td>ControlNet weight too high</td><td>Lower the weight and widen guidance per the safety range</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>Verification flow in ImageLab</h2>
+    <ol>
+      <li>Open the file in the <a href="/en/tools/pixel-viewer">pixel viewer</a>: 16-bit/float values in millimetres, zeros transparent — confirm range and unit point by point;</li>
+      <li>Switch the <a href="/en/tools/histogram">histogram</a> to depth mode: read the distance peak and the zero share to judge usability;</li>
+      <li>For colour cross-checks use the picker and the <a href="/en/guides/pixel-inspector">pixel inspector guide</a>; file-level problems (all black, absurd numbers) go straight to <a href="/en/guides/depth-tiff">the depth map guide</a>;</li>
+      <li>Once the source verifies clean, mount the depth ControlNet and climb the weight from low.</li>
+    </ol>
+
+    <h2>FAQ</h2>
+    <h3>Must the depth map match the base image size?</h3>
+    <p>The composition must match; exact pixels are not mandatory. Misaligned crops break structure far worse than a resolution difference.</p>
+    <h3>Why is half of it transparent on open?</h3>
+    <p>Pixel value 0 renders as transparent because it counts as invalid depth — sensor holes or uncovered render. Over the subject, patch or replace; at the edges, crop.</p>
+    <h3>Can a depth map double as a black-and-white photo?</h3>
+    <p>No — it encodes distance, not brightness; colouring it directly yields a strange "nearer is whiter" image. Use false colour if you need to visualise it.</p>
+    <h3>Is 16-bit better than 8-bit?</h3>
+      <p>16-bit gradients are smoother and suited to final output; 8-bit is fine for drafts. The real requirement is normalising so the valid range fills 0-255.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+</body>
+</html>

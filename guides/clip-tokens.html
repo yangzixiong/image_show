@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Token 计数与 75/77 上限 · ImageLab</title>
+<meta name="description" content="CLIP 怎么把提示词切成 token，75/77 两个数字的确切含义、BREAK 与 AND 如何分段计数、超限后画面丢什么，中英文计数差异，以及用 Token 计数器逐段核对的完整方法。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/clip-tokens">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/clip-tokens">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/clip-tokens">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/clip-tokens">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/clip-tokens">
+<meta property="og:title" content="Token 计数与 75/77 上限 · ImageLab"
+<meta property="og:description" content="75 与 77 的确切含义、BREAK/AND 分段计数规则、超限截断的后果、中英文计数差异，以及用 Token 计数器逐段核对的流程。"
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Token 计数与 75/77 上限 · ImageLab"
+<meta name="twitter:description" content="75 与 77 的确切含义、BREAK/AND 分段计数规则、超限截断的后果、中英文计数差异，以及用 Token 计数器逐段核对的流程。"
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "CLIP Token 计数与 75/77 上限",
+  "description": "75 与 77 的确切含义、BREAK/AND 分段计数规则、超限截断的后果、中英文计数差异，以及用 Token 计数器逐段核对的流程。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/clip-tokens",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/clip-tokens",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "CLIP Token 计数与 75/77 上限",
+  "inLanguage": "zh-CN",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "75 和 77 到底差在哪？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "差在数不数首尾两个特殊 token：编码器总长 77，纯文本可用 75，两者是同一个限制的两种口径。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "超过 77 会报错吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不会。单段超限直接截断尾部，排在最后的内容最易丢；正确做法是 BREAK 分段或精简。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "中文一个字几个 token？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "通常 1-2 个且碎片化严重，英文提示词几乎总能显著省长度，中文留作注释。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "T5 / SD3 也受 75 限制吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不受。T5-XXL 上限 512、SentencePiece 口径；本站计数器列出口径但词表暂未内置，结果为粗估。"
+      }
+    }
+  ]
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/clip-tokens" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">Token 计数与 75/77</span>
+  </nav>
+
+  <article class="prose">
+    <h1>CLIP Token 计数与 75/77 上限</h1>
+    <p class="lede">「75 个词」的说法满天飞，但 75 和 77 各指什么、超了到底发生什么，很少有人说清。这篇把计数口径、分段规则和核对方法一次讲透。</p>
+    <h2>token 不是词：模型的第一步是切分</h2>
+    <p>文本编码器读不到「词」，只能读一串整数。提示词进模型前会先过 BPE 分词器：常见组合合并成大 token，生僻组合拆成小碎片。SD1.5 与 SDXL 用的 CLIP 词表只有约 49000 个条目，切分结果和你平时用的输入法、英文分词都不一样——「masterpiece」可能是一个 token，也可能被拆成两段，一切以词表的合并规则为准。</p>
+    <p>这条链路上有两个直接后果：一是<strong>同一个词在不同模型里 token 数不同</strong>，CLIP、T5、GPT 的词表各管各的，计数必须按目标模型选口径；二是<strong>权重、逗号、空格都占 token</strong>——<code>(word:1.4)</code> 里的括号和数字不是免费的，写进提示词就要计入长度。</p>
+
+    <h2>75 与 77 到底怎么算</h2>
+    <p>CLIP 文本编码器一次最多吃 <strong>77 个位置</strong>，这是模型结构写死的上限。这 77 个位置里，开头要放一个起始标记、结尾要放一个结束标记，所以真正留给提示词文本的只有 <strong>75 个 token</strong>——「每段 77、实际 75」的两个数字就是这么来的，它们不是两种标准，而是一句话的两种口径。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>说法</th><th>数的是什么</th><th>什么时候用</th></tr></thead>
+      <tbody>
+        <tr><td>77 / 段</td><td>含首尾 2 个特殊 token 的编码器总长</td><td>计数器显示 x/77、判断是否贴上限</td></tr>
+        <tr><td>75 / 段</td><td>纯提示词可用长度</td><td>规划一段里能塞多少内容</td></tr>
+        <tr><td>512（T5-XXL）</td><td>SD3 系列的文本编码上限</td><td>换 SD3/Flux 类模型时按新上限算</td></tr>
+        <tr><td>无硬上限（o200k/cl100k）</td><td>GPT 系列 tiktoken 口径</td><td>给 ChatGPT 写提示词时用</td></tr>
+      </tbody>
+    </table></div>
+    <p>本站的 <a href="/tools/token-counter">Token 计数器</a> 按 CLIP 真实词表分段统计，每段显示 x/77，超出的段标红——因为它把特殊 token 也算了进去，所以「接近 77」和「还剩 75 里的多少」说的是同一件事。</p>
+
+    <h2>BREAK 与 AND：分段的两种姿势</h2>
+    <p>超长提示词不是整体截断到 77，而是<strong>按段分批编码</strong>。<code>BREAK</code> 是强制断段符：写到它就开新一段，每段独立走一遍 77 上限，段与段之间不共享注意力。想让两组概念各占一半画面时，BREAK 是最直接的工具；但段数也不是越多越好——段间联系弱，前面段落的描述对后面段落的影响会明显下降。</p>
+    <p><code>AND</code> 是另一套语法：把两段描述按交替权重揉进同一张图，多数前端实现里 AND 两侧也按独立段落编码。不同工具对 AND 的计数口径有差异，<strong>本站计数器按主流的 BREAK 分段口径统计</strong>，用 AND 前建议把两侧分别粘进去数一遍，别依赖一次统计盖住两种语法。权重语法本身见<a href="/guides/prompt-weight">《提示词权重 (a:b) 完整指南》</a>，它的作用范围同样以段为界。</p>
+
+    <h2>超限之后画面发生什么</h2>
+    <p>单段超过 77 的部分会被<strong>截断，而不是报错</strong>——这是排查「明明写了却不出」的第一现场。截断只砍尾部，所以后果和书写顺序强相关：把主体词堆在句尾，最容易被砍掉的就是主体；反过来，关键概念靠前写、或用括号独立成组，能保住优先级。</p>
+    <p>另一个隐蔽影响是权重的作用域：权重只在<strong>自己所在的段内</strong>生效。超过 75 字后的强力词，即使没被截断，也和前文隔了段，「全句强调」的效果打折。判断方法很直接：用计数器看超限标红的段里有没有关键概念，有就挪位置或拆段，而不是继续加权重数值。</p>
+
+    <h2>中文为什么「贵」一倍</h2>
+    <p>CLIP 词表以英文为主，汉字会被 BPE 拆成大量低效碎片，<strong>一个汉字通常占 1-2 个 token</strong>，而英文一个常用词往往就是 1 个。同样一句描述，中文版可能吃掉两倍长度，更快撞上 75 的墙。两个实用结论：给 SD 写提示词一律用英文，中文只做草稿；需要中文对照时用<a href="/tools/prompt-translate">提示词翻译</a>转一遍，既省 token 又避免生造词被切碎。负面提示词同理——它和正面共享同一套计数规则，见<a href="/guides/negative-prompt">《负面提示词怎么写才有效》</a>。</p>
+
+    <h2>在 ImageLab 里逐段核对</h2>
+    <ol>
+      <li>打开<a href="/tools/token-counter">Token 计数器</a>，模型选「CLIP（SD1.5 / SDXL，77/段）」——词表离线内置，打开本页才按需加载，不出网；</li>
+      <li>粘贴完整提示词，看分段列表：每段显示 x/77，标红的段就是会被截断的段；</li>
+      <li>换模型口径复核：SD3 系换 T5-XXL（512，词表暂未内置、结果为粗估），给 GPT 写提示词换 o200k / cl100k 精确计数；</li>
+      <li>改写后把红段挪短，再进生成端——顺手用<a href="/tools/prompt-weight">权重计算器</a>确认挪动后括号组的等效乘数没算错。</li>
+    </ol>
+
+    <h2>常见问题</h2>
+    <h3>75 和 77 到底差在哪？</h3>
+    <p>差在数不数首尾两个特殊 token：编码器总长 77，纯文本可用 75。计数器显示 x/77 是为了和「贴上限」的判断对齐，两个口径描述的是同一个限制。</p>
+    <h3>超过 77 会报错吗？</h3>
+    <p>不会。单段超限直接截断尾部，排在最后的内容最易丢；正确做法是 BREAK 分段或精简，而不是指望报错提醒。</p>
+    <h3>中文一个字几个 token？</h3>
+    <p>通常 1-2 个，且碎片化严重。提示词正文用英文几乎总能显著省长度，中文留作注释。</p>
+    <h3>T5 / SD3 也受 75 限制吗？</h3>
+    <p>不受。T5-XXL 上限 512，另一套 SentencePiece 词表；本站计数器已列出口径，但词表暂未内置，显示为粗估，够用来判断量级。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

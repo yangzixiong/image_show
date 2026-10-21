@@ -491,4 +491,61 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- CLIP Token 计数与 75/77 上限 -->
+  <url>
+    <loc>https://yangzixiong.com/guides/clip-tokens</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/clip-tokens"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/clip-tokens"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/clip-tokens"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/clip-tokens</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/clip-tokens"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/clip-tokens"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/clip-tokens"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- 深度图与 ControlNet -->
+  <url>
+    <loc>https://yangzixiong.com/guides/depth-controlnet</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/depth-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/depth-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/depth-controlnet"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/depth-controlnet</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/depth-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/depth-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/depth-controlnet"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- 九宫格分割与分镜漫画 -->
+  <url>
+    <loc>https://yangzixiong.com/guides/grid-comic</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/grid-comic"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/grid-comic"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/grid-comic"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/grid-comic</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/grid-comic"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/grid-comic"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/grid-comic"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

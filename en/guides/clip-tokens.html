@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>CLIP Tokens and the 75/77 Limit · ImageLab</title>
+<meta name="description" content="How CLIP splits a prompt into tokens, what 75 and 77 mean, how BREAK segments count, what truncation drops, why Chinese costs double, and how to verify them.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/clip-tokens">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/clip-tokens">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/clip-tokens">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/clip-tokens">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/clip-tokens">
+<meta property="og:title" content="CLIP Tokens and the 75/77 Limit · ImageLab"
+<meta property="og:description" content="What 75 and 77 actually count, BREAK/AND segmentation rules, what truncation drops, the Chinese-vs-English token cost, and a verification flow with the token counter."
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CLIP Tokens and the 75/77 Limit · ImageLab"
+<meta name="twitter:description" content="What 75 and 77 actually count, BREAK/AND segmentation rules, what truncation drops, the Chinese-vs-English token cost, and a verification flow with the token counter."
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "CLIP Tokens and the 75/77 Limit",
+  "description": "What 75 and 77 actually count, BREAK/AND segmentation rules, what truncation drops, the Chinese-vs-English token cost, and a verification flow with the token counter.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/clip-tokens",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/clip-tokens",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "CLIP Tokens and the 75/77 Limit",
+  "inLanguage": "en",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between 75 and 77?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Whether the two special tokens are counted: encoder length is 77, prompt-only budget is 75 — two readings of one limit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does exceeding 77 raise an error?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The tail of an over-long segment is truncated silently — segment with BREAK or trim instead."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many tokens is one Chinese character?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Typically 1-2 and badly fragmented; English prompts almost always cost less."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does T5 / SD3 also cap at 75?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No — T5-XXL allows 512 under SentencePiece; the counter lists encodings but its vocab is not bundled, so counts are estimates."
+      }
+    }
+  ]
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/clip-tokens" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Tokens and the 75/77 limit</span>
+  </nav>
+
+  <article class="prose">
+    <h1>CLIP Tokens and the 75/77 Limit</h1>
+    <p class="lede">You have seen both 75 and 77 quoted as the prompt limit. They are two readings of one constraint — here is the arithmetic, the segmentation rules, and how to verify your prompt segment by segment.</p>
+    <h2>A token is not a word</h2>
+    <p>The text encoder never reads words — it reads integers. Before anything else, the prompt passes through a BPE tokenizer: frequent combinations merge into large tokens, rare ones split into fragments. The CLIP vocabulary behind SD1.5 and SDXL holds only about 49,000 entries, and its merges match neither your keyboard's autocorrect nor an English word splitter — "masterpiece" may be one token or two, and only the merge table decides.</p>
+    <p>Two consequences follow. First, <strong>the same word counts differently across models</strong> — CLIP, T5 and GPT each own their vocabulary, so always count against the target model. Second, <strong>commas, spaces and weights all cost tokens</strong> — the brackets and digits in <code>(word:1.4)</code> are not free.</p>
+
+    <h2>Where 75 and 77 come from</h2>
+    <p>The CLIP text encoder accepts at most <strong>77 positions</strong>, hard-coded in the model. One slot at the start holds the begin marker and one at the end holds the end marker, leaving <strong>75 tokens for actual text</strong> — the two famous numbers are one sentence from two angles, not two competing standards.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Figure</th><th>Counts what</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td>77 / segment</td><td>Full encoder length including 2 special tokens</td><td>Reading the counter's x/77 and the red overflow flag</td></tr>
+        <tr><td>75 / segment</td><td>Prompt-only budget</td><td>Planning how much content fits in one segment</td></tr>
+        <tr><td>512 (T5-XXL)</td><td>SD3-family text limit</td><td>Counting for SD3/Flux-class models</td></tr>
+        <tr><td>No hard cap (o200k/cl100k)</td><td>OpenAI tiktoken encodings</td><td>Prompts written for ChatGPT</td></tr>
+      </tbody>
+    </table></div>
+    <p>The <a href="/en/tools/token-counter">token counter</a> on this site segments by BREAK against the real CLIP vocabulary and shows x/77 per segment, turning segments red on overflow — because special tokens are included, "near 77" and "how much of the 75 is left" describe the same wall.</p>
+
+    <h2>BREAK and AND: two ways to segment</h2>
+    <p>Long prompts are not truncated at 77 as a whole — they are <strong>encoded in batches</strong>. <code>BREAK</code> forces a new segment: each segment gets its own 77-token pass, and segments do not share attention. That is the direct tool when two concepts should each own half the frame, but more segments is not automatically better — the weaker the link between segments, the less earlier passages influence later ones.</p>
+    <p><code>AND</code> blends two descriptions into one image with alternating weights, and most frontends encode each side as its own segment as well. Counting rules for AND vary between tools; <strong>this counter follows the common BREAK-segment convention</strong>, so count each side separately before relying on one total. For weight syntax itself see <a href="/en/guides/prompt-weight">Prompt Weighting (a:b): Syntax and Tuning</a> — its scope is bounded by segments too.</p>
+
+    <h2>What happens on overflow</h2>
+    <p>Content past 77 in a segment is <strong>truncated, not rejected</strong> — that is the first scene to inspect when something you wrote simply does not appear. Truncation cuts the tail, so order matters: subject words buried at the end are the first to go, while key concepts placed early or wrapped in their own bracket group keep their priority.</p>
+    <p>A subtler effect: weights apply only <strong>within their own segment</strong>. A strong word past position 75 sits across a segment boundary from the rest, so a "whole-sentence emphasis" quietly halves. Diagnose with the counter: if a red segment contains a key concept, move or split it — do not just raise the number.</p>
+
+    <h2>Why Chinese costs double</h2>
+    <p>The CLIP vocabulary is English-first: each Chinese character typically burns <strong>1-2 tokens</strong> as BPE shatters it, while a common English word is often one token. The same description in Chinese can eat twice the budget and hit the wall sooner. Two practical rules: write prompts for SD in English and keep Chinese as notes; when you need a bilingual version, run it through <a href="/en/tools/prompt-translate">prompt translate</a> so nothing gets fragmented. The negative prompt follows exactly the same counting rules — see <a href="/en/guides/negative-prompt">How to Write Effective Negative Prompts</a>.</p>
+
+    <h2>Verify segment by segment in ImageLab</h2>
+    <ol>
+      <li>Open the <a href="/en/tools/token-counter">token counter</a> and pick "CLIP (SD1.5 / SDXL, 77/segment)" — vocabularies are bundled offline and load on demand, nothing leaves your machine;</li>
+      <li>Paste the full prompt and read the segment list: x/77 per segment, red means truncation;</li>
+      <li>Re-check under other models: T5-XXL (512) for SD3 — vocab not bundled yet, counts are estimates — or exact o200k / cl100k for GPT-facing prompts;</li>
+      <li>Shorten every red segment, then generate — and use the <a href="/en/tools/prompt-weight">weight calculator</a> to confirm bracket multipliers survived the edit.</li>
+    </ol>
+
+    <h2>FAQ</h2>
+    <h3>What is the difference between 75 and 77?</h3>
+    <p>Whether the two special tokens are counted: encoder length is 77, prompt-only budget is 75 — two readings of one limit.</p>
+    <h3>Does exceeding 77 raise an error?</h3>
+    <p>No. The tail of an over-long segment is silently truncated, so the last content disappears first — segment with BREAK or trim instead.</p>
+    <h3>How many tokens is one Chinese character?</h3>
+    <p>Typically 1-2, and badly fragmented. English prompts almost always cost less; keep Chinese as commentary.</p>
+    <h3>Does T5 / SD3 also cap at 75?</h3>
+    <p>No — T5-XXL allows 512 under SentencePiece. The counter lists the encodings, but its vocabulary is not bundled yet, so those numbers are estimates.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>九宫格分割做分镜与漫画 · ImageLab</title>
+<meta name="description" content="用九宫格做分镜与漫画：等分切割不丢像素的几何原理、行列怎么选、先整图后切与先逐格后拼两条路线的取舍、格子留白与阅读顺序，以及网格工具导出 ZIP 的完整流程。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/grid-comic">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/grid-comic">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/grid-comic">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/grid-comic">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/grid-comic">
+<meta property="og:title" content="九宫格分割做分镜与漫画 · ImageLab"
+<meta property="og:description" content="等分切割的几何原理与行列选择、整图切分与逐格生成的取舍、漫画单页的留白与阅读顺序、网格工具 ZIP 导出流程与常见问题。"
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="九宫格分割做分镜与漫画 · ImageLab"
+<meta name="twitter:description" content="等分切割的几何原理与行列选择、整图切分与逐格生成的取舍、漫画单页的留白与阅读顺序、网格工具 ZIP 导出流程与常见问题。"
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "九宫格分割在分镜与漫画里的用法",
+  "description": "等分切割的几何原理与行列选择、整图切分与逐格生成的取舍、漫画单页的留白与阅读顺序、网格工具 ZIP 导出流程与常见问题。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/grid-comic",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/grid-comic",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "九宫格分割在分镜与漫画里的用法",
+  "inLanguage": "zh-CN",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "切出来的图会重叠吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不会。边界用 floor(i × W / n) 计算，相邻块首尾相接；不能整除时余数摊进各块，总量不丢。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "最多能切几格？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "行列可选，常见 2-6 行/列；真正的限制是单格最终需要的分辨率，格数过多单格太小。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "格子间的留白怎么加？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "切割产出紧贴像素的格子，留白在排版阶段加 4-8px 白边，工具本身不生成留白。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "能只导出其中几格吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不能，导出是一次性把全部格子打包进 ZIP；用不到的格子解压后删除即可。"
+      }
+    }
+  ]
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/grid-comic" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">九宫格与分镜漫画</span>
+  </nav>
+
+  <article class="prose">
+    <h1>九宫格分割在分镜与漫画里的用法</h1>
+    <p class="lede">分镜和漫画单页都逃不开「把一张大图切成整齐的格子」。切得不齐、切重了、切丢像素——这篇讲清原理、路线选择和工具怎么用。</p>
+    <h2>等分切割的几何：为什么不重叠、不丢像素</h2>
+    <p>把宽 W 的图切成 n 列，第 i 块的边界用 <strong>floor(i × W / n)</strong> 计算：左边界含、右边界不含，相邻块首尾相接。W 不能被 n 整除时，余数以 1 像素为单位摊进各块——总有一两块比别的宽 1px，但<strong>所有块拼回去严丝合缝，既不重叠也不丢任何一列像素</strong>。行方向同理。</p>
+    <p>这条规则看着朴素，却是切图工具的合格线：用 <code>W / n</code> 直接取整再累加，会出现每次偏移 1-2px 的累积误差，切到第 8 格时错位已经肉眼可见。本站 <a href="/tools/grid">网格分割</a>用的就是上面的边界公式，预览会实时显示「每块约 w × h · 共 n 块」，切之前先核对格子尺寸是否符合排版预期。</p>
+
+    <h2>两条路线：先整图后切，还是先逐格后拼</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>路线</th><th>优势</th><th>代价</th></tr></thead>
+      <tbody>
+        <tr><td>先生成整图，再切格</td><td>格与格天然同一光影、同一角色，风格一致性最好</td><td>布局可控性弱，切出来的单格分辨率被整图摊薄</td></tr>
+        <tr><td>先逐格生成，再拼版</td><td>每格可单独控制构图与提示词，单格清晰度高</td><td>跨格一致性要靠固定关键词、seed 与角色参考硬凑</td></tr>
+      </tbody>
+    </table></div>
+    <p>选路经验：分镜草稿、节奏排布用<strong>先整图</strong>——重点是叙事顺序不是单格画质；正式漫画单页、要出大图用<strong>先逐格</strong>——重点是每格的构图质量。两条路线殊途同归，最后都要落到同一个动作：把图切成整齐的格子。</p>
+
+    <h2>分镜（Storyboard）制作流程</h2>
+    <ol>
+      <li>写出镜头清单：每格一句「景别 + 动作 + 情绪」，先在纸上或文档里排好顺序；</li>
+      <li>按路线生成：整图路线出一张多格大图，或逐格路线一张张出；</li>
+      <li>整图丢进 <a href="/tools/grid">网格分割</a>，行列选 3×3（或按脚本的格数选 2×2、4×3），预览核对每格边界正好落在格线上；</li>
+      <li>一键导出 ZIP——文件按「原名_grid_行x列」命名，直接进排版或剪辑流程；</li>
+      <li>需要控制每格节奏时，配合<a href="/tools/storyboard-timer">分镜计时器</a>先跑一遍时长，再回头调格子的详略。</li>
+    </ol>
+    <p>整图路线有个隐藏收益：切分前如果发现某格废了，只需重生成整图或局部重绘，而逐格路线要重新对齐所有格子的风格基线。</p>
+
+    <h2>漫画单页的格子设计</h2>
+    <p>3×3 是九宫格的默认形态，但漫画单页远不止这一种：<strong>2×2</strong> 适合四格短篇，<strong>3×4 / 4×4</strong> 适合信息密度高的动作戏，<strong>不等分</strong>（大格压小格）是进阶排法——本站工具做等分切割，不等分排版留给排版软件完成，先用等分格出素材再调整格线位置。</p>
+    <p>两件排版层面的事要在切之前想好：<strong>留白（gutter）</strong>。切出来的格子是紧贴像素的，格与格之间 4-8px 的白边在排版时加，不要指望切割本身产出留白；<strong>阅读顺序</strong>。中文漫画传统是从右到左、从上到下，西式是从左到右——导出后的文件名是按行列顺序编号的，排序时别按文件管理器的默认顺序想当然，先在脑内跑一遍目标市场的阅读动线。</p>
+
+    <h2>生成侧的一致性技巧</h2>
+    <p>逐格路线最痛的是「九个人物九张脸」。三个可用的抓手：固定<strong>角色与风格关键词</strong>并原样复制进每格提示词；固定 <strong>seed</strong>（同一 seed 起步，构图骨架更接近）；单格提示词只改动作与景别，其余词序保持一致。整图路线则相反——在提示词里描述<strong>网格布局本身</strong>（如 "a 3x3 comic panel grid"）能提高布局命中率，但模型对精确布局的服从度有限，切之前用预览确认格线是否真的落在你想要的位置。</p>
+
+    <h2>导出与后期注意</h2>
+    <ul>
+      <li><strong>全量导出</strong>：工具一次把所有格子打进 ZIP，不支持只导出选中的几格——不需要的格子在排版时删掉即可；</li>
+      <li><strong>无损格式</strong>：格子图默认 PNG，别再过一道 JPEG，格线边缘会起压缩噪点；</li>
+      <li><strong>先看尺寸</strong>：预览里的「每块约 w × h」就是排版要用的数，先算好版面再导出，避免切完发现单格不够印；</li>
+      <li><strong>原图别关</strong>：切割是无损的，但排版常要返工重切（换行列），保留原图才不用重新生成。</li>
+    </ul>
+
+    <h2>常见问题</h2>
+    <h3>切出来的图会重叠吗？</h3>
+    <p>不会。边界用 floor(i × W / n) 计算，前一块的右边界等于后一块的左边界，首尾相接；不能整除时余数摊进各块，总量不丢。</p>
+    <h3>最多能切几格？</h3>
+    <p>行列数在工具里可选，常见 2-6 行/列。超过这个范围单格太小，排版基本用不上；真正限制你的是单格最终需要的分辨率。</p>
+    <h3>格子间的留白怎么加？</h3>
+    <p>切割产出的是紧贴像素的格子，留白在排版阶段加：排版软件里给每格加 4-8px 白边，或导出时给画布加内边距。工具本身不生成留白。</p>
+    <h3>能只导出其中几格吗？</h3>
+    <p>不能，导出是一次性把全部格子打包进 ZIP。用不到的格子在解压后删除，比做选择性导出的交互更简单可靠。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

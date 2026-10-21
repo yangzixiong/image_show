@@ -32,6 +32,12 @@ PAGES = [
     ("en", "en/guides/negative-prompt.html", "/en/guides/negative-prompt"),
     ("zh", "guides/histogram.html", "/guides/histogram"),
     ("en", "en/guides/histogram.html", "/en/guides/histogram"),
+    ("zh", "guides/clip-tokens.html", "/guides/clip-tokens"),
+    ("en", "en/guides/clip-tokens.html", "/en/guides/clip-tokens"),
+    ("zh", "guides/depth-controlnet.html", "/guides/depth-controlnet"),
+    ("en", "en/guides/depth-controlnet.html", "/en/guides/depth-controlnet"),
+    ("zh", "guides/grid-comic.html", "/guides/grid-comic"),
+    ("en", "en/guides/grid-comic.html", "/en/guides/grid-comic"),
     ("zh", "faq.html", "/faq"),
     ("en", "en/faq.html", "/en/faq"),
     ("zh", "about.html", "/about"),
@@ -74,7 +80,7 @@ PAGES = [
 # 全部页面已交付，清空
 PLANNED_URLS = set()
 
-EXPECTED_SITEMAP = 50  # 2 个首页 + 20 个内容页（6 篇 guides 中英 + faq/about/contact/privacy 中英）+ 28 个工具页
+EXPECTED_SITEMAP = 56  # 2 个首页 + 26 个内容页（9 篇 guides 中英 + faq/about/contact/privacy 中英）+ 28 个工具页
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [

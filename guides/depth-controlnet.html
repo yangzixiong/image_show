@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>ControlNet 深度图用法 · ImageLab</title>
+<meta name="description" content="深度图怎么喂给 ControlNet：深度通道锁结构不锁材质的原理，素材的三个来源，16bit 与浮点 TIFF 的毫米单位和 0 无效值怎么处理，深度反了怎么排查，以及用本站工具验证的流程。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/depth-controlnet">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/depth-controlnet">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/depth-controlnet">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/depth-controlnet">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/depth-controlnet">
+<meta property="og:title" content="ControlNet 深度图用法 · ImageLab"
+<meta property="og:description" content="深度通道锁什么、素材三个来源、16bit/浮点 TIFF 的毫米与无效值、进生成端前的预处理与症状排查表，配像素查看与直方图验证流程。"
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ControlNet 深度图用法 · ImageLab"
+<meta name="twitter:description" content="深度通道锁什么、素材三个来源、16bit/浮点 TIFF 的毫米与无效值、进生成端前的预处理与症状排查表，配像素查看与直方图验证流程。"
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "16bit 深度图在 ControlNet 中的用法",
+  "description": "深度通道锁什么、素材三个来源、16bit/浮点 TIFF 的毫米与无效值、进生成端前的预处理与症状排查表，配像素查看与直方图验证流程。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/depth-controlnet",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/depth-controlnet",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "16bit 深度图在 ControlNet 中的用法",
+  "inLanguage": "zh-CN",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "深度图需要和底图同尺寸吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "构图必须一致，逐像素同尺寸不是硬要求；裁切与留边不一致会直接导致结构错位。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么打开一半是透明的？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "像素值 0 被视为无效深度显示为透明，通常是空洞或未覆盖。占到主体就补洞或换素材，边角可裁掉。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "深度图可以当黑白照片用吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不能直接当——它是距离信息不是亮度信息，直接上色会得到越近越白的怪图。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "16bit 和 8bit 哪个好？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "16bit 过渡平滑适合出图，8bit 草稿够用；关键是归一化把有效距离铺满量程。"
+      }
+    }
+  ]
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/depth-controlnet" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">深度图与 ControlNet</span>
+  </nav>
+
+  <article class="prose">
+    <h1>16bit 深度图在 ControlNet 中的用法</h1>
+    <p class="lede">深度图是 ControlNet 里「锁结构不锁皮」的通道：它只告诉模型哪里近、哪里远。这篇讲清素材从哪来、单位怎么对、进生成端前要检查什么。</p>
+    <h2>深度通道给模型看什么</h2>
+    <p>ControlNet 的深度模型只接收一张灰度图：<strong>越亮越近、越暗越远</strong>（个别实现相反，属反相问题，见下文排查表）。它把画面的空间骨架——远近关系、遮挡边界、体积轮廓——注入采样过程，而颜色、材质、光照仍然交给提示词与模型自己发挥。这就是「锁结构不锁皮」：拿线稿能复刻每一笔，拿深度图则是在<strong>保住构图的前提下换风格</strong>。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>通道</th><th>锁的是什么</th><th>典型用途</th></tr></thead>
+      <tbody>
+        <tr><td>深度 depth</td><td>远近结构与遮挡关系</td><td>改风格、换材质，保持机位与摆位</td></tr>
+        <tr><td>线稿 canny / lineart</td><td>每一根轮廓线</td><td>忠实重绘、上色、精细构图复刻</td></tr>
+        <tr><td>法线 normal</td><td>表面朝向与光影曲率</td><td>保持浮雕、曲面细节的重打光</td></tr>
+      </tbody>
+    </table></div>
+    <p>选择经验：构图主要由<strong>物体摆放</strong>决定时用深度；主要由<strong>线条设计</strong>决定时用线稿；两者都要时可并挂两个 ControlNet 并各配权重，权重配合见<a href="/guides/prompt-weight">《提示词权重 (a:b) 完整指南》</a>的通用原则——引导过强都会出伪影。</p>
+
+    <h2>素材的三个来源</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>来源</th><th>格式与精度</th><th>注意</th></tr></thead>
+      <tbody>
+        <tr><td>手机 / 相机实拍</td><td>JPG 灰度预览，或 16bit TIFF 原始深度</td><td>边缘常有空洞，需看 0 值分布</td></tr>
+        <tr><td>渲染器 Z-depth 导出</td><td>16bit 整数 TIFF 或 32bit 浮点 TIFF</td><td>单位最干净，毫米/米约定要对齐</td></tr>
+        <tr><td>模型自己生成</td><td>普通 8bit 灰度图</td><td>精度最低但零成本，适合草稿</td></tr>
+      </tbody>
+    </table></div>
+    <p>前两类会在浏览器里以原始精度打开——16bit 整数 TIFF 的像素值按毫米显示，32bit 浮点 TIFF 按米解析并自动换算，<strong>0 视为无效深度</strong>（传感器空洞或渲染未覆盖），显示为透明。完整口径见<a href="/guides/depth-tiff">《16bit TIFF 深度图》</a>，这里不重复。</p>
+
+    <h2>进生成端之前的两件事</h2>
+    <p><strong>第一，量程与无效值。</strong>打开 <a href="/tools/pixel-viewer">像素查看器</a> 点几个点：确认数值落在合理距离区间（比如 0.5-8 米），确认半透明的 0 值区域没有占到主体；再用 <a href="/tools/histogram">图片直方图</a> 的深度模式看整体——横轴是毫米，主峰就是场景主体的距离，0 单独统计。<strong>0 值堆在主体上意味着那里没有深度信息</strong>，喂给 ControlNet 会变成结构黑洞，先补洞或换素材。</p>
+    <p><strong>第二，归一与分辨率。</strong>多数生成端的深度预处理器最终要 8bit 灰度：16bit / 浮点素材需要先归一化到 0-255，把有效量程铺满——这一步通常在生成端的预处理器或外部软件完成，<strong>本站工具的边界是查看与验证</strong>：帮你确认单位、量程、无效区和黑白方向都对了，再交给生成端。分辨率不用和底图逐像素一致，但构图裁切必须一致，否则结构对不上位。</p>
+
+    <h2>症状排查表</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>症状</th><th>先检查</th><th>调整</th></tr></thead>
+      <tbody>
+        <tr><td>结构完全不跟</td><td>素材是否真为深度图（有没有被当成彩色图渲染成灰蒙蒙一片）</td><td>用像素查看器读值确认，或换 8bit 灰度版</td></tr>
+        <tr><td>远近关系反了</td><td>素材本身的黑白方向</td><td>生成端勾选反相，或导出前反转</td></tr>
+        <tr><td>边缘糊、结构漂移</td><td>预处理分辨率过低或深度图本身空洞多</td><td>提高预处理分辨率；看 0 值区域是否侵入主体</td></tr>
+        <tr><td>画面出现方形黑块</td><td>无效值 0 被当成「最近/最远」参与计算</td><td>补洞、裁掉无效区，或换素材</td></tr>
+        <tr><td>风格被锁死改不动</td><td>ControlNet 权重过高</td><td>降权重、放宽引导，参考权重指南的安全区间</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>在 ImageLab 里的验证流程</h2>
+    <ol>
+      <li><a href="/tools/pixel-viewer">像素查看器</a>打开深度图：16bit/浮点数值、毫米单位、0 值透明，逐点确认量程与单位；</li>
+      <li><a href="/tools/histogram">图片直方图</a>切深度模式：看距离分布主峰与 0 值占比，判断素材可用性；</li>
+      <li>需要对照颜色信息时回<a href="/tools/pixel-viewer">取色</a>与<a href="/guides/pixel-inspector">《像素查看》</a>；全黑打不开、数值离谱这类文件层问题直接查<a href="/guides/depth-tiff">《16bit TIFF 深度图》</a>；</li>
+      <li>素材验证通过后，再到生成端挂深度 ControlNet，权重从低往高试。</li>
+    </ol>
+
+    <h2>常见问题</h2>
+    <h3>深度图需要和底图同尺寸吗？</h3>
+    <p>构图必须一致，逐像素同尺寸不是硬要求。裁切、留边不一致会直接导致结构错位，比分辨率差异伤害大得多。</p>
+    <h3>为什么打开一半是透明的？</h3>
+    <p>像素值 0 被视为无效深度显示为透明，通常是传感器空洞或渲染未覆盖。占到主体就要补洞或换素材，只是边角则可裁掉。</p>
+    <h3>深度图可以当黑白照片用吗？</h3>
+    <p>不能直接当——它不是亮度信息而是距离信息，直接上色会得到一张「越近越白」的怪图。要可视化请用伪彩或排版处理。</p>
+    <h3>16bit 和 8bit 哪个好？</h3>
+    <p>16bit 量程细、归一后过渡平滑，适合最终出图；8bit 草稿够用。关键是归一化把有效距离铺满 0-255，一半像素挤在暗端等于浪费精度。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>
