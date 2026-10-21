@@ -129,6 +129,43 @@ check(BASE + "/</loc>" in sitemap and BASE + "/en/</loc>" in sitemap,
       "sitemap 收录中文与英文两个 URL")
 check(sitemap.count('hreflang="en"') >= 2, "sitemap 带 hreflang 互指")
 
+# 10) 跨语言链接必须带 data-lang-switch：
+#     lang-boot 在 document 上委托监听该属性并保存 imagelab.lang，
+#     属性缺失时点击不落偏好，目标页会按浏览器语言把用户自动切回（2026-10-21 修复的回归）。
+A_TAG = re.compile(r"<a\s[^>]*>", re.S)
+HREF = re.compile(r'href="([^"#?]*)')
+bare, badval = [], []
+tagged = 0
+for p in sorted(ROOT.rglob("*.html")):
+    rel = p.relative_to(ROOT).as_posix()
+    if rel.startswith(("docs/", "deploy/")):
+        continue
+    is_en = rel.startswith("en/")
+    page = p.read_text(encoding="utf-8")
+    for m in A_TAG.finditer(page):
+        tag = m.group(0)
+        vm = re.search(r'data-lang-switch="([^"]*)"', tag)
+        if vm:
+            tagged += 1
+            if vm.group(1) not in ("en", "zh"):
+                badval.append(rel + ": " + tag.strip()[:100])
+            continue
+        hm = HREF.search(tag)
+        if not hm:
+            continue
+        href = hm.group(1)
+        if not href.startswith("/") or href.startswith("//"):
+            continue
+        cross = href.startswith("/en") if not is_en else (href == "/" or not href.startswith("/en"))
+        if cross:
+            bare.append(rel + ": " + tag.strip()[:100])
+check(not bare, f"跨语言 <a> 全部带 data-lang-switch（已标记 {tagged} 处）")
+for b in bare[:10]:
+    print("   缺属性:", b)
+check(not badval, "data-lang-switch 取值只允许 en|zh")
+for b in badval[:10]:
+    print("   非法值:", b)
+
 print()
 print("全部通过" if ok else "存在未通过项")
 sys.exit(0 if ok else 1)

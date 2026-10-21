@@ -14,9 +14,30 @@
  *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
  *     保证搜索引擎各自索引中英两个版本，不互相干扰；
  *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
  */
 (function () {
   var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
   try {
     if (localStorage.getItem(PREF_KEY)) return;
 
@@ -320,7 +341,7 @@
         <a href="/en/contact">Contact</a>
         <a href="/en/about">About</a>
         <a href="/en/privacy">Privacy</a>
-        <a href="/" lang="zh-CN">中文版</a>
+        <a href="/" lang="zh-CN" data-lang-switch="zh">中文版</a>
       </nav>
     </section>
   </div>
