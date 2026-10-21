@@ -14,20 +14,33 @@ Allow: /
 User-agent: AdsBot-Google-Mobile
 Allow: /
 
-# AI 训练爬虫（如希望被 AI 搜索引擎收录可删除本段）
-User-agent: GPTBot
-Disallow: /
-
+# AI 搜索/引用类爬虫：放行。
+# 这类爬虫不抓训练语料，只在用户问答案时按需取回页面并给出引用链接，
+# 对工具站是新增的 referral 渠道（2026 年占比在涨）。
 User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# AI 训练类爬虫：默认屏蔽（不想进训练集就保留这段）。
+# 若以后想放开训练用途，把下面各条改成 Allow: / 即可。
+User-agent: GPTBot
 Disallow: /
 
 User-agent: CCBot
 Disallow: /
 
 User-agent: ClaudeBot
-Disallow: /
-
-User-agent: Claude-Web
 Disallow: /
 
 User-agent: Bytespider
