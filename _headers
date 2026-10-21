@@ -49,12 +49,21 @@
 /*.onnx
   Cache-Control: public, max-age=31536000, immutable
 
-# WASM 推理引擎：随 ort 版本升级可能换文件内容，保持 30 天
+# WASM/MJS 推理引擎：内容与版本绑定，缓存一年不可变
+# 注意：升级 onnxruntime 时必须改文件名（或在引用处加 ?v=），否则老访客会钉在旧缓存一年
 /*.wasm
-  Cache-Control: public, max-age=2592000
+  Cache-Control: public, max-age=31536000, immutable
 
 /*.mjs
-  Cache-Control: public, max-age=2592000
+  Cache-Control: public, max-age=31536000, immutable
+
+# 分词词表（6.8 MB）：内容永久不变，缓存一年
+/data/tok/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 提示词数据：随运营更新，短缓存 + 后台刷新
+/data/*.json
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 # HTML 每次回源校验，保证发版后立刻看到新页面
 /*.html

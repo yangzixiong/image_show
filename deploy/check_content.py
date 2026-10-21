@@ -79,7 +79,7 @@ EXPECTED_SITEMAP = 50  # 2 个首页 + 20 个内容页（6 篇 guides 中英 + f
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
     "css/style.css",
-    "apple-touch-icon.png", "favicon.png", "ads.txt", "app-ads.txt",
+    "apple-touch-icon.png", "favicon.png", "ads.txt", "app-ads.txt", "sw.js",
     "js/i18n.js", "js/lang-boot.js", "js/decoder.js", "js/viewer.js", "js/inspector.js", "js/picker.js", "js/main.js",
     "js/toolkit.js", "tools/histogram.js", "tools/flip.js", "tools/crop.js", "tools/grid.js", "tools/remove-bg.js",
     "js/promptlib.js", "tools/prompt-weight.js", "tools/prompt-split.js", "tools/negative-prompt.js",
