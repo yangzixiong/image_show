@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>How to Read an Image Histogram · ImageLab</title>
+<meta name="description" content="What the 0-255 x-axis and pixel-count y-axis mean, how clipped ends reveal lost detail, the three typical shapes, and matching exposure across two images.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/histogram">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/histogram">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/histogram">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/histogram">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/histogram">
+<meta property="og:title" content="How to Read an Image Histogram · ImageLab"
+<meta property="og:description" content="Axis meaning, three typical shapes, clipped ends as lost detail, matching exposure across two images, and reading 16-bit depth map histograms."
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Read an Image Histogram · ImageLab"
+<meta name="twitter:description" content="Axis meaning, three typical shapes, clipped ends as lost detail, matching exposure across two images, and reading 16-bit depth map histograms."
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Read an Image Histogram",
+  "description": "Axis meaning, three typical shapes, clipped ends as lost detail, matching exposure across two images, and reading 16-bit depth map histograms.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/histogram",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/histogram",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "How to Read an Image Histogram",
+  "inLanguage": "en",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does a tall peak mean overexposure?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No — position beats height. It is clipping only when the pile sits against the far right wall."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does one big centred peak mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Exposure around mid-grey with margin at both ends — the safest state. An extremely narrow peak means a flat image."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does it differ from my editing app?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Different math: luminance-weighted versus channel average, and some apply gamma first. Compare within one tool."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I read a depth map histogram?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The x-axis is millimetres; the main peak is the scene's main distance, zeros are invalid, a missing right side means near-only coverage."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/histogram" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Image histogram</span>
+  </nav>
+
+  <article class="prose">
+    <h1>How to Read an Image Histogram</h1>
+    <p class="lede">A histogram compresses the tonal distribution of an image into one bar chart. Learn the three places to look — both ends and the middle — and you can judge an image before touching a single slider.</p>
+    <h2>What the two axes mean</h2>
+    <p>The horizontal axis is brightness: pure black (0) on the far left, pure white (255) on the far right, mid-grey in the centre. The vertical axis is the <strong>number of pixels</strong> sitting at that brightness. Millions of pixels get binned by brightness into one undulating curve — tall sections mean many pixels share that value, flat sections mean almost none do.</p>
+    <p>Colour images can usually switch to the individual R, G and B distributions. Similar curve shapes across the three channels mean little colour cast; one channel shifted right pulls the whole image toward that colour.</p>
+
+    <h2>Three typical shapes</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Shape</th><th>Looks like</th><th>Means</th></tr></thead>
+      <tbody>
+        <tr><td>Normal exposure</td><td>Main peak centred, tails at both ends</td><td>Detail in highlights and shadows — most room to grade</td></tr>
+        <tr><td>Underexposed (low key)</td><td>Mass pushed left</td><td>Whether shadows are recoverable depends on whether the left edge has hit the wall</td></tr>
+        <tr><td>Overexposed (high key)</td><td>Mass pushed right</td><td>Anything touching the right wall is dead white — unrecoverable</td></tr>
+        <tr><td>Double peak</td><td>Peaks at both ends, dip in the middle</td><td>Typical of backlit silhouettes or high-contrast scenes; little mid-tone data</td></tr>
+      </tbody>
+    </table></div>
+    <p>No shape is inherently wrong — only mismatched with intent: a low-key night shot is fine, a low-key midday portrait is an accident.</p>
+    <p>The same shape means opposite things by genre: a large mass on the right is often the intended look for high-key portraiture but usually a mistake for still life, while an entirely left-shifted night scene is perfectly normal. Decide what the subject calls for before calling the distribution a failure.</p>
+
+    <h2>Clipping lives at the ends</h2>
+    <p>The most practical rule: <strong>look at both ends</strong>. A column pinned to the far left means pixels have hit pure black — that shadow detail is gone for good; the same at the right wall means burnt highlights. Lifting shadows later only yields flat grey noise, not information.</p>
+    <p>8-bit JPEG has only 256 levels per channel, so clipped values leave no margin; 16-bit TIFF has 65536 and often keeps usable data under the same apparent look. That is why shooting and intermediate exports prefer higher bit depth.</p>
+    <p>A histogram counts but never localises: it tells you what percentage of detail was lost, not where in the frame. Locating it still takes the preview and a sample readout — read the chart for the overall verdict, then return to the image to confirm the region. Far faster than eyeballing exposure back and forth.</p>
+
+    <h2>What it helps you do</h2>
+    <ol>
+      <li><strong>Match exposure between two images</strong>: compare where the main peaks sit and bring them into the same range — consecutive frames then sit together;</li>
+      <li><strong>Judge contrast in AI output</strong>: one narrow clump in the middle = washed out; both ends pinned = crushed contrast;</li>
+      <li><strong>Vet incoming assets</strong>: reading the histogram beats guessing from a thumbnail.</li>
+    </ol>
+
+    <h2>Using the ImageLab histogram tool</h2>
+    <p>Open the <a href="/en/tools/histogram">image histogram</a> and drop an image in: you get the full curve plus readable conclusions — mean luminance, <strong>shadow and highlight clipping percentages</strong> (the quantified end piles) and the sample size. Switch between per-channel and composite views to judge exposure and colour cast at once. For a 16-bit depth map the chart shows the <strong>depth distribution</strong> instead of colour: the x-axis is millimetres, zeros are counted separately as invalid values, and the useful distance range of the scene becomes obvious.</p>
+    <p>For per-channel readout and coordinate-level detail see <a href="/en/guides/pixel-inspector">the pixel inspector guide</a>; if numbers look wrong, rule out zoom interpolation first — that shares its conclusions with <a href="/en/guides/color-picker">the colour picker guide</a>.</p>
+
+    <h2>FAQ</h2>
+    <h3>Does a tall peak mean overexposure?</h3>
+    <p>No — position beats height. A tall peak only says many pixels share that value; it is clipping only when the pile sits against the far right wall.</p>
+    <h3>What does one big centred peak mean?</h3>
+    <p>Exposure concentrated around mid-grey with margin at both ends — the safest state. An extremely narrow peak, however, means a flat image that needs contrast.</p>
+    <h3>Why does it differ from my editing app?</h3>
+    <p>Different math: luminance-weighted (greener-sensitive) versus channel average, and some apply gamma first. Similar shape with different heights is normal — compare within one tool.</p>
+    <h3>How do I read a depth map histogram?</h3>
+    <p>The x-axis is millimetres: the main peak is where the scene's objects sit, zeros are invalid values counted separately, and a missing right side means the depth only covers nearby distances.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+</body>
+</html>

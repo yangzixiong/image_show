@@ -183,6 +183,66 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- 提示词权重 -->
+  <url>
+    <loc>https://yangzixiong.com/guides/prompt-weight</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/prompt-weight"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/prompt-weight"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/prompt-weight"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/prompt-weight</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/prompt-weight"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/prompt-weight"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/prompt-weight"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 负面提示词 -->
+  <url>
+    <loc>https://yangzixiong.com/guides/negative-prompt</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/negative-prompt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/negative-prompt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/negative-prompt"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/negative-prompt</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/negative-prompt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/negative-prompt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/negative-prompt"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 图片直方图 -->
+  <url>
+    <loc>https://yangzixiong.com/guides/histogram</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/histogram"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/histogram"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/histogram"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/histogram</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/histogram"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/histogram"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/histogram"/>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- 常见问题 -->
   <url>
     <loc>https://yangzixiong.com/faq</loc>

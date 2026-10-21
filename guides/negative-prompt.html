@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>负面提示词怎么写才有效 · ImageLab</title>
+<meta name="description" content="负面提示词不是过滤器，是反向引导：讲清它的工作原理、质量类与结构类该各写什么、写多少个词才不互相稀释，常见症状对照表，以及按场景挑词的完整流程。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/negative-prompt">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/negative-prompt">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/negative-prompt">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/negative-prompt">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/negative-prompt">
+<meta property="og:title" content="负面提示词怎么写才有效 · ImageLab"
+<meta property="og:description" content="负面提示词的工作原理、三类常用词与 5-20 词的取舍原则、过饱和与手崩等症状的对照调整，配词库与分离工具的用法。"
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="负面提示词怎么写才有效 · ImageLab"
+<meta name="twitter:description" content="负面提示词的工作原理、三类常用词与 5-20 词的取舍原则、过饱和与手崩等症状的对照调整，配词库与分离工具的用法。"
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "负面提示词怎么写才有效",
+  "description": "负面提示词的工作原理、三类常用词与 5-20 词的取舍原则、过饱和与手崩等症状的对照调整，配词库与分离工具的用法。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/negative-prompt",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/negative-prompt",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "负面提示词怎么写才有效",
+  "inLanguage": "zh-CN",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "负面写得越多越好吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不是。超过 20 个词互相稀释，起作用的只剩前几个。按常驻质量类 + 按图场景类分层，控制在两行以内。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "负面提示词能用权重吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "能，语法与正面完全相同。(blurry:1.4) 在负面里表示更用力地排除模糊。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "一直加 bad hands 为什么没用？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "有边际递减。结构问题多与分辨率、采样方法和模型有关，负面只能缓解；连续崩溃时先换设置再加词。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "txt2img 和 inpaint 的负面一样吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不完全一样。局部重绘不需要整套结构负面，只保留与遮罩内目标冲突的词即可。"
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/negative-prompt" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">负面提示词</span>
+  </nav>
+
+  <article class="prose">
+    <h1>负面提示词怎么写才有效</h1>
+    <p class="lede">负面提示词人人会写，但「堆得越多越好」几乎总是错的。这篇讲清它到底怎么起作用，以及怎样用最少的词排除最确定的问题。</p>
+    <h2>它的工作方式：反向引导，不是过滤</h2>
+    <p>采样器不会「删除」负面提示词里出现的内容——它做的是把每一步的结果从负面描述的方向推开。所以负面提示词是一组<strong>方向性指令</strong>：你写的词越准确，推开的力越对准问题；写得含糊，推力就摊薄到整个语义空间，等于没推。</p>
+    <p>还有一个常被忽略的约束：正面与负面共享 CFG 的引导预算。正面太长时，负面的影响力会被动下降——这也是「昨天还好用的负面今天突然没用」的常见原因：先检查正面是不是变长了。</p>
+
+    <h2>三类常用词，各管一件事</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>类别</th><th>典型词</th><th>什么时候写</th></tr></thead>
+      <tbody>
+        <tr><td>质量类</td><td><code>lowres</code>、<code>bad quality</code>、<code>jpeg artifacts</code></td><td>常驻，几乎所有场景都有用</td></tr>
+        <tr><td>结构类</td><td><code>extra fingers</code>、<code>bad anatomy</code>、<code>mutation</code></td><td>画面含人物或手部时按需加</td></tr>
+        <tr><td>场景排除类</td><td><code>watermark</code>、<code>text</code>、<code>logo</code></td><td>按图临时加，不建议常驻</td></tr>
+      </tbody>
+    </table></div>
+    <p>三类的取舍原则不同：质量类可以长驻；结构类跟着画面内容走；场景排除类只在确实出现过对应问题时加——模型本来就不产出水印，硬塞 <code>watermark</code> 只是白白稀释前面的词。</p>
+
+    <h2>写多少个词</h2>
+    <p>经验值是 <strong>5 到 20 个词</strong>。每个词都会分掉一点注意力，100 个词的负面里，真正起作用的可能只有前几个；精简的负面反而更有力。权重语法在负面里照常可用：<code>(deformed:1.3)</code> 表示更用力排除，适合只有一个词需要加码的场景。</p>
+    <p>常驻负面与按图负面建议分开维护：把质量类收进常驻列表（或使用 EasyNegative 这类 embedding，一个 token 顶一串词），每次生成只追加 2-3 个场景词。这样既短，又便于归因——出问题时能立刻判断是哪一类没写。</p>
+    <p>embedding 是另一种压缩思路：把几百个负向概念训练进一个 token（EasyNegative、BadDream 都是这类），写在负面开头即可顶替整段词表，后面再跟场景词。代价是黑盒——与你的模型或风格不匹配时反而引入杂讯，建议单独开关做 A/B 对比：去掉出一张、加回出一张，稳定变差就弃用，转回普通词表。</p>
+
+    <h2>症状对照：图不对时先查这里</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>症状</th><th>先检查</th><th>调整方向</th></tr></thead>
+      <tbody>
+        <tr><td>画面过饱和、油画感</td><td>负面是否过强或与正面重复</td><td>删掉与正面同名的词，降低个别权重</td></tr>
+        <tr><td>手部、五官崩坏</td><td>结构类是否缺失</td><td>补 <code>extra fingers</code> 等结构词，仍无效则提高分辨率或换采样方法</td></tr>
+        <tr><td>背景出现杂物文字</td><td>场景排除类是否漏写</td><td>追加 <code>watermark</code>、<code>text</code></td></tr>
+        <tr><td>整体发灰、对比低</td><td>负面是否误伤了正面主体词</td><td>对照正面逐词排查同义冲突</td></tr>
+      </tbody>
+    </table></div>
+    <p>还有一种容易误判的情况：问题其实出在正面。正面写了 masterpiece、best quality 等质量词，负面里的 bad quality 就会和它正面对冲——两边互相抵消，还白占一份引导预算。质量词通常只保留一边，放正面比放负面更稳定。</p>
+
+    <h2>配合工具走一遍</h2>
+    <ol>
+      <li>打开<a href="/tools/negative-prompt">负面词库</a>，按场景（人像 / 动漫 / 写实 / 通用质量）挑出候选词；</li>
+      <li>用<a href="/tools/prompt-split">正反词分离</a>把长提示词里的负面部分拆出来单独维护；</li>
+      <li>需要灵感时从<a href="/tools/random-prompt">随机生成</a>的模板里抄一份带负面的完整结构，再按上面的对照表删改。</li>
+    </ol>
+    <p>正面提示词的写法与权重配合见<a href="/guides/prompt-weight">《提示词权重 (a:b) 完整指南》</a>——负面里的权重语法与它完全一致。拆分完成后记得整体通读一遍：同一个词写两次（如 blurry 重复出现）并不会叠加成两倍效果，删掉重复项，列表还能再短一截。</p>
+
+    <h2>常见问题</h2>
+    <h3>负面写得越多越好吗？</h3>
+    <p>不是。超过 20 个词后互相稀释，起作用的只剩前几个。按「常驻质量类 + 按图场景类」分层维护，保持在两行以内。</p>
+    <h3>负面提示词能用权重吗？</h3>
+    <p>能，语法与正面完全相同。<code>(blurry:1.4)</code> 在负面里表示更用力地排除模糊。</p>
+    <h3>一直加 bad hands 为什么没用？</h3>
+    <p>有边际递减。结构问题多数出在分辨率、采样方法或模型本身，负面只能缓解；连续几张都崩时，优先换设置而不是继续加词。</p>
+    <h3>txt2img 和 inpaint 的负面一样吗？</h3>
+    <p>不完全一样。局部重绘的遮罩外内容已经确定，通常不需要整套结构负面，只保留与遮罩内目标冲突的词即可。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

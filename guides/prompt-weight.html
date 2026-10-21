@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>提示词权重 (a:b) 完整指南 · ImageLab</title>
+<meta name="description" content="SD 提示词权重语法逐条讲透：(word:1.4) 显式权重、(word) 与 [word] 快捷写法、嵌套相乘的计算规则，权重加多少才不出伪影、常见误区，以及用权重计算器即时验证的完整流程。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/prompt-weight">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/prompt-weight">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/prompt-weight">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/prompt-weight">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/prompt-weight">
+<meta property="og:title" content="提示词权重 (a:b) 完整指南 · ImageLab"
+<meta property="og:description" content="五种权重写法与计算规则、1.1-1.5 的安全区间、全角括号与中文提示词等常见误区，配权重计算器验证流程。"
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="提示词权重 (a:b) 完整指南 · ImageLab"
+<meta name="twitter:description" content="五种权重写法与计算规则、1.1-1.5 的安全区间、全角括号与中文提示词等常见误区，配权重计算器验证流程。"
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "提示词权重 (a:b) 完整指南",
+  "description": "五种权重写法与计算规则、1.1-1.5 的安全区间、全角括号与中文提示词等常见误区，配权重计算器验证流程。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/prompt-weight",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/prompt-weight",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "提示词权重 (a:b) 完整指南",
+  "inLanguage": "zh-CN",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "(word) 和 (word:1.1) 完全一样吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "一样。快捷写法就是 1.1 的语法糖；((word)) 等于 1.21 而不是 1.2，嵌套是乘法关系。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "权重最高能写多少？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "语法没有上限，但 1.5 以上基本只有伪影没有收益。加不上去多半是词被稀释或中文未翻译，继续加数值只会更糟。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "负面提示词里的权重也这样用吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "语法完全相同，区别只在方向：负面里的 (text:1.4) 是更用力地排除文字。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "AND 混合和 BREAK 什么时候用？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AND 用于按比例混合两种互斥风格，BREAK 用于强制分段。两者都占 token，先用 Token 计数器确认长度。"
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/prompt-weight" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">提示词权重指南</span>
+  </nav>
+
+  <article class="prose">
+    <h1>提示词权重 (a:b) 完整指南</h1>
+    <p class="lede">权重是提示词里最常用的控制手段，但五花八门的写法常常写出与预期相反的效果——这篇把语法规则、计算方式和调参方向一次讲清楚。</p>
+    <h2>权重到底在改什么</h2>
+    <p>采样器每一步都会把画面朝「正面提示词描述的方向」拉，同时远离「负面提示词的方向」，这个拉力的强度由 CFG 引导系数控制。权重做的事情更细：它改变<strong>单个词或一个括号组在这股拉力里的占比</strong>。权重写在谁后面，作用范围就到谁为止——默认到下一个逗号为止，括号则自带边界。</p>
+    <p>理解这一点，就能解释很多反直觉现象：把权重加在整句末尾，实际只影响最后一个词；想让一整个短语一起变强，必须用括号把它括起来。</p>
+
+    <h2>五种写法与计算规则</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>写法</th><th>等效乘数</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>(word:1.4)</code></td><td>×1.4</td><td>显式权重，所见即所得，推荐优先使用</td></tr>
+        <tr><td><code>(word)</code></td><td>×1.1</td><td>快捷写法，等价于 <code>(word:1.1)</code></td></tr>
+        <tr><td><code>((word))</code></td><td>×1.21</td><td>嵌套相乘：1.1 × 1.1，<strong>不是 1.2</strong></td></tr>
+        <tr><td><code>[word]</code></td><td>×0.9</td><td>中括号是降权快捷写法，等价于 <code>(word:0.9)</code></td></tr>
+        <tr><td><code>(word:0.5)</code></td><td>×0.5</td><td>显式降权，用来压制不想要的元素</td></tr>
+      </tbody>
+    </table></div>
+    <p>嵌套可以继续叠：<code>(((word)))</code> 是 1.1³ ≈ 1.33。三种快捷写法混用时，先把每层乘数算成小数再相乘，就不会算错。另外还有两类进阶语法：<code>a|b</code> 形式的 AND 混合（把两段描述按比例揉进同一张图）与 <code>(from:to:when)</code> 调度权重（按采样步数切换内容），它们都建立在同一套乘数概念之上。</p>
+
+    <h2>加多少才合适</h2>
+    <p>实用区间是 <strong>1.1 到 1.5</strong>。1.1-1.2 用于「稍微强调」，1.3-1.4 用于「这个词必须出现」，到 1.5 附近开始出现过饱和、边缘发焦、质感变油画的伪影；继续往上，画面会明显崩坏——权重控制的是注意力占比，不是效果强度，超过阈值只会挤压其他词的空间。</p>
+    <p>降权同理：0.7-0.8 是「轻微淡化」，0.5 已经很弱，0 以下没有意义。负面提示词里的权重语法完全相同，只是方向相反——正面里是强调，负面里是加重排除。</p>
+    <p>还要分清两个层次：CFG 控制整体拉力，权重只分配词与词之间的注意力比例。先给单个词顶到 2.0 而 CFG 只有 4，效果微乎其微；把 CFG 拉到 12 再配 2.0，画面先毁在整体过冲上。正确顺序是先把 CFG 调到模型舒适的区间（多数模型 5-8），再用 1.1-1.4 微调个别词。换模型或挂 LoRA 后最优值也会漂移：LoRA 触发词常要 1.2-1.3 才稳定出现，基础模型上 1.1 就够，迁移提示词时建议从 1.1 重新试起。</p>
+
+    <h2>五个常见误区</h2>
+    <ol>
+      <li><strong>全角括号无效</strong>：<code>（word）</code> 是中文标点，解析器不认，必须用英文半角 <code>()</code>。</li>
+      <li><strong>中文直接写</strong>：模型词表以 BPE 英文为主，中文会被拆成大量低效 token，权重再高也救不回来——先翻译成英文再加权重。</li>
+      <li><strong>长提示词里单点加权被稀释</strong>：超过 75 token 会分段，权重只在段内生效；与其把一个词顶到 2.0，不如把关键描述拆成独立短语重复出现。</li>
+      <li><strong>把权重当开关</strong>：想让某个元素彻底消失，该写进负面提示词，而不是把正面权重压到 0.1。</li>
+      <li><strong>权重与 CFG 当成一回事</strong>：两者叠加时先调 CFG 定整体、再用权重调分配，顺序反了只会互相掩盖问题。</li>
+    </ol>
+
+    <h2>在 ImageLab 里验证</h2>
+    <p>打开<a href="/tools/prompt-weight">权重计算器</a>，输入任意写法——嵌套括号会被展开成等效乘数，<code>((cat:1.5):1.2)</code> 这类复合写法也能直接算出最终值，写完先算一遍再进采样器，能省下不少废图。整条提示词的长度与分段情况，配合<a href="/tools/token-counter">Token 计数器</a>一起看，避免权重词被挤到第二段。算完把最终乘数回填提示词再生成验证——权重表现与 seed 强相关，换 seed 后观感可能变化，稳定版本至少用两三个 seed 对比后定稿。</p>
+
+    <h2>常见问题</h2>
+    <h3><code>(word)</code> 和 <code>(word:1.1)</code> 完全一样吗？</h3>
+    <p>一样。快捷写法就是 1.1 的语法糖；同理 <code>((word))</code> = 1.21 而不是 1.2，嵌套是乘法关系。</p>
+    <h3>权重最高能写多少？</h3>
+    <p>语法层面没有上限，但 1.5 以上基本只有伪影没有收益。遇到「怎么加都不明显」的情况，多半是词被稀释或翻译问题，继续加数值只会让画面变糟。</p>
+    <h3>负面提示词里的权重也这样用吗？</h3>
+    <p>语法完全相同。区别只在效果方向：负面里的 <code>(text:1.4)</code> 是「更用力地排除文字」，而不是「更想要文字」。</p>
+    <h3>AND 混合和 BREAK 什么时候用？</h3>
+    <p>AND（<code>a|b</code>）用于把两种互斥风格按比例混合；BREAK 用于强制分段、让两组概念各占一半画幅。两者都比单纯堆权重更占 token，先用<a href="/tools/token-counter">Token 计数器</a>确认长度再决定。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>

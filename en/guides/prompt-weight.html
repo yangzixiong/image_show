@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Prompt Weighting (a:b): Syntax and Tuning · ImageLab</title>
+<meta name="description" content="Every SD prompt weighting rule: explicit (word:1.4), the (word) and [word] shortcuts, nested multiplication, the safe 1.1-1.5 range, and pitfalls to avoid.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/prompt-weight">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/prompt-weight">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/prompt-weight">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/prompt-weight">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/prompt-weight">
+<meta property="og:title" content="Prompt Weighting (a:b): Syntax and Tuning · ImageLab"
+<meta property="og:description" content="Five weighting notations and their multipliers, the safe 1.1-1.5 range, full-width bracket and Chinese prompt pitfalls, plus a verification flow with the weight calculator."
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Prompt Weighting (a:b): Syntax and Tuning · ImageLab"
+<meta name="twitter:description" content="Five weighting notations and their multipliers, the safe 1.1-1.5 range, full-width bracket and Chinese prompt pitfalls, plus a verification flow with the weight calculator."
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Prompt Weighting (a:b): Syntax and Tuning",
+  "description": "Five weighting notations and their multipliers, the safe 1.1-1.5 range, full-width bracket and Chinese prompt pitfalls, plus a verification flow with the weight calculator.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/prompt-weight",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/prompt-weight",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "Prompt Weighting (a:b): Syntax and Tuning",
+  "inLanguage": "en",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Are (word) and (word:1.1) exactly the same?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — the shortcut is sugar for 1.1, and ((word)) equals 1.21 rather than 1.2 because nesting multiplies."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the maximum weight?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The syntax has no cap, but past 1.5 you mostly buy artefacts. If nothing changes, the cause is usually dilution or untranslated text."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the same syntax work in the negative prompt?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Identically — only direction differs: (text:1.4) in the negative means exclude text harder, not want text more."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When should I use AND or BREAK?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "AND (a|b) blends two exclusive styles; BREAK forces segmentation. Both cost tokens — measure with the token counter first."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/prompt-weight" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">Prompt weighting</span>
+  </nav>
+
+  <article class="prose">
+    <h1>Prompt Weighting (a:b): Syntax and Tuning</h1>
+    <p class="lede">Weighting is the most-used control in a prompt, yet the many notations often produce the opposite of what you expected. This guide lays out the syntax, the arithmetic and how to tune it.</p>
+    <h2>What a weight actually changes</h2>
+    <p>Every sampling step pulls the image toward the positive prompt and away from the negative one, with CFG setting the overall pull. A weight changes something finer: <strong>the share of that pull belonging to one word or one bracketed group</strong>. The scope starts at the weight and ends at the next comma by default; parentheses carry their own boundary.</p>
+    <p>That explains the classic surprise: appending a weight to the end of a sentence only affects the last word. To strengthen a whole phrase, wrap that phrase in parentheses.</p>
+
+    <h2>Five notations and their arithmetic</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Notation</th><th>Multiplier</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>(word:1.4)</code></td><td>×1.4</td><td>Explicit weight — what you type is what you get; prefer this</td></tr>
+        <tr><td><code>(word)</code></td><td>×1.1</td><td>Shortcut, identical to <code>(word:1.1)</code></td></tr>
+        <tr><td><code>((word))</code></td><td>×1.21</td><td>Nested multiplication: 1.1 × 1.1, <strong>not 1.2</strong></td></tr>
+        <tr><td><code>[word]</code></td><td>×0.9</td><td>Bracket shortcut for <code>(word:0.9)</code></td></tr>
+        <tr><td><code>(word:0.5)</code></td><td>×0.5</td><td>Explicit down-weight to suppress an element</td></tr>
+      </tbody>
+    </table></div>
+    <p>Layers multiply: <code>(((word)))</code> is 1.1³ ≈ 1.33. Convert every shortcut to a decimal before multiplying and the arithmetic stays honest. Two advanced forms build on the same idea: AND blending (<code>a|b</code>) mixes two descriptions in one image, and the scheduled form <code>(from:to:when)</code> switches content across steps.</p>
+
+    <h2>How much is too much</h2>
+    <p>The practical range is <strong>1.1 to 1.5</strong>. 1.1-1.2 nudges, 1.3-1.4 insists, and around 1.5 you start seeing oversaturation, singed edges and a painterly artefact look; beyond that the frame falls apart. A weight controls attention share, not effect strength — pushing past the threshold only squeezes the other words out.</p>
+    <p>Down-weighting mirrors this: 0.7-0.8 gently fades, 0.5 is already weak, below zero is meaningless. Weight syntax inside the negative prompt is identical — the only difference is direction: emphasis up front, stronger exclusion in the negative.</p>
+    <p>Keep the two control layers apart: CFG sets the overall pull, a weight only redistributes attention between words. A lone 2.0 at CFG 4 does almost nothing; CFG 12 paired with 2.0 blows the whole frame past the limit first. Set CFG where the model feels comfortable (roughly 5-8 for most), then nudge individual words with 1.1-1.4. Optimal values also drift across models and LoRAs — a LoRA trigger word often needs 1.2-1.3 to appear reliably while 1.1 suffices on the base model, so re-test from 1.1 when porting a prompt instead of copying old numbers.</p>
+
+    <h2>Five common mistakes</h2>
+    <ol>
+      <li><strong>Full-width brackets</strong>: <code>（word）</code> is CJK punctuation and the parser ignores it — use ASCII <code>()</code>.</li>
+      <li><strong>Writing Chinese directly</strong>: the tokenizer is BPE-English-first, so Chinese fragments into inefficient tokens no weight can fix — translate first.</li>
+      <li><strong>Single-point weights diluted in long prompts</strong>: beyond 75 tokens the prompt splits and weights apply per segment; repeating a key phrase beats one huge number.</li>
+      <li><strong>Treating weight as a switch</strong>: to remove an element entirely, put it in the negative prompt instead of crushing the positive weight to 0.1.</li>
+      <li><strong>Confusing weight with CFG</strong>: when both are in play, set CFG for the overall look first and use weights for word-level allocation — reversed order only masks the real problem.</li>
+    </ol>
+
+    <h2>Verify it in ImageLab</h2>
+    <p>Open the <a href="/en/tools/prompt-weight">weight calculator</a>, paste any notation — nested brackets expand to the effective multiplier, and composites like <code>((cat:1.5):1.2)</code> resolve to a final number. Calculate before sampling and you will waste far fewer images. Check total length and segmentation with the <a href="/en/tools/token-counter">token counter</a> so your weighted words do not land in the second segment. Then paste the resolved multipliers back and verify by generating — weight behaviour is seed-dependent, so settle a version across two or three seeds.</p>
+
+    <h2>FAQ</h2>
+    <h3>Are (word) and (word:1.1) exactly the same?</h3>
+    <p>Yes — the shortcut is sugar for 1.1, and <code>((word))</code> equals 1.21 rather than 1.2 because nesting multiplies.</p>
+    <h3>What is the maximum weight?</h3>
+    <p>The syntax has no cap, but past 1.5 you mostly buy artefacts. If nothing seems to change, the cause is usually dilution or untranslated text, not too low a number.</p>
+    <h3>Does the same syntax work in the negative prompt?</h3>
+    <p>Identically — only the direction differs: <code>(text:1.4)</code> in the negative means "exclude text harder", not "want text more".</p>
+    <h3>When should I use AND or BREAK?</h3>
+    <p>AND (<code>a|b</code>) blends two mutually exclusive styles; BREAK forces segmentation so two concepts each own half the frame. Both cost tokens — measure with the token counter first.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open ImageLab and try it</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect and analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit and export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+</body>
+</html>

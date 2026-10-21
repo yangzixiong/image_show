@@ -26,6 +26,12 @@ PAGES = [
     ("en", "en/guides/color-picker.html", "/en/guides/color-picker"),
     ("zh", "guides/pixel-inspector.html", "/guides/pixel-inspector"),
     ("en", "en/guides/pixel-inspector.html", "/en/guides/pixel-inspector"),
+    ("zh", "guides/prompt-weight.html", "/guides/prompt-weight"),
+    ("en", "en/guides/prompt-weight.html", "/en/guides/prompt-weight"),
+    ("zh", "guides/negative-prompt.html", "/guides/negative-prompt"),
+    ("en", "en/guides/negative-prompt.html", "/en/guides/negative-prompt"),
+    ("zh", "guides/histogram.html", "/guides/histogram"),
+    ("en", "en/guides/histogram.html", "/en/guides/histogram"),
     ("zh", "faq.html", "/faq"),
     ("en", "en/faq.html", "/en/faq"),
     ("zh", "about.html", "/about"),
@@ -65,10 +71,10 @@ PAGES = [
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
-# 批5 收口：全部 36 页已交付，清空
+# 全部页面已交付，清空
 PLANNED_URLS = set()
 
-EXPECTED_SITEMAP = 44  # 2 个首页 + 14 个内容页（含 /contact 中英）+ 28 个工具页
+EXPECTED_SITEMAP = 50  # 2 个首页 + 20 个内容页（6 篇 guides 中英 + faq/about/contact/privacy 中英）+ 28 个工具页
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [

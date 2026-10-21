@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>图片直方图怎么看：曝光调色入门 · ImageLab</title>
+<meta name="description" content="直方图是图片的亮度体检表：横轴 0-255、纵轴像素数怎么读，欠曝过曝与端点堆积的判断，双峰与低 Key 形态的含义，以及用它匹配两张图曝光基准的实操方法。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/histogram">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/histogram">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/histogram">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/histogram">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/histogram">
+<meta property="og:title" content="图片直方图怎么看：曝光调色入门 · ImageLab"
+<meta property="og:description" content="横纵轴含义与三类典型形态、端点堆积等于裁切、用直方图匹配两张图的曝光基准，以及 16bit 深度图直方图的读法。"
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="图片直方图怎么看：曝光调色入门 · ImageLab"
+<meta name="twitter:description" content="横纵轴含义与三类典型形态、端点堆积等于裁切、用直方图匹配两张图的曝光基准，以及 16bit 深度图直方图的读法。"
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "图片直方图怎么看：曝光调色入门",
+  "description": "横纵轴含义与三类典型形态、端点堆积等于裁切、用直方图匹配两张图的曝光基准，以及 16bit 深度图直方图的读法。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-21",
+  "dateModified": "2026-10-21",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/histogram",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/histogram",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "name": "图片直方图怎么看：曝光调色入门",
+  "inLanguage": "zh-CN",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "峰值高就说明过曝吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不是，看位置不看高度。只有堆积发生在最右端并贴边时，才是高光溢出。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "中间一个大峰说明什么？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "曝光集中在中灰、两端有余量，是最稳妥的状态；峰形极窄则说明画面偏平，需要加对比。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么和修图软件显示的不一样？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "计算口径不同：亮度加权与三通道平均的形状会有差异，有的还应用了 gamma。对比时用同一个工具即可。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "深度图的直方图怎么读？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "横轴是毫米，主峰即场景主要距离；0 是无效值单独统计；右端没数据说明只覆盖近段距离。"
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="语言">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/histogram" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">图片直方图</span>
+  </nav>
+
+  <article class="prose">
+    <h1>图片直方图怎么看：曝光调色入门</h1>
+    <p class="lede">直方图把一张图的明暗分布压成一根条形图。学会看三个位置——两端和中间，你就能在动手调色之前判断这张图的底子。</p>
+    <h2>横轴和纵轴各代表什么</h2>
+    <p>横轴是亮度：最左是纯黑（0），最右是纯白（255），中间是中灰。纵轴是落在这一亮度上的<strong>像素数量</strong>。一张图几百万个像素按亮度分箱统计，就是一根起伏的曲线——峰高说明该亮度的像素多，平坦说明几乎没有像素落在那里。</p>
+    <p>彩色图通常还能切换看 R、G、B 三个通道各自的分布。三通道曲线形状接近，说明色偏很小；某一通道整体右移，图就往那个颜色偏。</p>
+
+    <h2>三种典型形态</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>形态</th><th>样子</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>正常曝光</td><td>主峰居中，两端自然衰减</td><td>亮部暗部都有细节，调色余地最大</td></tr>
+        <tr><td>欠曝（低 Key）</td><td>质量堆在左侧</td><td>暗部能否救回来，取决于左端有没有「着地」</td></tr>
+        <tr><td>过曝（高 Key）</td><td>质量堆在右侧</td><td>右端着地的部分是死白，后期救不回来</td></tr>
+        <tr><td>双峰</td><td>两端各一个峰，中间凹陷</td><td>常见于逆光剪影或高反差场景，中间调信息少</td></tr>
+      </tbody>
+    </table></div>
+    <p>形态本身没有优劣，关键是它是否符合你的意图：夜景低 Key 是正常，白天人像低 Key 才是事故。</p>
+    <p>同一形态在不同题材里含义相反：人像大面积偏右常是高调（high key）人像的正常效果，静物大面积偏右多半就是拍坏了；夜景整体偏左则完全正常。读直方图前先想清楚题材预期，再判断当前分布算不算事故。</p>
+
+    <h2>端点堆积 = 裁切</h2>
+    <p>判断曝光最实用的一条：<strong>看两端</strong>。直方图最左侧贴边立起一根柱子，说明有像素压到了纯黑——这部分暗部细节已经永久丢失；最右侧同理，是烧掉的高光。后期软件里把阴影拉起来只能得到一片死灰的噪声，救不出信息。</p>
+    <p>8bit JPEG 每通道只有 256 级，裁切后没有余量；16bit TIFF 每通道 65536 级，同样的观感下往往还保留着可用数据。这也是拍摄和中间导出倾向用更高位深的原因。</p>
+    <p>直方图只统计数量、不记录位置：它能告诉你丢了百分之几的细节，却不说丢在画面的哪个角落。定位仍要靠预览图和取色读数——先看直方图判断整体，再回到画面确认具体区域，比反复凭肉眼猜曝光快得多。</p>
+
+    <h2>它能帮你做什么</h2>
+    <ol>
+      <li><strong>两张图对齐曝光</strong>：拼贴或连续出图时，对比两张的直方图主峰位置，把它们调到同一区间，观感就衔接了；</li>
+      <li><strong>判断 AI 生成图的对比度</strong>：全部挤在中间的一根窄峰 = 发灰；两端同时着地 = 反差过大；</li>
+      <li><strong>检查素材本身</strong>：拿到图先看直方图，比在小图上凭眼睛猜可靠得多。</li>
+    </ol>
+
+    <h2>在 ImageLab 直方图工具里</h2>
+    <p>打开<a href="/tools/histogram">图片直方图</a>，拖入图片即得完整曲线，并直接给出可读的结论：平均亮度、<strong>暗部溢出与高光溢出的百分比</strong>（两端堆积的量化值）、采样像素数。逐通道与合成视图切换着看，能同时判断曝光和色偏。如果是 16bit 深度图，显示的是<strong>深度值分布</strong>而非颜色：横轴是毫米，0 单独统计（无效值），可以据此判断场景的有效距离范围。</p>
+    <p>单通道取值与坐标定位的细节见<a href="/guides/pixel-inspector">《像素查看》</a>；直方图对不上时先排除缩放插值问题，那套结论与<a href="/guides/color-picker">《图片取色》</a>同源。</p>
+
+    <h2>常见问题</h2>
+    <h3>峰值高就说明过曝吗？</h3>
+    <p>不是，看位置不看高度。峰高只代表该亮度像素多；只有当堆积发生在最右端并贴边时，才是高光溢出。</p>
+    <h3>中间一个大峰说明什么？</h3>
+    <p>曝光集中在中灰附近、两端都有余量，是最稳妥的状态；但若峰形极窄，同时说明画面偏平，需要加对比或找层次。</p>
+    <h3>为什么和修图软件显示的不一样？</h3>
+    <p>计算口径不同：有的按亮度加权（对绿色更敏感），有的是三通道平均，还有的在统计前应用了 gamma。同一张图形状相似但高度有差异是正常的，对比时保证用同一个工具即可。</p>
+    <h3>深度图的直方图怎么读？</h3>
+    <p>横轴是毫米值：主峰所在区间就是场景主要物体的距离；0 是无效值单独统计；右端没数据说明深度图只覆盖了近段距离。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 试一下</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+</body>
+</html>
