@@ -689,7 +689,7 @@ input[type="checkbox"] {
 .nav-panel {
   display: none;
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   left: -10px;
   min-width: 190px;
   flex-direction: column;
@@ -770,5 +770,7 @@ input[type="checkbox"] {
   .nav-panel a { padding: 7px 8px; font-size: 13px; white-space: normal; }
 }
 
-.viewer-crumb { width: 100%; max-width: 1180px; margin: 0 auto; padding: 16px 20px 0; }
-.viewer-crumb .breadcrumb { margin-bottom: 4px; }
+/* 查看器：允许页面滚动，内容区保底高度（空间不足时出滚动条而不是压扁画布） */
+body.no-img { overflow-y: auto; overflow-x: hidden; }
+.layout { min-height: 620px; }
+
