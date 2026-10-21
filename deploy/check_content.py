@@ -13,10 +13,43 @@
 import json
 import re
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BASE = "https://yangzixiong.com"
+
+
+class MetaParser(HTMLParser):
+    """按浏览器规则解析 <meta>：属性名（property/name）→ content。
+
+    字符串包含式检查看不出「meta 结尾漏 '>'」这类错误——解析器会把后续
+    meta 当成同一个标签的垃圾属性吞掉，导致 og:description / og:image 整体消失。
+    这里用真实解析器还原浏览器行为。
+    """
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.metas = {}
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() != "meta":
+            return
+        d = {k.lower(): (v or "") for k, v in attrs}
+        key = d.get("property") or d.get("name")
+        if key and key not in self.metas:
+            self.metas[key] = d.get("content", "")
+
+
+def parse_metas(html):
+    p = MetaParser()
+    try:
+        p.feed(html)
+        p.close()
+    except Exception:
+        pass
+    return p.metas
+
 
 # 本批已交付页面：(语言, 相对仓库的文件路径, 站点路径)
 PAGES = [
@@ -179,6 +212,14 @@ for lang, rel, site_path in PAGES:
 
     check(bool(re.search(r"css/style\.css\?v=6", html)), f"{label} 样式表引用为 ?v=6")
 
+    # head 真实解析：og/twitter 标签必须各自独立存在且非空。
+    # 只用字符串包含检查看不出「meta 结尾漏 '>' 导致后续标签被吞」这类错误，
+    # 必须让 HTML 解析器按浏览器规则解析一遍。
+    metas = parse_metas(html)
+    for key in ("og:title", "og:description", "og:image",
+                "twitter:title", "twitter:description", "twitter:image"):
+        check(metas.get(key, "").strip() != "", f"{label} head 解析出 {key}")
+
     broken = []
     for href in re.findall(r'href="([^"]+)"', html):
         target = href_to_path(href, rel)
@@ -236,6 +277,57 @@ for html_file in sorted(ROOT.rglob("*.html")):
 check(not stale, "所有引用样式表的页面均使用 ?v=6")
 for s in stale:
     print("      未升级:", s)
+
+# ---- 脚本版本纪律 ----
+# 1) 所有 /js/ 与 /tools/ 引用必须带 ?v=（否则改了文件老访客拿不到新版）
+# 2) 同一个脚本文件在全站的 ?v 必须一致（不一致会出现两套缓存）
+# 3) 页面引用的脚本里 $("id") / getElementById("id") 的 id 必须真实存在于该页面
+#    —— 这条能提前抓住「JS 取了一个页面里不存在的元素」这类致命 bug
+#       （2026-10-21 的提示词翻译/随机提示词就是这么坏的）
+script_refs = {}          # 脚本路径 -> {版本}
+pages_with_scripts = []   # (页面相对路径, [脚本相对路径])
+for html_file in sorted(ROOT.rglob("*.html")):
+    rel = html_file.relative_to(ROOT).as_posix()
+    if rel.startswith(("docs/", "deploy/")):
+        continue
+    text = html_file.read_text(encoding="utf-8")
+    srcs = re.findall(r'<script[^>]+src="(/[^"]+)"', text)
+    local = []
+    for src in srcs:
+        if not (src.startswith("/js/") or src.startswith("/tools/")):
+            continue
+        path, _, query = src.partition("?")
+        ver = query[2:] if query.startswith("v=") else None
+        script_refs.setdefault(path, set()).add(ver)
+        local.append(path.lstrip("/"))
+    if local:
+        pages_with_scripts.append((rel, local, text))
+
+no_version = [p for p, vs in script_refs.items() if None in vs]
+check(not no_version, "所有 /js/ 与 /tools/ 脚本引用都带 ?v= 版本号")
+for p in sorted(no_version):
+    print("      缺版本号:", p)
+
+multi_version = {p: sorted(str(v) for v in vs) for p, vs in script_refs.items() if len(vs) > 1}
+check(not multi_version, "同一脚本在全站的 ?v 版本号一致")
+for p, vs in sorted(multi_version.items()):
+    print("      版本不一致:", p, vs)
+
+missing_ids = []
+for rel, scripts, text in pages_with_scripts:
+    ids = set(re.findall(r'\bid="([^"]+)"', text))
+    for s in scripts:
+        js_path = ROOT / s
+        if not js_path.exists():
+            continue
+        js = js_path.read_text(encoding="utf-8")
+        used = set(re.findall(r'\$\("([^"]+)"\)', js))
+        used |= set(re.findall(r'getElementById\("([^"]+)"\)', js))
+        for i in sorted(used - ids):
+            missing_ids.append(f"{rel} ← {s}: #{i}")
+check(not missing_ids, "页面脚本引用的元素 id 都真实存在")
+for m in missing_ids[:20]:
+    print("      缺元素:", m)
 
 # ---- lang-boot 内联副本与源文件一致（写入工具 deploy/inline_langboot.py）----
 langboot_code = (ROOT / "js" / "lang-boot.js").read_text(encoding="utf-8").strip()
