@@ -20,6 +20,7 @@
       finish: "全部镜头走完",
       needShot: "先加至少一个镜头",
       copied: "分镜表已复制",
+      copyFail: "复制失败，请手动选择文本",
       exported: "已导出 {name}",
       noTarget: "先在右侧选一个目标时长",
       placeholder: "画面描述，例如：人物回头，慢推",
@@ -37,6 +38,7 @@
       finish: "All shots done",
       needShot: "Add at least one shot",
       copied: "Storyboard copied",
+      copyFail: "Copy failed — select the text manually",
       exported: "Exported {name}",
       noTarget: "Pick a target length first",
       placeholder: "What happens, e.g. character turns, slow push in",
@@ -55,15 +57,17 @@
     return s;
   }
 
-  var state = { shots: [], elapsed: 0, playing: false, last: 0, raf: 0, active: -1, audio: null };
+  var state = { shots: [], elapsed: 0, playing: false, last: 0, raf: 0, active: -1, lastIndex: -1, audio: null };
   var els = {};
 
   function $(id) { return document.getElementById(id); }
   function pad(n) { return n < 10 ? "0" + n : String(n); }
 
   function fmt(sec) {
-    var m = Math.floor(Math.max(0, sec) / 60);
-    var s = Math.max(0, sec) - m * 60;
+    var t = Math.max(0, sec);
+    var m = Math.floor(t / 60);
+    var s = Math.round((t - m * 60) * 10) / 10;
+    if (s >= 60) { s -= 60; m += 1; }   // 59.96 → 60.0 需要进位，否则显示 00:60.0
     return pad(m) + ":" + (s < 10 ? "0" : "") + s.toFixed(1);
   }
 
@@ -174,10 +178,12 @@
 
   function updateActive() {
     var i = state.playing ? indexAt(state.elapsed) : -1;
+    if (i >= 0) state.lastIndex = i;
     var rows = els.list.children;
     for (var r = 0; r < rows.length; r++) {
       rows[r].classList.toggle("active", r === i);
-      rows[r].classList.toggle("done", i >= 0 && r < i);
+      // 停止/播完之后，已经讲过的镜头仍要保留「已完成」标记
+      rows[r].classList.toggle("done", state.lastIndex >= 0 && r < state.lastIndex);
     }
   }
 
@@ -300,10 +306,10 @@
     document.body.appendChild(ta);
     ta.select();
     try {
-      document.execCommand("copy");
-      Toolkit.toast(tt("copied"));
+      var ok = document.execCommand("copy");
+      Toolkit.toast(tt(ok ? "copied" : "copyFail"));
     } catch (e) {
-      Toolkit.toast(tt("copied"));
+      Toolkit.toast(tt("copyFail"));
     }
     document.body.removeChild(ta);
   }
@@ -352,6 +358,7 @@
       stop();
       state.elapsed = 0;
       state.active = -1;
+      state.lastIndex = -1;
       els.clock.textContent = fmt(0);
       els.state.textContent = tt("idle");
       updateActive();

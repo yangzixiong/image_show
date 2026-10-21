@@ -138,13 +138,26 @@ var I18N = (function () {
     }
   }
 
+  /** 另一种语言下同一页面的路径（/tools/x ↔ /en/tools/x），没有对应页时退回该语言首页 */
+  function counterpartPath(target) {
+    var path = location.pathname || "/";
+    if (target === "en") {
+      if (path === "/") return "/en/";
+      if (path.indexOf("/en/") === 0) return path;
+      return "/en" + path;
+    }
+    var p = path.replace(/^\/en(\/|$)/, "/");
+    return p === "" ? "/" : p;
+  }
+
   /** 如果访客上次选了另一种语言，就在顶栏给一个不打扰的入口 */
   function showPrefHint() {
     var pref = readPref();
     if (!pref || pref === LANG || !DICT[pref]) return;
     var box = document.getElementById("langHint");
     if (!box) return;
-    box.href = pref === "en" ? "/en/" : "/";
+    // 指向「同一页的另一语言版本」，而不是语言首页
+    box.href = counterpartPath(pref);
     box.textContent = (DICT[pref]["ui.langHint"]) || box.textContent;
     box.hidden = false;
   }

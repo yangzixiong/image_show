@@ -322,7 +322,8 @@ var PromptLib = (function () {
     function push(s) {
       s = String(s || "").trim();
       if (!s) return;
-      s.split(/\s*,\s*/).forEach(function (piece) {
+      // 逗号或换行都算分隔符（页面承诺「单独的换行也当分隔符处理」）
+      s.split(/\s*,\s*|\s*\n\s*/).forEach(function (piece) {
         piece = piece.trim();
         if (!piece) return;
         var key = piece.toLowerCase();
@@ -427,8 +428,13 @@ var PromptLib = (function () {
   }
 
   function clipTokens(text, table) {
-    var mergeRank = {};
-    for (var i2 = 0; i2 < table.merges.length; i2++) mergeRank[table.merges[i2]] = i2;
+    // merge 表有近 5 万项，构造一次就够——否则每次按键、每个分段都要重建一遍
+    var mergeRank = table.mergeRank;
+    if (!mergeRank) {
+      mergeRank = {};
+      for (var i2 = 0; i2 < table.merges.length; i2++) mergeRank[table.merges[i2]] = i2;
+      table.mergeRank = mergeRank;
+    }
     var encoder = table.encoder;
     var clean = text.replace(/\s+/g, " ").trim().toLowerCase();
     var pieces = clean.match(CLIP_RE) || [];

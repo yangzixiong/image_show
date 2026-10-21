@@ -27,6 +27,12 @@ var Viewer = (function () {
     canvas.addEventListener("click", onClick);
     canvas.addEventListener("dblclick", fit);
     window.addEventListener("resize", resize);
+    // 舞台尺寸不只随窗口变化：页脚展开、侧栏折叠也会改高度。
+    // 不跟着重测就会让画布位图与显示框比例不一致（画面被拉伸，取色坐标也偏）。
+    if (typeof ResizeObserver === "function") {
+      var ro = new ResizeObserver(function () { resize(); });
+      ro.observe(stage);
+    }
     resize();
   }
 

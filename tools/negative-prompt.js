@@ -72,8 +72,12 @@
     fetchLib();
   });
 
+  function setLoad(msg) {
+    if (els.load) els.load.textContent = msg;
+  }
+
   function fetchLib() {
-    els.load.textContent = tt("loading");
+    setLoad(tt("loading"));
     fetch("/data/negative-prompts.json")
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -83,12 +87,12 @@
         lib = (data && Array.isArray(data.groups)) ? data : { groups: [] };
         var n = 0;
         lib.groups.forEach(function (g) { n += (g.items || []).length; });
-        els.load.textContent = tt("loaded", { n: n });
+        setLoad(tt("loaded", { n: n }));
         renderLib();
         recompute();
       })
       .catch(function () {
-        els.load.textContent = tt("loadFail");
+        setLoad(tt("loadFail"));
         recompute();
       });
   }

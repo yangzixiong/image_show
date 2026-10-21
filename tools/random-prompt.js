@@ -129,8 +129,12 @@
     fetchLib();
   });
 
+  function setLoad(msg) {
+    if (els.load) els.load.textContent = msg;
+  }
+
   function fetchLib() {
-    els.load.textContent = tt("loading");
+    setLoad(tt("loading"));
     fetch("/data/random-prompts.json")
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -140,7 +144,7 @@
         data = (json && Array.isArray(json.layers) && json.layers.length) ? json : { layers: [] };
         var n = 0;
         data.layers.forEach(function (L) { n += (L.items || []).length; });
-        els.load.textContent = tt("loaded", { n: n });
+        setLoad(tt("loaded", { n: n }));
         initFromUrl();
         renderRows();
         drawAll(false);
@@ -148,7 +152,7 @@
         renderOut();
       })
       .catch(function () {
-        els.load.textContent = tt("loadFail");
+        setLoad(tt("loadFail"));
       });
   }
 

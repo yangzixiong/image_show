@@ -79,8 +79,12 @@
     fetchTerms();
   });
 
+  function setLoad(msg) {
+    if (els.load) els.load.textContent = msg;
+  }
+
   function fetchTerms() {
-    els.load.textContent = tt("loading");
+    setLoad(tt("loading"));
     fetch("/data/prompt-terms.json")
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -89,11 +93,11 @@
       .then(function (json) {
         terms = (json && Array.isArray(json.terms)) ? json.terms : [];
         buildMaps();
-        els.load.textContent = tt("loaded", { n: terms.length });
+        setLoad(tt("loaded", { n: terms.length }));
         translate();
       })
       .catch(function () {
-        els.load.textContent = tt("loadFail");
+        setLoad(tt("loadFail"));
         translate();
       });
   }

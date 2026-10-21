@@ -13,6 +13,7 @@
       decodeFail: "无法解码 {name}",
       cellInfo: "每块约 {w} × {h} · 共 {n} 块",
       packing: "正在打包 {n} 块…",
+      packFail: "打包失败，请重试",
       downloaded: "已导出 {name}（{size}）"
     },
     en: {
@@ -20,6 +21,7 @@
       decodeFail: "Could not decode {name}",
       cellInfo: "≈{w} × {h} per tile · {n} tiles",
       packing: "Packing {n} tiles…",
+      packFail: "Could not build the ZIP — please try again",
       downloaded: "Exported {name} ({size})"
     }
   };
@@ -51,15 +53,24 @@
 
     Toolkit.bindDrop(els.dropzone, els.input, onFiles);
 
+    var chips = document.querySelectorAll(".grid-chip");
+    function syncChips() {
+      Array.prototype.forEach.call(chips, function (c) {
+        var rc = (c.getAttribute("data-grid") || "").split("x");
+        c.classList.toggle("on", rc[0] === String(state.rows) && rc[1] === String(state.cols));
+      });
+    }
+
     var onGrid = function () {
       state.rows = parseInt(els.rows.value, 10);
       state.cols = parseInt(els.cols.value, 10);
+      syncChips();
       render();
     };
     els.rows.addEventListener("change", onGrid);
     els.cols.addEventListener("change", onGrid);
 
-    Array.prototype.forEach.call(document.querySelectorAll(".grid-chip"), function (chip) {
+    Array.prototype.forEach.call(chips, function (chip) {
       chip.addEventListener("click", function () {
         var rc = chip.getAttribute("data-grid").split("x");
         els.rows.value = rc[0];
@@ -69,6 +80,9 @@
     });
 
     els.btnDownload.addEventListener("click", download);
+    state.rows = parseInt(els.rows.value, 10) || state.rows;
+    state.cols = parseInt(els.cols.value, 10) || state.cols;
+    syncChips();
     updateInfo();
   });
 
@@ -165,7 +179,7 @@
       Toolkit.download(blob, name);
       Toolkit.toast(tt("downloaded", { name: name, size: Toolkit.fmtBytes(blob.size) }));
     }).catch(function () {
-      Toolkit.toast(tt("decodeFail", { name: img.name }));
+      Toolkit.toast(tt("packFail"));
     }).finally(function () {
       btn.disabled = false;
     });

@@ -109,6 +109,11 @@
     var m = currentModel();
     if (m.state === "ready" || m.state === "none") return Promise.resolve();
     if (m.state === "loading") return m.promise;
+    if (m.state === "failed") {
+      // 失败后不立刻重下（o200k 词表 3.6MB），冷却 30 秒才允许再试
+      if (Date.now() - (m.failedAt || 0) < 30000) return Promise.resolve();
+      m.state = "none";
+    }
     m.state = "loading";
     m.promise = Promise.all(m.files.map(function (url) {
       return fetch(url).then(function (r) {
@@ -122,6 +127,7 @@
       m.state = "ready";
     }).catch(function () {
       m.state = "failed";
+      m.failedAt = Date.now();
       m.table = null;
     });
     return m.promise;
@@ -141,7 +147,11 @@
     if (ct.limit == null) {
       els.remain.textContent = tt("remainNoLimit");
     } else if (m.vocab === "clip") {
-      els.remain.textContent = tt("remain", { n: ct.limit });
+      // CLIP 是分段计数：额度看最满的那一段，不是全部相加
+      var worst = ct.segmentCounts && ct.segmentCounts.length
+        ? Math.max.apply(null, ct.segmentCounts)
+        : 0;
+      els.remain.textContent = tt("remain", { n: Math.max(0, ct.limit - worst) });
     } else {
       els.remain.textContent = tt("remain", { n: Math.max(0, ct.limit - ct.total) });
     }

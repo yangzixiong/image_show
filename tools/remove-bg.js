@@ -37,6 +37,7 @@
       done: "完成，用时 {t} 秒",
       exported: "已导出 {name}（{size}）",
       packed: "已导出 {name}（{size}）",
+      packFail: "打包失败，请重试",
       runFail: "推理失败，请重试或换一张图"
     },
     en: {
@@ -48,6 +49,7 @@
       done: "Done in {t}s",
       exported: "Exported {name} ({size})",
       packed: "Exported {name} ({size})",
+      packFail: "Could not build the ZIP — please try again",
       runFail: "Inference failed, please retry or use another image"
     }
   };
@@ -119,11 +121,19 @@
       var s = document.createElement("script");
       s.src = "/lib/ort/ort.min.js";
       s.onload = function () {
-        ort.env.wasm.wasmPaths = "/lib/ort/";
+        // 用对象形式指定产物：1.22 的加载器默认会去找 ort-wasm-simd-threaded.jsep.mjs，
+        // 仓库里只有非 jsep 的同名产物，直接给字符串前缀会 404。
+        ort.env.wasm.wasmPaths = {
+          mjs: "/lib/ort/ort-wasm-simd-threaded.mjs",
+          wasm: "/lib/ort/ort-wasm-simd-threaded.wasm"
+        };
         ort.env.wasm.numThreads = 1;
         resolve();
       };
-      s.onerror = function () { reject(new Error("ort load failed")); };
+      s.onerror = function () {
+        ortReady = null;   // 允许下次重试（否则一次失败后永远报「推理失败」）
+        reject(new Error("ort load failed"));
+      };
       document.head.appendChild(s);
     });
     return ortReady;
@@ -288,6 +298,8 @@
       var name = base + "-cutout.zip";
       Toolkit.download(blob, name);
       Toolkit.toast(tt("packed", { name: name, size: Toolkit.fmtBytes(blob.size) }));
+    }).catch(function () {
+      Toolkit.toast(tt("packFail"));
     });
   }
 })();

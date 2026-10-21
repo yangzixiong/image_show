@@ -18,6 +18,7 @@
       done: "完成：{n} 帧",
       grabbed: "已抓取当前帧",
       zipped: "已打包 {n} 帧（{size}）",
+      packFail: "打包失败，请重试",
       empty: "还没有提取任何帧",
       nothing: "尚未载入视频",
       frames: "帧数：{n}",
@@ -33,6 +34,7 @@
       done: "Done: {n} frames",
       grabbed: "Frame captured",
       zipped: "Zipped {n} frames ({size})",
+      packFail: "Could not build the ZIP — please try again",
       empty: "No frames extracted yet",
       nothing: "No video loaded",
       frames: "Frames: {n}",
@@ -60,7 +62,8 @@
   function fmtTime(sec) {
     if (!isFinite(sec) || sec < 0) return "--:--";
     var m = Math.floor(sec / 60);
-    var s = sec - m * 60;
+    var s = Math.round((sec - m * 60) * 10) / 10;
+    if (s >= 60) { s -= 60; m += 1; }   // 59.96 → 需要进位，否则显示 00:60.0
     return pad(m) + ":" + (s < 10 ? "0" : "") + s.toFixed(1);
   }
 
@@ -325,6 +328,8 @@
       var blob = new Blob([zipped], { type: "application/zip" });
       Toolkit.download(blob, Toolkit.baseName(state.file.name) + "_frames.zip");
       Toolkit.toast(tt("zipped", { n: frames.length, size: Toolkit.fmtBytes(blob.size) }));
+    }).catch(function () {
+      Toolkit.toast(tt("packFail"));
     });
   }
 

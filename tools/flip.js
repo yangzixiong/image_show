@@ -85,8 +85,9 @@
     var ctx = els.canvas.getContext("2d");
     ctx.save();
     ctx.translate(w / 2, h / 2);
-    ctx.rotate(state.rot * Math.PI / 2);
+    // 先旋转再镜像（与页面说明一致）：画布变换是后乘的，镜像写在旋转之后
     ctx.scale(state.fh ? -1 : 1, state.fv ? -1 : 1);
+    ctx.rotate(state.rot * Math.PI / 2);
     ctx.drawImage(img.canvas, -img.width / 2, -img.height / 2);
     ctx.restore();
 

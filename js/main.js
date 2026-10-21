@@ -59,16 +59,21 @@
     var files = Array.prototype.filter.call(fileList, isImageFile);
     if (!files.length) { toast(t("toast.noFiles")); return; }
     var firstNew = images.length;
+    var firstOk = -1;          // 第一个解码成功的图片下标
     var done = 0;
     files.forEach(function (f) {
       Decoder.decode(f)
-        .then(function (img) { images.push(img); })
+        .then(function (img) {
+          images.push(img);
+          if (firstOk < 0) firstOk = images.length - 1;
+        })
         .catch(function () { toast(t("toast.decodeFail", { name: f.name })); })
         .then(function () {
           done++;
           if (done === files.length) {
             renderThumbs();
-            show(firstNew);
+            // 首个文件解码失败时也要能显示后面成功的图片
+            show(firstOk >= 0 ? firstOk : firstNew);
           }
         });
     });
@@ -109,8 +114,11 @@
     if (i < 0 || i >= images.length) return;
     current = i;
     var img = images[i];
-    Viewer.setImage(img);
+    // 先恢复完整布局（页脚展开会改变舞台高度），再重测并适配画布；
+    // 顺序反了会让画布位图与显示框比例不一致（画面被纵向压扁，取色坐标也随之偏移）。
     document.body.classList.remove("no-img");
+    Viewer.resize();
+    Viewer.setImage(img);
     els.imgName.textContent = img.name + (img.kind === "depth" ? t("label.depthImage") : "");
     els.stSize.textContent = img.width + " × " + img.height + (img.kind === "depth" ? t("label.depth16") : "");
     var isDepth = img.kind === "depth";
