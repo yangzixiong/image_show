@@ -1,0 +1,2 @@
+# ads.txt - 接入 Google AdSense 后，把下面示例行替换为你的发布商 ID 并取消注释
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
