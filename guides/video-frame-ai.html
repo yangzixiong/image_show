@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>视频抽帧做 AI 动画参考 · ImageLab</title>
+<meta name="description" content="从视频按间隔或时间点抽帧，导出 PNG 序列给 AI 动画、转描或分镜参考：帧率怎么选、200 帧上限怎么绕、HEVC 为什么打不开，以及浏览器内步骤。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/video-frame-ai">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/video-frame-ai">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/video-frame-ai">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/video-frame-ai">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/video-frame-ai">
+<meta property="og:title" content="视频抽帧做 AI 动画参考 · ImageLab">
+<meta property="og:description" content="从视频按间隔或时间点抽帧，导出 PNG 序列给 AI 动画、转描或分镜参考：帧率怎么选、200 帧上限怎么绕、HEVC 为什么打不开，以及浏览器内步骤。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="视频抽帧做 AI 动画参考 · ImageLab">
+<meta name="twitter:description" content="从视频按间隔或时间点抽帧，导出 PNG 序列给 AI 动画、转描或分镜参考：帧率怎么选、200 帧上限怎么绕、HEVC 为什么打不开，以及浏览器内步骤。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "视频抽帧做 AI 动画参考",
+  "description": "从视频按间隔或时间点抽帧，导出 PNG 序列给 AI 动画、转描或分镜参考：帧率怎么选、200 帧上限怎么绕、HEVC 为什么打不开，以及浏览器内步骤。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-22",
+  "dateModified": "2026-10-22",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/video-frame-ai",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/video-frame-ai",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/video-frame-ai" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <a href="/guides/">全部教程</a> / <span aria-current="page">视频抽帧做 AI 动画参考</span>
+  </nav>
+
+<article class="prose">
+    <h1>视频抽帧做 AI 动画参考</h1>
+    <p class="lede">抽帧不是越多越好。先确定这一批帧要拿来干什么，再决定间隔和分辨率，最后才点导出。</p>
+
+    <h2>三种用途，三种抽法</h2>
+    <p>同样一段十秒视频，做参考图和做逐帧转描，需要的帧数差几十倍。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>用途</th><th>建议间隔</th><th>十秒视频的帧数</th><th>注意</th></tr></thead>
+      <tbody>
+        <tr><td>构图、风格、镜头参考</td><td>每 1–2 秒</td><td>5–10 张</td><td>挑关键画面，不必覆盖全程</td></tr>
+        <tr><td>关键姿势、动作节点</td><td>手动列时间点</td><td>5–20 张</td><td>按动作转折点取，不按固定间隔</td></tr>
+        <tr><td>转描、逐帧动画</td><td>每帧或接近每帧</td><td>240–300 张</td><td>受 200 帧上限限制，要分段</td></tr>
+      </tbody>
+    </table></div>
+    <p>24 fps 的十秒视频有 240 帧，30 fps 有 300 帧。<a href="/tools/video-frame">视频帧提取</a>单次最多导出 200 帧，默认 20 帧，间隔最小 0.05 秒（约 20 fps）。要真正的逐帧，得把视频切成十秒以内的片段，或者直接用剪辑软件导出图片序列。</p>
+
+    <h2>间隔、帧率、时间点是三套坐标</h2>
+    <p>“每 0.5 秒一张”是间隔； “每秒 24 张”是帧率； “第 3.2 秒、第 7.8 秒”是时间点。工具里对应三个模式，别把秒数填进帧数框。</p>
+    <pre><code>间隔 0.5 秒  →  10 秒视频约 20 张
+24 fps       →  10 秒视频 240 帧
+时间点列表   →  0.5, 1.2, 3, 7.5（秒）</code></pre>
+    <p>间隔模式适合均匀采样，时间点模式适合“只要这几个动作”。时间点用逗号、空格或换行分隔都行，填 0 就是从开头抓。超出视频时长的点会被忽略，不会报错。</p>
+
+    <h2>浏览器解码的边界</h2>
+    <p>能不能抽帧，取决于浏览器能不能解码这个视频。Chrome 和 Edge 通常能解 H.264 的 MP4 和 VP9 的 WebM，HEVC（H.265）、AV1、ProRes 在很多系统上会直接失败。遇到打不开，先用剪辑软件转成 H.264 MP4 或 WebM，再拖进来。</p>
+    <p>抽帧时间以浏览器的解码器为准。剪辑软件显示的时间码和浏览器 seek 到的画面可能差一两帧，尤其是 Long GOP 编码。做对位严格的转描时，先抽一张确认画面，再批量跑。</p>
+
+    <h2>内存和体积</h2>
+    <p>抽出来的帧会一直留在页面里，直到你刷新或关闭。200 张 1080p PNG 大约 400 MB，低配机器会卡。三个降低压力的办法：</p>
+    <ul>
+      <li>输出宽度选 1280 或 854，不要用原始 4K；</li>
+      <li>格式选 JPEG 或 WebP，PNG 只留给需要透明或无损的场合；</li>
+      <li>一次不超过 50 帧，分几批抽，导出 ZIP 后再抽下一段。</li>
+    </ul>
+    <p>PNG 一张 1080p 帧常在 2 MB 以上，JPEG 通常小一个数量级。参考图用 JPEG 完全够，只有要再次抠图或做遮罩时才需要 PNG。</p>
+
+    <h2>操作步骤</h2>
+    <ol>
+      <li>把视频拖进<a href="/tools/video-frame">视频帧提取</a>。文件在本地解码，不会上传。</li>
+      <li>选模式：按间隔、按时间点列表，或只抓当前帧。先在预览里拖到关键画面，确认视频能正常播放。</li>
+      <li>设最大帧数。第一次先填 10–20 张试跑，确认画面和时间点对得上，再放大批量。</li>
+      <li>选输出宽度和格式。做 AI 参考选 1280 + JPEG，做遮罩选原始 + PNG。</li>
+      <li>点“开始抽取”，等进度跑完。缩略图按时间顺序排列，检查有没有黑帧或重复帧。</li>
+      <li>点打包下载，得到一个 ZIP。单张不满意可以只抓当前帧重新导出。</li>
+    </ol>
+
+    <h2>抽完怎么用</h2>
+    <p>做 AI 动画参考，挑 5–10 张关键姿势就够，不必把 200 张全喂给图生图。帧与帧之间差异太小，模型学不到新信息，只会增加排队时间。</p>
+    <p>做转描，按动作切段，每段单独抽帧、单独命名。文件名默认带原视频名和帧序号，分段后建议在文件夹上再标一次时间段，否则后期很难对齐。</p>
+    <p>做分镜，抽完帧可以配合<a href="/tools/storyboard-timer">分镜计时器</a>排时长；需要把多帧拼成一张参考板，用<a href="/guides/grid-comic">九宫格分割</a>的反向思路，在排版软件里拼，不要在这个工具里做。</p>
+
+    <h2>常见问题</h2>
+    <h3>为什么视频拖进去没反应？</h3>
+    <p>多半是编码不支持。HEVC、AV1、ProRes 在不少浏览器里无法解码。转成 H.264 MP4 或 WebM 再试。</p>
+    <h3>能抽得比 0.05 秒更密吗？</h3>
+    <p>间隔模式最小 0.05 秒。要更密只能用时间点列表逐个写，但仍受 200 帧上限限制。逐帧需求建议用剪辑软件。</p>
+    <h3>抽出来的帧和剪辑软件对不上？</h3>
+    <p>浏览器按自己的解码器 seek，时间码可能有细微差异。以实际画面为准，不要只看秒数。</p>
+    <h3>会保存视频吗？</h3>
+    <p>不会。视频只在当前页面内解码，刷新即释放。导出的帧也只存在你下载的 ZIP 里。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/tools/video-frame">打开视频帧提取</a>
+    </div>
+    <p class="related">相关：<a href="/guides/grid-comic">九宫格分镜</a> · <a href="/guides/remove-bg-controlnet">抠图做 ControlNet 遮罩</a> · <a href="/tools/storyboard-timer">分镜计时器</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en" data-lang-switch="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+
+</body>
+</html>

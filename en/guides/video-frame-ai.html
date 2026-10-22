@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Video Frame Grabs for AI Animation · ImageLab</title>
+<meta name="description" content="Extract frames by interval or timestamp for AI animation, rotoscoping or storyboards: choosing a rate, working within the 200-frame cap, and why HEVC fails.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/video-frame-ai">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/video-frame-ai">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/video-frame-ai">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/video-frame-ai">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/video-frame-ai">
+<meta property="og:title" content="Video Frame Grabs for AI Animation · ImageLab">
+<meta property="og:description" content="Extract frames by interval or timestamp for AI animation, rotoscoping or storyboards: choosing a rate, working within the 200-frame cap, and why HEVC fails.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Video Frame Grabs for AI Animation · ImageLab">
+<meta name="twitter:description" content="Extract frames by interval or timestamp for AI animation, rotoscoping or storyboards: choosing a rate, working within the 200-frame cap, and why HEVC fails.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Video Frame Grabs for AI Animation",
+  "description": "Extract frames by interval or timestamp for AI animation, rotoscoping or storyboards: choosing a rate, working within the 200-frame cap, and why HEVC fails.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-22",
+  "dateModified": "2026-10-22",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/video-frame-ai",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/video-frame-ai",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/">All guides</a>
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+        <a href="/en/guides/crop-social">Social crops</a>
+        <a href="/en/guides/remove-bg-controlnet">Cutouts as masks</a>
+        <a href="/en/guides/video-frame-ai">Video frame grabs</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/video-frame-ai" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <a href="/en/guides/">All guides</a> / <span aria-current="page">Video Frame Grabs for AI Animation</span>
+  </nav>
+
+<article class="prose">
+    <h1>Video Frame Grabs for AI Animation</h1>
+    <p class="lede">More frames is not the same as better frames. Decide what the batch is for, then pick the interval and the resolution, and only then export.</p>
+
+    <h2>Three jobs, three sampling rates</h2>
+    <p>The same ten-second clip can need five images or three hundred. The difference is what you plan to do with them.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Job</th><th>Suggested interval</th><th>Frames from 10 seconds</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Composition, style, shot reference</td><td>Every 1–2 seconds</td><td>5–10</td><td>Pick key moments; no need to cover every second</td></tr>
+        <tr><td>Key poses and action beats</td><td>A list of timestamps</td><td>5–20</td><td>Sample at transitions, not on a fixed grid</td></tr>
+        <tr><td>Rotoscoping, frame-by-frame animation</td><td>Every frame, or close to it</td><td>240–300</td><td>Split the clip: the tool caps a run at 200 frames</td></tr>
+      </tbody>
+    </table></div>
+    <p>A 24 fps clip contains 240 frames in ten seconds; 30 fps contains 300. The <a href="/en/tools/video-frame">frame extractor</a> caps one run at 200 frames, defaults to 20, and accepts intervals down to 0.05 s (about 20 fps). True frame-by-frame work means splitting the video into shorter segments or exporting an image sequence from an editor.</p>
+
+    <h2>Interval, frame rate and timestamps are different inputs</h2>
+    <p>"One frame every 0.5 seconds" is an interval. "24 frames per second" is a frame rate. "At 3.2 s and 7.8 s" is a timestamp list. The tool has a mode for each; do not type seconds into a frame-count field.</p>
+    <pre><code>Interval 0.5 s  →  about 20 frames from 10 seconds
+24 fps           →  240 frames from 10 seconds
+Timestamp list   →  0.5, 1.2, 3, 7.5 (seconds)</code></pre>
+    <p>Interval mode is for even sampling. Timestamp mode is for "only these moments". Separate timestamps with commas, spaces or newlines. Zero starts at the beginning. Points beyond the clip duration are ignored rather than raising an error.</p>
+
+    <h2>What the browser can and cannot decode</h2>
+    <p>Whether extraction works depends on the browser's decoder. Chrome and Edge usually handle H.264 MP4 and VP9 WebM. HEVC (H.265), AV1 and ProRes often fail, depending on the operating system. If the file will not open, convert it to H.264 MP4 or WebM in an editor first.</p>
+    <p>Timestamps come from the browser's seek behaviour. An editor's timecode and the frame the browser lands on can differ by a frame or two, especially with Long GOP codecs. For strict rotoscoping, grab one frame and check it before running the batch.</p>
+
+    <h2>Memory and file size</h2>
+    <p>Grabbed frames stay in the page until you reload or close it. Two hundred 1080p PNGs can occupy roughly 400 MB, which is enough to make a low-memory machine stutter. Three ways to reduce the load:</p>
+    <ul>
+      <li>Set the output width to 1280 or 854 instead of original 4K;</li>
+      <li>Use JPEG or WebP; keep PNG for transparency or lossless work;</li>
+      <li>Grab no more than 50 frames per run, export the ZIP, then start the next segment.</li>
+    </ul>
+    <p>A 1080p PNG frame is often over 2 MB. JPEG is usually an order of magnitude smaller. Reference images do not need PNG; masks and cutouts do.</p>
+
+    <h2>Workflow</h2>
+    <ol>
+      <li>Drop the video into the <a href="/en/tools/video-frame">frame extractor</a>. Decoding happens locally; nothing is uploaded.</li>
+      <li>Choose interval, timestamp list or current frame. Scrub the preview first and confirm the video plays.</li>
+      <li>Set a small frame cap for the first run, 10–20 frames. Check that the images match the timestamps before scaling up.</li>
+      <li>Pick an output width and format. For AI reference, 1280 plus JPEG is usually enough; for masks, original plus PNG.</li>
+      <li>Start extraction and wait for the progress bar. Thumbnails are ordered by time; look for black or duplicate frames.</li>
+      <li>Download the ZIP. If one frame is wrong, move the playhead and grab the current frame again.</li>
+    </ol>
+
+    <h2>Using the frames</h2>
+    <p>For AI animation reference, five to ten key poses beat two hundred near-identical frames. Small differences teach the model nothing and add queue time.</p>
+    <p>For rotoscoping, split by action, extract each segment separately and name the folders by time range. Default filenames carry the source name and frame index; without a folder label, matching them later becomes guesswork.</p>
+    <p>For storyboards, pair the frames with the <a href="/en/tools/storyboard-timer">storyboard timer</a> to fix durations. If you need a contact sheet, assemble it in a layout app; the <a href="/en/guides/grid-comic">nine-grid guide</a> covers the reverse operation, cutting a sheet into panels.</p>
+
+    <h2>FAQ</h2>
+    <h3>Why does nothing happen when I drop a video in?</h3>
+    <p>Most likely the codec is unsupported. HEVC, AV1 and ProRes fail in many browsers. Convert to H.264 MP4 or WebM and try again.</p>
+    <h3>Can I sample more often than every 0.05 seconds?</h3>
+    <p>Not in interval mode. A timestamp list can be denser, but the 200-frame cap still applies. For true per-frame export, use an editor.</p>
+    <h3>The frames do not match my editor's timecode. Why?</h3>
+    <p>The browser seeks with its own decoder, so the exact frame can differ slightly. Trust the image, not the seconds.</p>
+    <h3>Is the video saved anywhere?</h3>
+    <p>No. It is decoded inside the page and released on reload. Exported frames exist only in the ZIP you download.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/tools/video-frame">Open the frame extractor</a>
+    </div>
+    <p class="related">Related: <a href="/en/guides/grid-comic">nine-grid storyboards</a> · <a href="/en/guides/remove-bg-controlnet">cutouts as masks</a> · <a href="/en/tools/storyboard-timer">storyboard timer</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect &amp; analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit &amp; export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/">All guides</a>
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+        <a href="/en/guides/crop-social">Social crops</a>
+        <a href="/en/guides/remove-bg-controlnet">Cutouts as masks</a>
+        <a href="/en/guides/video-frame-ai">Video frame grabs</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN" data-lang-switch="zh">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+
+</body>
+</html>

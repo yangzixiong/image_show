@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>社交平台图片尺寸与裁剪 · ImageLab</title>
+<meta name="description" content="按 Instagram、小红书、YouTube 的常见比例裁图：1:1、4:5、9:16 该选哪个，1080 宽够不够，为什么不要直接拉伸，以及锁定比例导出 PNG 的步骤。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/crop-social">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/crop-social">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/crop-social">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/crop-social">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/crop-social">
+<meta property="og:title" content="社交平台图片尺寸与裁剪 · ImageLab">
+<meta property="og:description" content="按 Instagram、小红书、YouTube 的常见比例裁图：1:1、4:5、9:16 该选哪个，1080 宽够不够，为什么不要直接拉伸，以及锁定比例导出 PNG 的步骤。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="社交平台图片尺寸与裁剪 · ImageLab">
+<meta name="twitter:description" content="按 Instagram、小红书、YouTube 的常见比例裁图：1:1、4:5、9:16 该选哪个，1080 宽够不够，为什么不要直接拉伸，以及锁定比例导出 PNG 的步骤。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "社交平台图片尺寸与裁剪",
+  "description": "按 Instagram、小红书、YouTube 的常见比例裁图：1:1、4:5、9:16 该选哪个，1080 宽够不够，为什么不要直接拉伸，以及锁定比例导出 PNG 的步骤。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-22",
+  "dateModified": "2026-10-22",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/crop-social",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/crop-social",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/crop-social" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <a href="/guides/">全部教程</a> / <span aria-current="page">社交平台图片尺寸与裁剪</span>
+  </nav>
+
+<article class="prose">
+    <h1>社交平台图片尺寸与裁剪</h1>
+    <p class="lede">同一张照片发四个平台，要四套尺寸。先把比例和像素定下来，再决定裁掉哪一部分，顺序反了就会反复返工。</p>
+
+    <h2>常见平台的尺寸与比例</h2>
+    <p>下面这些数字是发布时常用的推荐值，不是平台硬性规定。后台会改规则，上传前看一眼当前提示最稳。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>用途</th><th>常见比例</th><th>常见像素</th><th>裁剪时的重点</th></tr></thead>
+      <tbody>
+        <tr><td>Instagram 方形帖</td><td>1:1</td><td>1080 × 1080</td><td>主体居中，四周留余量</td></tr>
+        <tr><td>Instagram 竖帖</td><td>4:5</td><td>1080 × 1350</td><td>人脸别贴边，眼睛放在上三分之一</td></tr>
+        <tr><td>Stories / Reels</td><td>9:16</td><td>1080 × 1920</td><td>底部和右侧会被界面盖住</td></tr>
+        <tr><td>小红书竖图</td><td>3:4</td><td>1242 × 1660</td><td>首图信息别放最下方</td></tr>
+        <tr><td>YouTube 缩略图</td><td>16:9</td><td>1280 × 720</td><td>右下角时长标签会挡内容</td></tr>
+        <tr><td>X / Twitter 配图</td><td>16:9</td><td>1600 × 900</td><td>时间线会再裁一次</td></tr>
+        <tr><td>头像</td><td>1:1</td><td>400 × 400</td><td>圆形遮罩会切掉四角</td></tr>
+      </tbody>
+    </table></div>
+    <p>1080 宽是多数平台的舒适区：再大也会被二次压缩，再小放大后细节补不回来。原图有 2000 万像素，不代表发布时要传 2000 万像素，平台只按自己的上限处理。</p>
+
+    <h2>比例和像素是两件事</h2>
+    <p>4:5 说的是形状，1080 × 1350 说的是具体格子。同一个 4:5 可以是 1080 × 1350，也可以是 2160 × 2700，形状一样，文件大小差四倍。用代码表示就是：</p>
+    <pre><code>4:5  =  1080 × 1350  =  2160 × 2700
+9:16 =  1080 × 1920  =  1440 × 2560</code></pre>
+    <p>先定比例，再定长边。多数时候长边 1080 到 1440 就够；要印出来或做二次编辑，才需要保留更大的长边。本站<a href="/tools/crop">裁剪工具</a>的“长边”选项提供原始、512、768、1024 四档，选原始就是按你框选的像素原样输出，选 1024 则把框内内容缩放到长边 1024。</p>
+
+    <h2>三个会毁图的动作</h2>
+    <p><strong>直接拉伸。</strong>把 4:3 的原图拖成 1:1，人脸会变宽、圆形会变椭圆。平台不会替你纠正，它只会按你上传的像素显示。正确做法是裁掉两侧，而不是压扁。</p>
+    <p><strong>反复导 JPEG。</strong>每保存一次 JPEG 都会重新做有损压缩。裁一次、加字一次、再压缩一次，边缘会起蚊噪。中间稿用 PNG，最后需要小体积时再转一次 JPEG。</p>
+    <p><strong>从截图里裁。</strong>截图已经经过浏览器缩放和屏幕压缩，像素边界是糊的。能拿到原图就别用截图，尤其是要做商品图或印刷品的时候。</p>
+
+    <h2>用裁剪工具锁定比例</h2>
+    <ol>
+      <li>把图片拖进<a href="/tools/crop">裁剪工具</a>，或者点按钮选文件。文件只在浏览器里解码，不会上传。</li>
+      <li>在 1:1、4:3、3:4、16:9、9:16、3:2、2:3 里选一个比例。选完框会按比例锁住，拖动边框时不会跑形。</li>
+      <li>拖动裁剪框，先保证脸和主要信息完整，再考虑构图。框外的内容会被丢掉，这一步没有撤销键，但可以重新框。</li>
+      <li>选输出长边。发社交平台选 1024 通常够用；要保留原图细节就选“原始”。</li>
+      <li>格式选 PNG 或 JPEG。需要透明背景时只能用 PNG；照片选 JPEG 体积更小。导出前看一眼工具显示的“输出尺寸”，确认和你算的一致。</li>
+    </ol>
+    <p>自由框选适合做草稿，不适合交付。手拖出来的比例往往是 1.03:1 这种数，平台再按自己的规则处理一次，最后裁到哪里就不由你决定了。要发布就选固定比例。</p>
+
+    <h2>构图：先保脸，再保信息</h2>
+    <p>竖图裁人像，头顶留一点空间，眼睛放在画面上三分之一附近，比把脸放正中间耐看。横图裁风景，地平线别压在正中，留出天空或前景的比例。</p>
+    <p>9:16 的短视频封面，底部会被标题、账号名和按钮盖住，右侧常被互动栏占用。文字和关键物体放在中间偏上的安全区，不要贴着底边。1:1 的头像会被圆形或圆角遮罩切掉四角，重要图案放中心。</p>
+    <p>商品图相反：不要裁满。四周留 8% 到 10% 的背景，平台加白边或圆角时才不会切到产品。留白也让缩略图看起来更干净。</p>
+
+    <h2>导出格式怎么选</h2>
+    <p>PNG 无损，适合带文字、线条、透明背景的图；JPEG 有损但体积小，适合照片；WebP 体积更小，但部分老系统不支持。裁剪工具三种都能导，默认 PNG。</p>
+    <p>不要在同一张图上反复“导出再导入”。每转一次格式，颜色和边缘都会变一点。需要多个平台的版本，从同一张原图分别裁，不要拿 1:1 的成品再裁成 9:16。</p>
+
+    <h2>常见问题</h2>
+    <h3>1080 × 1350 和 4:5 是什么关系？</h3>
+    <p>4:5 是形状，1080 × 1350 是满足这个形状的一组像素。把 1080 除以 4 得 270，再乘 5 得 1350。任何 4:5 的尺寸都符合这个比例。</p>
+    <h3>原图只有 800px 宽，能裁出 1080 吗？</h3>
+    <p>能导出 1080 像素的文件，但多出来的像素是插值放大的，不会增加真实细节。发社交平台够用，印刷或二次裁切会露馅。原图不够大时，优先选更小的长边。</p>
+    <h3>为什么裁完发上去还是被裁了？</h3>
+    <p>平台的信息流、预览卡和详情页可能用不同比例。你按 4:5 裁好，时间线仍可能按 1:1 预览。把主体放中间、四周留余量，比精确到某一个像素更稳。</p>
+    <h3>裁剪会改变颜色吗？</h3>
+    <p>裁剪本身不改变像素颜色。颜色变化通常来自导出格式、色彩配置或平台的二次压缩。需要严格对色时，导出 PNG 并确认源图的色彩空间。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/tools/crop">打开裁剪工具</a>
+    </div>
+    <p class="related">相关：<a href="/guides/grid-comic">九宫格分割与分镜</a> · <a href="/guides/pixel-inspector">像素查看与坐标</a> · <a href="/guides/color-picker">图片取色与 HEX 换算</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en" data-lang-switch="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+
+</body>
+</html>

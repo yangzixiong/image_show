@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Cutouts as ControlNet Masks · ImageLab</title>
+<meta name="description" content="Turn a cutout into a usable ControlNet mask: transparent PNG versus grayscale mask, which side is white, soft edges, and why a mask is not a depth map.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/remove-bg-controlnet">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/remove-bg-controlnet">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/remove-bg-controlnet">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/remove-bg-controlnet">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/remove-bg-controlnet">
+<meta property="og:title" content="Cutouts as ControlNet Masks · ImageLab">
+<meta property="og:description" content="Turn a cutout into a usable ControlNet mask: transparent PNG versus grayscale mask, which side is white, soft edges, and why a mask is not a depth map.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cutouts as ControlNet Masks · ImageLab">
+<meta name="twitter:description" content="Turn a cutout into a usable ControlNet mask: transparent PNG versus grayscale mask, which side is white, soft edges, and why a mask is not a depth map.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Using a Cutout as a ControlNet Mask",
+  "description": "Turn a cutout into a usable ControlNet mask: transparent PNG versus grayscale mask, which side is white, soft edges, and why a mask is not a depth map.",
+  "inLanguage": "en",
+  "datePublished": "2026-10-22",
+  "dateModified": "2026-10-22",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/en/guides/remove-bg-controlnet",
+  "mainEntityOfPage": "https://yangzixiong.com/en/guides/remove-bg-controlnet",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/">All guides</a>
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+        <a href="/en/guides/crop-social">Social crops</a>
+        <a href="/en/guides/remove-bg-controlnet">Cutouts as masks</a>
+        <a href="/en/guides/video-frame-ai">Video frame grabs</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/remove-bg-controlnet" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <a href="/en/guides/">All guides</a> / <span aria-current="page">Cutouts as ControlNet Masks</span>
+  </nav>
+
+<article class="prose">
+    <h1>Using a Cutout as a ControlNet Mask</h1>
+    <p class="lede">The background remover gives you two PNGs: a transparent cutout and a black-and-white mask. Feed the wrong one and the model either ignores it or repaints the subject.</p>
+
+    <h2>Three files that are easy to confuse</h2>
+    <p>They all look like images. They carry different data, and swapping them is one of the most common mistakes in a ControlNet workflow.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>File</th><th>What each pixel means</th><th>Typical use</th></tr></thead>
+      <tbody>
+        <tr><td>Transparent PNG (cut)</td><td>RGB is the original colour; alpha is the subject's opacity</td><td>Compositing, a new background, image-to-image input</td></tr>
+        <tr><td>Grayscale mask</td><td>Gray value equals opacity: white keeps, black removes</td><td>Inpainting, regional control</td></tr>
+        <tr><td>Depth map</td><td>Each pixel is a distance, not an opacity</td><td>Depth ControlNet, 3D reconstruction</td></tr>
+      </tbody>
+    </table></div>
+    <p>A mask answers one question: is this pixel part of the subject? A depth map answers a different one: how far away is this surface? Send a mask to a depth model and black becomes near, white becomes far, and the output has nothing to do with your image.</p>
+
+    <h2>Which direction does this tool's mask use?</h2>
+    <p>The <a href="/en/tools/remove-bg">background remover</a> writes the subject as white (255) and the background as black (0), with the whole image opaque. It comes straight from the model's alpha output, so the edge is a soft gradient rather than a hard binary cut.</p>
+    <p>That matches "keep the subject". Inpainting tools do not all agree. In A1111's inpaint mask, white usually means "repaint this area", which is the opposite of this file. Check the convention of the tool you are feeding before you connect anything. If it expects the inverse, invert the mask first.</p>
+    <pre><code>ImageLab mask: white = keep subject, black = background
+A1111 inpaint: white = repaint area, black = keep
+→ usually invert before feeding inpaint</code></pre>
+
+    <h2>Cutout or mask?</h2>
+    <p>Moving a person onto a new background is a job for the transparent PNG: use it as an image-to-image input or as a layer, and alpha decides the edge. Repainting one region while keeping the rest is a job for the grayscale mask, with the polarity checked first.</p>
+    <p>Depth ControlNet needs neither. It needs a single-channel distance map. The <a href="/en/guides/depth-controlnet">depth ControlNet guide</a> covers the format; the cutout is supporting material, not the control image.</p>
+
+    <h2>Choosing between the two models</h2>
+    <p>For people, use MODNet at about 6.3 MB. It processes the long edge at 512 and handles hair, shoulders and semi-transparent edges better. For products, animals and architecture, use U2Netp at about 4.4 MB. It runs at a fixed 320 × 320, generalises more widely and produces coarser edges.</p>
+    <p>Both run one inference pass and upscale the result smoothly to the original size. Upscaling does not create edge detail: a 4K source still gets its mask from a 512 or 320 pass. This tool will not produce strand-level hair matting. That needs a dedicated matting model or manual work.</p>
+    <p>The first run downloads the inference engine (about 11 MB) and a model: 6.3 MB for MODNet, 4.4 MB for U2Netp. Running both once costs roughly 22 MB in total. The browser caches the files afterwards. Images stay local; inference runs in WASM and takes a few seconds depending on size and hardware.</p>
+
+    <h2>Workflow</h2>
+    <ol>
+      <li>Open the <a href="/en/tools/remove-bg">background remover</a> and drop in an image. Choose MODNet for people, U2Netp for everything else.</li>
+      <li>When inference finishes, inspect the transparent result. If part of the subject is missing or background survives, run the other model and compare.</li>
+      <li>Export the mask on its own, or export the ZIP to get both <code>-cut.png</code> and <code>-mask.png</code>.</li>
+      <li>Check the polarity in the target tool. Invert before use if needed.</li>
+      <li>If mask and source differ in size, resize them to match first. Use nearest-neighbour or linear interpolation; avoid sharpening resizers on a mask.</li>
+    </ol>
+
+    <h2>Soft edges, fringes and jaggies</h2>
+    <p>Mask edges are rarely 0 or 255. In-between values mean "this pixel may be half subject". That softness is useful for compositing and noisy for workflows that expect a binary mask. Threshold it (128 is a common starting point) if the tool only understands black and white.</p>
+    <p>A transparent PNG can show a white or black fringe in some editors. Transparent pixels still carry RGB, and resizing interpolates colour and alpha separately. Filling the transparent area with the destination background before scaling, or using the grayscale mask instead of alpha, avoids most of it.</p>
+    <p>White clothing against a white wall, glassware and smoke defeat every automatic cutout. Rather than cycling models, accept a rough mask and paint the edge by hand. Fixing a few pixels is cheaper than regenerating the image.</p>
+
+    <h2>FAQ</h2>
+    <h3>Can I use the mask as a depth map?</h3>
+    <p>No. A mask has foreground and background; a depth map has a continuous distance. A depth model will read the flat mask as a scene with near and far surfaces and produce an unrelated composition.</p>
+    <h3>Why is the exported mask grey instead of black and white?</h3>
+    <p>The model's alpha is continuous and the tool keeps that gradient. For a binary mask, apply a threshold (for example 128) in an image editor and convert to black and white.</p>
+    <h3>Does removing the background shift colours?</h3>
+    <p>The cutout's RGB comes from the original with no colour adjustment. It can look lighter because transparent areas are composited over a pale background.</p>
+    <h3>Can it process a batch?</h3>
+    <p>The page handles one image at a time. Once the model is loaded you can swap images without downloading again, but each image needs its own inference and export.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/tools/remove-bg">Open the background remover</a>
+    </div>
+    <p class="related">Related: <a href="/en/guides/depth-controlnet">depth maps for ControlNet</a> · <a href="/en/guides/crop-social">crop sizes</a> · <a href="/en/tools/crop">crop tool</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect &amp; analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit &amp; export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/">All guides</a>
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+        <a href="/en/guides/crop-social">Social crops</a>
+        <a href="/en/guides/remove-bg-controlnet">Cutouts as masks</a>
+        <a href="/en/guides/video-frame-ai">Video frame grabs</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN" data-lang-switch="zh">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+
+</body>
+</html>

@@ -139,9 +139,9 @@ index.html      中文页面骨架与广告位
 en/index.html   英文页面（同结构，lang="en"，资源用根绝对路径）
 404.html        自定义 404 页（中英双语）
 robots.txt      爬虫规则：放行广告抓取器，屏蔽 AI 训练/SEO 抓虫（君子协定层）
-sitemap.xml     站点地图（2 个首页 + 12 个内容页 + 24 个工具页共 38 条 URL，带 hreflang 互指）
-guides/ faq.html about.html privacy.html  内容页（英文版在 en/ 下，成对互指）
-tools/          工具页：histogram 直方图、flip 翻转旋转、crop 裁剪、grid 网格分割、remove-bg 抠图、prompt-weight 权重计算器、prompt-split 正反词分离、negative-prompt 负面词库、random-prompt 随机生成、prompt-translate 提示词翻译、token-counter Token 计数器（均为 .html，英文版在 en/tools/ 下）
+sitemap.xml     站点地图（2 个首页 + 34 个内容页 + 28 个工具页共 64 条 URL，带 hreflang 互指）
+guides/ faq.html about.html contact.html privacy.html  内容页（13 篇教程 + 4 个站点页，中英成对互指）
+tools/          工具页：histogram 直方图、flip 翻转旋转、crop 裁剪、grid 网格分割、remove-bg 抠图、pixel-viewer 像素查看、prompt-weight 权重计算器、prompt-split 正反词分离、negative-prompt 负面词库、random-prompt 随机生成、prompt-translate 提示词翻译、token-counter Token 计数器、video-frame 视频帧提取、storyboard-timer 分镜计时器（均为 .html，英文版在 en/tools/ 下）
 ads.txt         广告授权文件（AdSense 接入后填写发布商 ID）
 favicon.ico     站点图标
 site.webmanifest  PWA 清单（图标 192/512）
@@ -154,7 +154,7 @@ deploy/
   image_show.conf  nginx 完整配置：限速/恶意UA拦截/垃圾Referer拦截/静态缓存
   check_seo.py     SEO 自检：h1/canonical/og:image/JSON-LD/图标
   check_i18n.py    多语言自检：中英页面配对、id 一致、文案 key 无缺失
-  check_content.py 内容页自检：36 个内容页/工具页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
+  check_content.py 内容页自检：62 个内容页/工具页的 title/description/hreflang/JSON-LD/站内链接与 sitemap 条数
   make_og_image.py 生成分享图与 PWA 图标（需要 Pillow）
 img/            分享图 og-cover.png(1200×630) 与 PWA 图标
 css/style.css   深色工具风样式（含工具页布局类）

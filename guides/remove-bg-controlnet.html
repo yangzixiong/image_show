@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>抠图结果喂给 ControlNet · ImageLab</title>
+<meta name="description" content="把抠图结果变成 ControlNet 能用的黑白遮罩：透明 PNG 与 mask 的区别、白底与黑底方向、边缘发灰怎么处理、遮罩与深度图不能混用，以及导出步骤。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/remove-bg-controlnet">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/remove-bg-controlnet">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/remove-bg-controlnet">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/remove-bg-controlnet">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/remove-bg-controlnet">
+<meta property="og:title" content="抠图结果喂给 ControlNet · ImageLab">
+<meta property="og:description" content="把抠图结果变成 ControlNet 能用的黑白遮罩：透明 PNG 与 mask 的区别、白底与黑底方向、边缘发灰怎么处理、遮罩与深度图不能混用，以及导出步骤。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="抠图结果喂给 ControlNet · ImageLab">
+<meta name="twitter:description" content="把抠图结果变成 ControlNet 能用的黑白遮罩：透明 PNG 与 mask 的区别、白底与黑底方向、边缘发灰怎么处理、遮罩与深度图不能混用，以及导出步骤。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "抠图结果怎么喂给 ControlNet",
+  "description": "把抠图结果变成 ControlNet 能用的黑白遮罩：透明 PNG 与 mask 的区别、白底与黑底方向、边缘发灰怎么处理、遮罩与深度图不能混用，以及导出步骤。",
+  "inLanguage": "zh-CN",
+  "datePublished": "2026-10-22",
+  "dateModified": "2026-10-22",
+  "author": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ImageLab"
+  },
+  "url": "https://yangzixiong.com/guides/remove-bg-controlnet",
+  "mainEntityOfPage": "https://yangzixiong.com/guides/remove-bg-controlnet",
+  "image": "https://yangzixiong.com/img/og-cover.png"
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/remove-bg-controlnet" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <a href="/guides/">全部教程</a> / <span aria-current="page">抠图结果喂给 ControlNet</span>
+  </nav>
+
+<article class="prose">
+    <h1>抠图结果怎么喂给 ControlNet</h1>
+    <p class="lede">抠图工具会给你两张 PNG：一张透明底，一张黑白遮罩。喂错那张，模型要么没反应，要么把主体整个重画。</p>
+
+    <h2>先分清三张图</h2>
+    <p>名字都带“图”，用途完全不同。混用是 ControlNet 工作流里最常见的错误之一。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>文件</th><th>像素含义</th><th>典型用途</th></tr></thead>
+      <tbody>
+        <tr><td>透明 PNG（cut）</td><td>RGB 是原图颜色，A 是主体不透明度</td><td>合成、贴到新背景、作为图生图输入</td></tr>
+        <tr><td>黑白遮罩（mask）</td><td>灰度值 = 主体不透明度，白=保留，黑=背景</td><td>局部重绘、区域控制、inpaint</td></tr>
+        <tr><td>深度图（depth）</td><td>每个像素是一个距离值，不是不透明度</td><td>深度 ControlNet、3D 重建</td></tr>
+      </tbody>
+    </table></div>
+    <p>关键区别：遮罩只有“是不是主体”两种信息，深度图有“离镜头多远”的连续数值。把黑白遮罩喂给 depth 模型，模型会把黑色当成近处、白色当成远处，生成一张完全无关的图。</p>
+
+    <h2>本站导出的黑白遮罩是什么方向</h2>
+    <p><a href="/tools/remove-bg">抠图工具</a>的遮罩规则是：主体为白（灰度 255），背景为黑（0），整张图不透明。它直接由模型的 alpha 输出转换而来，边缘保留软过渡，不是硬切的黑白二值图。</p>
+    <p>这个方向和“保留主体”是一致的。但不同软件的 inpaint 约定不一样：A1111 的局部重绘遮罩里，白色通常表示“要重画的区域”，正好和本站相反。直接用之前先确认目标工具的白黑语义，需要时在图片编辑器里反相。</p>
+    <pre><code>本站 mask：白 = 保留主体，黑 = 背景
+A1111 inpaint：白 = 重绘区域，黑 = 保留
+→ 直接喂 inpaint 前通常需要反相</code></pre>
+
+    <h2>什么时候用 cut，什么时候用 mask</h2>
+    <p>要把人物换到另一个背景，用透明 PNG 做图生图或图层合成，边缘由 alpha 决定，背景不会被带进去。要只重画某一区域、保留原图其他部分，用黑白遮罩，并在目标工具里确认是否需要反相。</p>
+    <p>要做深度 ControlNet，两张都不对。需要的是深度图：单通道、每像素一个距离值。可以先用<a href="/guides/depth-controlnet">深度图 ControlNet 指南</a>确认格式，再把抠图结果当作辅助，而不是控制图。</p>
+
+    <h2>两个模型怎么选</h2>
+    <p>人像选 MODNet，模型约 6.3 MB，输入长边按 512 处理，对头发、肩膀和半透明边缘更稳。商品、动物、建筑选 U2Netp，模型约 4.4 MB，固定 320 × 320 输入，泛化更广但边缘更粗。</p>
+    <p>两个模型都只跑一次推理，输出再平滑放大回原图尺寸。放大不会创造边缘细节：原图是 4K，遮罩的有效精度仍来自 512 或 320 的那次推理。头发丝级别的抠图，这个工具做不到，需要专门的 matting 模型或手工修。</p>
+    <p>第一次使用要下载推理引擎（约 11 MB）和模型：人像 6.3 MB、通用 4.4 MB。两个模型都跑一遍，首次合计约 22 MB。资源由浏览器缓存，之后再用不用重新下载。图片不上传，推理在本地 WASM 里完成，速度为几秒级，取决于图片尺寸和设备。</p>
+
+    <h2>操作步骤</h2>
+    <ol>
+      <li>打开<a href="/tools/remove-bg">一键抠图</a>，拖入图片。人像选 MODNet，其他选 U2Netp。</li>
+      <li>等推理完成，先看透明底结果。主体边缘缺一块、或者背景被误判成主体，换另一个模型再跑一次，比较两张再决定。</li>
+      <li>点「导出遮罩 PNG」单独导出，或点「打包下载两份结果」一次拿到 <code>-cut.png</code> 和 <code>-mask.png</code> 两个文件。</li>
+      <li>在目标工具里确认白黑方向。需要反相就先反相，别直接喂。</li>
+      <li>如果遮罩和原图尺寸不一致，先缩放到同一尺寸再使用。缩放遮罩用最近邻或线性插值，别用会自动加锐化的算法。</li>
+    </ol>
+
+    <h2>边缘发灰、白边和锯齿</h2>
+    <p>遮罩边缘不是 0 或 255，而是中间灰度，这是模型在表达“这里可能有一半是主体”。这种软边对合成是好事，贴到新背景时过渡自然；对要求二值遮罩的工作流则是噪声，需要按阈值切成纯黑白。</p>
+    <p>透明 PNG 放到某些软件里会出现白边或黑边，原因是透明像素仍带着 RGB 颜色，缩放时颜色和 alpha 被分开插值。处理办法是先把透明区域填充成背景色，再做缩放；或者直接使用黑白遮罩，不用 alpha。</p>
+    <p>白色衣服站在白墙前、玻璃杯、烟雾这类主体，任何自动抠图都会吃力。与其反复调模型，不如接受一张粗遮罩，再用画笔补几笔。补边缘比重新生成整张图便宜得多。</p>
+
+    <h2>常见问题</h2>
+    <h3>遮罩能直接当深度图用吗？</h3>
+    <p>不能。遮罩只有前景和背景，深度图是连续距离。喂错会让模型把平面当成有前后的场景，构图会崩。</p>
+    <h3>为什么导出的遮罩是灰的，不是纯黑白？</h3>
+    <p>模型的 alpha 输出本身是连续值，工具保留了这个过渡。要二值遮罩，在图片编辑器里设一个阈值（比如 128）再转黑白。</p>
+    <h3>抠图会改变原图颜色吗？</h3>
+    <p>透明 PNG 的 RGB 来自原图，没有调色。看起来变淡通常是透明区域被合成到浅色背景上造成的视觉效果。</p>
+    <h3>能批量处理吗？</h3>
+    <p>当前页面一次处理一张。模型加载后可以连续换图，不用重新下载，但每张仍要单独点一次推理和导出。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/tools/remove-bg">打开抠图工具</a>
+    </div>
+    <p class="related">相关：<a href="/guides/depth-controlnet">深度图 ControlNet</a> · <a href="/guides/crop-social">裁剪与输出尺寸</a> · <a href="/tools/crop">裁剪工具</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en" data-lang-switch="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+
+</body>
+</html>

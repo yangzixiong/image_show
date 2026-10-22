@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>Guides · ImageLab</title>
+<meta name="description" content="ImageLab guides: depth maps, pixel inspection, colour picking, prompt weighting, token limits, ControlNet cutouts, nine-grid panels, video frames and crops.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/en/guides/">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://yangzixiong.com/en/guides/">
+<meta property="og:title" content="Guides · ImageLab">
+<meta property="og:description" content="ImageLab guides: depth maps, pixel inspection, colour picking, prompt weighting, token limits, ControlNet cutouts, nine-grid panels, video frames and crops.">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Guides · ImageLab">
+<meta name="twitter:description" content="ImageLab guides: depth maps, pixel inspection, colour picking, prompt weighting, token limits, ControlNet cutouts, nine-grid panels, video frames and crops.">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "All guides",
+  "description": "ImageLab guides: depth maps, pixel inspection, colour picking, prompt weighting, token limits, ControlNet cutouts, nine-grid panels, video frames and crops.",
+  "inLanguage": "en",
+  "url": "https://yangzixiong.com/en/guides/",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "ImageLab",
+    "url": "https://yangzixiong.com/"
+  }
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/en/">ImageLab<span class="brand-sub">AI art · image tools</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="Open menu"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="Site navigation">
+    <div class="nav-item">
+      <a href="/en/#inspect">Inspect</a>
+      <div class="nav-panel">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#edit">Edit</a>
+      <div class="nav-panel">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#prompt">Prompts</a>
+      <div class="nav-panel">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#video">Video</a>
+      <div class="nav-panel">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/en/#guides" aria-current="page">Guides</a>
+      <div class="nav-panel">
+        <a href="/en/guides/">All guides</a>
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+        <a href="/en/guides/crop-social">Social crops</a>
+        <a href="/en/guides/remove-bg-controlnet">Cutouts as masks</a>
+        <a href="/en/guides/video-frame-ai">Video frame grabs</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="/guides/" hreflang="zh-CN" lang="zh-CN" data-lang-switch="zh">中文</a>
+      <span class="lang-sep">|</span>
+      <span class="lang-on" aria-current="true">EN</span>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/">Home</a> / <span aria-current="page">All guides</span>
+  </nav>
+
+<article class="prose">
+    <h1>All Guides</h1>
+    <p class="lede">Twelve guides, grouped by the file in front of you. Each one ends at a tool you can open and use immediately.</p>
+
+    <h2>Start here when an image will not open</h2>
+    <p>A depth map that renders black, a colour that does not match the design file, a pixel you need to verify. Check the file before changing it.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/guides/depth-tiff">
+        <span class="tool-card-name">16-bit TIFF depth maps</span>
+        <span class="tool-card-desc">Millimetre convention, colour maps, fixes</span>
+        <span class="tag">16-bit TIFF</span>
+      </a>
+      <a class="tool-card" href="/en/guides/pixel-inspector">
+        <span class="tool-card-name">Pixel inspector</span>
+        <span class="tool-card-desc">Coordinates, loupe and pixel grid</span>
+        <span class="tag">Local</span>
+      </a>
+      <a class="tool-card" href="/en/guides/color-picker">
+        <span class="tool-card-name">Colour picker</span>
+        <span class="tool-card-desc">HEX/RGB conversion and sampling errors</span>
+        <span class="tag">Local</span>
+      </a>
+      <a class="tool-card" href="/en/guides/histogram">
+        <span class="tool-card-name">Histogram basics</span>
+        <span class="tool-card-desc">Exposure, clipping and comparing two images</span>
+        <span class="tag">Local</span>
+      </a>
+    </div>
+
+    <h2>When you need a finished image</h2>
+    <p>Cropping, cutting out and splitting all come down to geometry. Fix the ratio and the boundaries before exporting, and you will spend less time redoing the work.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/guides/crop-social">
+        <span class="tool-card-name">Social media image sizes</span>
+        <span class="tool-card-desc">Choosing 1:1, 4:5 or 9:16</span>
+        <span class="tag">Publishing</span>
+      </a>
+      <a class="tool-card" href="/en/guides/remove-bg-controlnet">
+        <span class="tool-card-name">Cutouts as ControlNet masks</span>
+        <span class="tool-card-desc">Transparent PNG versus grayscale mask</span>
+        <span class="tag">ControlNet</span>
+      </a>
+      <a class="tool-card" href="/en/guides/grid-comic">
+        <span class="tool-card-name">Nine-grid storyboards</span>
+        <span class="tool-card-desc">Equal splits, routes and gutters</span>
+        <span class="tag">Local</span>
+      </a>
+    </div>
+
+    <h2>When the model ignores your prompt</h2>
+    <p>Weight syntax, negative terms and the token limit decide what the text encoder actually sees. These three cover the parts that are easy to get wrong.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/guides/prompt-weight">
+        <span class="tool-card-name">Prompt weighting</span>
+        <span class="tool-card-desc">(a:b) syntax, maths and safe ranges</span>
+        <span class="tag">SD syntax</span>
+      </a>
+      <a class="tool-card" href="/en/guides/negative-prompt">
+        <span class="tool-card-name">Negative prompts</span>
+        <span class="tool-card-desc">How negative guidance works and what to remove</span>
+        <span class="tag">SD syntax</span>
+      </a>
+      <a class="tool-card" href="/en/guides/clip-tokens">
+        <span class="tool-card-name">Tokens and the 75/77 limit</span>
+        <span class="tool-card-desc">BPE, BREAK chunks and truncation</span>
+        <span class="tag">SD syntax</span>
+      </a>
+    </div>
+
+    <h2>Video and workflow</h2>
+    <p>Frame grabs and depth control are both preparation steps. A bad source frame is hard to fix with sampler settings later.</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/en/guides/video-frame-ai">
+        <span class="tool-card-name">Video frames for AI animation</span>
+        <span class="tool-card-desc">Rate, timestamps and the 200-frame cap</span>
+        <span class="tag">No upload</span>
+      </a>
+      <a class="tool-card" href="/en/guides/depth-controlnet">
+        <span class="tool-card-name">Depth maps for ControlNet</span>
+        <span class="tool-card-desc">Range, units and pre-flight checks</span>
+        <span class="tag">ControlNet</span>
+      </a>
+    </div>
+
+    <h2>How to use the guides</h2>
+    <p>If a file will not open, start with the first group. If you need to publish an image, start with the second. If the model is ignoring you, read the token guide before changing the sampler. Every guide ends with a link to the tool it describes, so you can test the advice on your own file.</p>
+    <p>Sizes, limits and field names come from the current implementation or a public specification. Platform rules and model versions change; when something disagrees, trust what your own file and browser do.</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/en/">Open the ImageLab toolbox</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">Inspect &amp; analyse</strong>
+      <nav aria-label="Inspect &amp; analyse">
+        <a href="/en/tools/pixel-viewer">Pixel &amp; depth viewer</a>
+        <a href="/en/tools/histogram">Image histogram</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Edit &amp; export</strong>
+      <nav aria-label="Edit &amp; export">
+        <a href="/en/tools/crop">Image cropper</a>
+        <a href="/en/tools/flip">Flip &amp; rotate</a>
+        <a href="/en/tools/grid">Grid splitter</a>
+        <a href="/en/tools/remove-bg">Background remover</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI prompts</strong>
+      <nav aria-label="AI prompts">
+        <a href="/en/tools/prompt-weight">Weight calculator</a>
+        <a href="/en/tools/prompt-split">Prompt split</a>
+        <a href="/en/tools/negative-prompt">Negative prompt</a>
+        <a href="/en/tools/random-prompt">Random generator</a>
+        <a href="/en/tools/prompt-translate">Prompt translator</a>
+        <a href="/en/tools/token-counter">Token counter</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Video</strong>
+      <nav aria-label="Video">
+        <a href="/en/tools/video-frame">Video frame extractor</a>
+        <a href="/en/tools/storyboard-timer">Storyboard timer</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Guides</strong>
+      <nav aria-label="Guides">
+        <a href="/en/guides/">All guides</a>
+        <a href="/en/guides/depth-tiff">16-bit TIFF depth</a>
+        <a href="/en/guides/color-picker">Colour picker</a>
+        <a href="/en/guides/pixel-inspector">Pixel inspector</a>
+        <a href="/en/guides/prompt-weight">Prompt weighting</a>
+        <a href="/en/guides/negative-prompt">Negative prompts</a>
+        <a href="/en/guides/histogram">Histogram basics</a>
+        <a href="/en/guides/clip-tokens">Token counting</a>
+        <a href="/en/guides/depth-controlnet">Depth for ControlNet</a>
+        <a href="/en/guides/grid-comic">Nine-grid panels</a>
+        <a href="/en/guides/crop-social">Social crops</a>
+        <a href="/en/guides/remove-bg-controlnet">Cutouts as masks</a>
+        <a href="/en/guides/video-frame-ai">Video frame grabs</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">Site</strong>
+      <nav aria-label="Site">
+        <a href="/en/faq">FAQ</a>
+        <a href="/en/contact">Contact</a>
+        <a href="/en/about">About</a>
+        <a href="/en/privacy">Privacy</a>
+        <a href="/" lang="zh-CN" data-lang-switch="zh">中文版</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · everything runs locally in your browser, images are never uploaded</p>
+</footer>
+
+
+</body>
+</html>

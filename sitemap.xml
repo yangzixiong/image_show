@@ -548,4 +548,77 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- 教程聚合页与新增任务页 -->
+  <url>
+    <loc>https://yangzixiong.com/guides/</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/guides/crop-social</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/crop-social"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/crop-social"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/crop-social"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/crop-social</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/crop-social"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/crop-social"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/crop-social"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/guides/remove-bg-controlnet</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/remove-bg-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/remove-bg-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/remove-bg-controlnet"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/remove-bg-controlnet</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/remove-bg-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/remove-bg-controlnet"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/remove-bg-controlnet"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/guides/video-frame-ai</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/video-frame-ai"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/video-frame-ai"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/video-frame-ai"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://yangzixiong.com/en/guides/video-frame-ai</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/video-frame-ai"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/video-frame-ai"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/video-frame-ai"/>
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

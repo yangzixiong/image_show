@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* lang-boot:begin */
+"use strict";
+/**
+ * 首访语言自动切换（lang-boot）：
+ *   - localStorage 里已有用户点过的语言偏好（imagelab.lang）→ 永不跳转，尊重显式选择；
+ *   - 无偏好时取 navigator.languages 首项与 <html lang> 比较，不符则 location.replace 换语言路径；
+ *   - 保留 ?query 与 #hash（如随机生成器的 ?seed= 分享链接、首页分区锚点）；
+ *   - 爬虫（UA 含 bot/crawl/spider 等）与无头浏览器（navigator.webdriver）一律跳过，
+ *     保证搜索引擎各自索引中英两个版本，不互相干扰；
+ *   - 放在 <head> 最前执行，首绘前完成跳转，无闪烁。目标页语言与浏览器一致，自然 no-op，无循环。
+ *
+ * 语言偏好保存（委托监听）：i18n.js 只在 16 个页面加载，无法承担全站的偏好保存，
+ * 而 lang-boot 内联于全部页面 <head>——在此用 document 级委托捕获所有带
+ * data-lang-switch 的链接点击（顶栏、页脚、提示框，含未来新增入口），
+ * 在跳转前写入 imagelab.lang，防止目标页按浏览器语言把用户弹回。
+ */
+(function () {
+  var PREF_KEY = "imagelab.lang";
+
+  // 点击任何跨语言链接 = 显式偏好，先于导航写入 localStorage
+  document.addEventListener("click", function (e) {
+    var a = e.target;
+    if (!a) return;
+    if (a.closest) {
+      a = a.closest("a");
+    } else {
+      while (a && a.tagName !== "A") a = a.parentNode;
+    }
+    if (!a || !a.getAttribute) return;
+    var v = a.getAttribute("data-lang-switch");
+    if (v !== "en" && v !== "zh") return;
+    try { localStorage.setItem(PREF_KEY, v); } catch (err) {}
+  });
+
+  try {
+    if (localStorage.getItem(PREF_KEY)) return;
+
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (!nav) return;
+    var wantEn = !/^zh/i.test(nav);
+
+    var curLang = (document.documentElement.getAttribute("lang") || "zh").toLowerCase();
+    var curEn = curLang.indexOf("en") === 0;
+    if (wantEn === curEn) return;
+
+    if (navigator.webdriver === true) return;
+    var ua = navigator.userAgent || "";
+    if (/bot|crawl|spider|slurp|headless|lighthouse|mediapartners|adsbot|feedfetcher|scrapy|python|curl|wget|okhttp|httpx|go-http-client|monitoring|pingdom/i.test(ua)) return;
+
+    var path = location.pathname;
+    var next;
+    if (wantEn) {
+      next = path === "/" ? "/en/" : "/en" + path;
+    } else {
+      next = path.replace(/^\/en(\/|$)/, "/");
+      if (next === "") next = "/";
+    }
+    location.replace(next + location.search + location.hash);
+  } catch (e) {}
+})();
+/* lang-boot:end */
+</script>
+<title>全部教程 · ImageLab</title>
+<meta name="description" content="ImageLab 的全部教程：深度图与像素检查、取色与直方图、提示词权重与 Token 限制、抠图与 ControlNet、九宫格分镜、视频抽帧与社交平台裁剪。按主题分组，每篇都对应一个工具。">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://yangzixiong.com/guides/">
+
+<link rel="alternate" hreflang="zh-CN" href="https://yangzixiong.com/guides/">
+<link rel="alternate" hreflang="en" href="https://yangzixiong.com/en/guides/">
+<link rel="alternate" hreflang="x-default" href="https://yangzixiong.com/guides/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ImageLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://yangzixiong.com/guides/">
+<meta property="og:title" content="全部教程 · ImageLab">
+<meta property="og:description" content="ImageLab 的全部教程：深度图与像素检查、取色与直方图、提示词权重与 Token 限制、抠图与 ControlNet、九宫格分镜、视频抽帧与社交平台裁剪。按主题分组，每篇都对应一个工具。">
+<meta property="og:image" content="https://yangzixiong.com/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="全部教程 · ImageLab">
+<meta name="twitter:description" content="ImageLab 的全部教程：深度图与像素检查、取色与直方图、提示词权重与 Token 限制、抠图与 ControlNet、九宫格分镜、视频抽帧与社交平台裁剪。按主题分组，每篇都对应一个工具。">
+<meta name="twitter:image" content="https://yangzixiong.com/img/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%234f8cff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css?v=6">
+<meta name="theme-color" content="#ffffff">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "全部教程",
+  "description": "ImageLab 的全部教程：深度图与像素检查、取色与直方图、提示词权重与 Token 限制、抠图与 ControlNet、九宫格分镜、视频抽帧与社交平台裁剪。按主题分组，每篇都对应一个工具。",
+  "inLanguage": "zh-CN",
+  "url": "https://yangzixiong.com/guides/",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "ImageLab",
+    "url": "https://yangzixiong.com/"
+  }
+}
+</script>
+  <script>if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
+</head>
+<body class="doc">
+
+<header class="topbar doc-topbar">
+  <a class="brand" href="/">ImageLab<span class="brand-sub">AI 绘图 · 图片工具</span></a>
+  <input type="checkbox" id="navToggle" class="nav-toggle">
+  <label for="navToggle" class="nav-burger" aria-label="打开菜单"><span></span><span></span><span></span></label>
+  <nav class="doc-nav" aria-label="站内导航">
+    <div class="nav-item">
+      <a href="/#inspect">查看</a>
+      <div class="nav-panel">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#edit">编辑</a>
+      <div class="nav-panel">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#prompt">提示词</a>
+      <div class="nav-panel">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#video">视频</a>
+      <div class="nav-panel">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="/#guides" aria-current="page">教程</a>
+      <div class="nav-panel">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </div>
+    </div>
+  </nav>
+<div class="topbar-right">
+    <nav class="lang-switch" aria-label="Language">
+      <span class="lang-on" aria-current="true">中文</span>
+      <span class="lang-sep">|</span>
+      <a href="/en/guides/" hreflang="en" lang="en" data-lang-switch="en">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc-main">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/">首页</a> / <span aria-current="page">全部教程</span>
+  </nav>
+
+<article class="prose">
+    <h1>全部教程</h1>
+    <p class="lede">十二篇，按你手上的文件类型分组。每篇都对应一个能直接打开的工具，不是泛泛的概念介绍。</p>
+
+    <h2>看不懂图片时先读这四篇</h2>
+    <p>深度图打开全黑、取到的颜色和设计稿对不上、想知道某个像素到底是不是纯黑——这类问题先看文件本身，再谈处理。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/guides/depth-tiff">
+        <span class="tool-card-name">16bit TIFF 深度图</span>
+        <span class="tool-card-desc">毫米单位约定、伪彩色与排错</span>
+        <span class="tag">16bit TIFF</span>
+      </a>
+      <a class="tool-card" href="/guides/pixel-inspector">
+        <span class="tool-card-name">像素查看指南</span>
+        <span class="tool-card-desc">坐标、放大镜与像素网格</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/guides/color-picker">
+        <span class="tool-card-name">图片取色指南</span>
+        <span class="tool-card-desc">HEX/RGB 换算与取偏的原因</span>
+        <span class="tag">本地</span>
+      </a>
+      <a class="tool-card" href="/guides/histogram">
+        <span class="tool-card-name">图片直方图指南</span>
+        <span class="tool-card-desc">曝光、裁切与双图对齐</span>
+        <span class="tag">本地</span>
+      </a>
+    </div>
+
+    <h2>要交付成品图时读这三篇</h2>
+    <p>裁剪、抠图、切格都有各自的几何问题。先定比例和边界，再导出，返工次数会少很多。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/guides/crop-social">
+        <span class="tool-card-name">社交平台图片尺寸</span>
+        <span class="tool-card-desc">1:1、4:5、9:16 怎么选</span>
+        <span class="tag">发布尺寸</span>
+      </a>
+      <a class="tool-card" href="/guides/remove-bg-controlnet">
+        <span class="tool-card-name">抠图做 ControlNet 遮罩</span>
+        <span class="tool-card-desc">透明 PNG 与黑白遮罩的区别</span>
+        <span class="tag">ControlNet</span>
+      </a>
+      <a class="tool-card" href="/guides/grid-comic">
+        <span class="tool-card-name">九宫格分镜与漫画</span>
+        <span class="tool-card-desc">等分切割、路线选择与留白</span>
+        <span class="tag">本地</span>
+      </a>
+    </div>
+
+    <h2>写提示词时读这三篇</h2>
+    <p>权重的括号怎么算、负面词该删哪些、为什么提示词会被截断——这三件事决定了模型到底读到了什么。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/guides/prompt-weight">
+        <span class="tool-card-name">提示词权重指南</span>
+        <span class="tool-card-desc">(a:b) 语法、算式与安全区间</span>
+        <span class="tag">SD 语法</span>
+      </a>
+      <a class="tool-card" href="/guides/negative-prompt">
+        <span class="tool-card-name">负面提示词指南</span>
+        <span class="tool-card-desc">反向引导原理与按图挑词</span>
+        <span class="tag">SD 语法</span>
+      </a>
+      <a class="tool-card" href="/guides/clip-tokens">
+        <span class="tool-card-name">Token 计数与 75/77 上限</span>
+        <span class="tool-card-desc">BPE 分词、BREAK 分段与截断</span>
+        <span class="tag">SD 语法</span>
+      </a>
+    </div>
+
+    <h2>视频与工作流</h2>
+    <p>抽帧和深度控制都属于“先准备素材，再交给模型”。素材错一步，后面调参很难补回来。</p>
+    <div class="tool-grid-cards">
+      <a class="tool-card" href="/guides/video-frame-ai">
+        <span class="tool-card-name">视频抽帧做 AI 动画</span>
+        <span class="tool-card-desc">帧率、时间点与 200 帧上限</span>
+        <span class="tag">视频不上传</span>
+      </a>
+      <a class="tool-card" href="/guides/depth-controlnet">
+        <span class="tool-card-name">深度图 ControlNet 指南</span>
+        <span class="tool-card-desc">喂图前的量程、单位与排查</span>
+        <span class="tag">ControlNet</span>
+      </a>
+    </div>
+
+    <h2>怎么用这些教程</h2>
+    <p>手上有一个打不开的文件，从第一组开始；要做一张要发布的图，从第二组开始；模型不听话，先看第三组里和 Token 有关的那篇。每篇末尾都有对应工具的入口，读完可以直接试。</p>
+    <p>教程里写的尺寸、上限和字段都来自当前工具的实现或公开规范。平台规则和模型版本会变，遇到对不上的地方，以你本地的实际结果为准。</p>
+
+    <div class="doc-cta">
+      <a class="btn" href="/">打开 ImageLab 工具箱</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-groups">
+    <section class="footer-group">
+      <strong class="fg-title">查看与分析</strong>
+      <nav aria-label="查看与分析">
+        <a href="/tools/pixel-viewer">像素与深度查看器</a>
+        <a href="/tools/histogram">图片直方图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">编辑与导出</strong>
+      <nav aria-label="编辑与导出">
+        <a href="/tools/crop">图片裁剪</a>
+        <a href="/tools/flip">翻转旋转</a>
+        <a href="/tools/grid">九宫格分割</a>
+        <a href="/tools/remove-bg">一键抠图</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">AI 提示词</strong>
+      <nav aria-label="AI 提示词">
+        <a href="/tools/prompt-weight">权重计算器</a>
+        <a href="/tools/prompt-split">正反词分离</a>
+        <a href="/tools/negative-prompt">负面词库</a>
+        <a href="/tools/random-prompt">随机生成</a>
+        <a href="/tools/prompt-translate">提示词翻译</a>
+        <a href="/tools/token-counter">Token 计数器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">视频</strong>
+      <nav aria-label="视频">
+        <a href="/tools/video-frame">视频帧提取</a>
+        <a href="/tools/storyboard-timer">分镜计时器</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">教程</strong>
+      <nav aria-label="教程">
+        <a href="/guides/">全部教程</a>
+        <a href="/guides/depth-tiff">16bit TIFF 深度图</a>
+        <a href="/guides/color-picker">图片取色</a>
+        <a href="/guides/pixel-inspector">像素查看</a>
+        <a href="/guides/prompt-weight">提示词权重</a>
+        <a href="/guides/negative-prompt">负面提示词</a>
+        <a href="/guides/histogram">直方图入门</a>
+        <a href="/guides/clip-tokens">Token 计数</a>
+        <a href="/guides/depth-controlnet">深度图 ControlNet</a>
+        <a href="/guides/grid-comic">九宫格分镜</a>
+        <a href="/guides/crop-social">社交平台裁剪</a>
+        <a href="/guides/remove-bg-controlnet">抠图做遮罩</a>
+        <a href="/guides/video-frame-ai">视频抽帧</a>
+      </nav>
+    </section>
+    <section class="footer-group">
+      <strong class="fg-title">站点</strong>
+      <nav aria-label="站点">
+        <a href="/faq">常见问题</a>
+        <a href="/contact">联系</a>
+        <a href="/about">关于</a>
+        <a href="/privacy">隐私</a>
+        <a href="/en/" lang="en" data-lang-switch="en">English version</a>
+      </nav>
+    </section>
+  </div>
+  <p>ImageLab · 全部处理在浏览器本地完成，图片不会上传</p>
+</footer>
+
+
+</body>
+</html>

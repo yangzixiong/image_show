@@ -107,13 +107,21 @@ PAGES = [
     ("en", "en/tools/video-frame.html", "/en/tools/video-frame"),
     ("zh", "tools/storyboard-timer.html", "/tools/storyboard-timer"),
     ("en", "en/tools/storyboard-timer.html", "/en/tools/storyboard-timer"),
+    ("zh", "guides/index.html", "/guides/"),
+    ("en", "en/guides/index.html", "/en/guides/"),
+    ("zh", "guides/crop-social.html", "/guides/crop-social"),
+    ("en", "en/guides/crop-social.html", "/en/guides/crop-social"),
+    ("zh", "guides/remove-bg-controlnet.html", "/guides/remove-bg-controlnet"),
+    ("en", "en/guides/remove-bg-controlnet.html", "/en/guides/remove-bg-controlnet"),
+    ("zh", "guides/video-frame-ai.html", "/guides/video-frame-ai"),
+    ("en", "en/guides/video-frame-ai.html", "/en/guides/video-frame-ai"),
 ]
 
 # 计划中的最终 URL 全集（链接指向此处视为有效）
 # 全部页面已交付，清空
 PLANNED_URLS = set()
 
-EXPECTED_SITEMAP = 56  # 2 个首页 + 26 个内容页（9 篇 guides 中英 + faq/about/contact/privacy 中英）+ 28 个工具页
+EXPECTED_SITEMAP = 64  # 2 个首页 + 34 个内容页（12 篇 guides + 聚合页，中英 + faq/about/contact/privacy 中英）+ 28 个工具页
 
 # 不得被删除/破坏的既有资源（spec 第 9.10 条）
 EXPECTED_ASSETS = [
